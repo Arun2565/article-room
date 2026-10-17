@@ -72,6 +72,15 @@
 }
 .toc-sub:hover{background:color-mix(in srgb,var(--ink-2) 7%,transparent);color:var(--ink)}
 .toc-sub:hover::before{background:var(--accent)}
+.toc-chapter.is-current{
+  background:color-mix(in srgb,var(--accent) 9%,transparent);color:var(--accent);
+  font-weight:600;
+}
+.toc-sub.is-active{
+  color:var(--accent);font-weight:600;
+  background:color-mix(in srgb,var(--accent) 7%,transparent);
+}
+.toc-sub.is-active::before{background:var(--accent);width:5px;height:5px}
 .toc-sub-sub{padding-left:34px;font-size:.78rem}
 .toc-overlay{background:color-mix(in srgb,var(--bg) 55%,transparent);
   -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
