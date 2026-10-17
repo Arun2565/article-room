@@ -335,7 +335,8 @@
       title.className = 'rr-toptitle';
       title.id = 'rr-toptitle';
       var h1 = document.querySelector('.chapter-title h1');
-      if (h1) title.textContent = shortText(h1);
+      var name = cleanChapterTitle(h1 ? shortText(h1) : '');
+      if (name) title.textContent = name;
       var actions = document.createElement('div');
       actions.className = 'rr-header-actions';
       ['rr-toc-btn', 'rr-font-btn', 'rr-theme-btn'].forEach(function (id) {
@@ -463,6 +464,8 @@
           ticking = false;
           onScroll();
           saveProgress();
+          if (typeof updateProgress === 'function') updateProgress();
+          if (typeof updateStatus === 'function') updateStatus();
         });
       }, { passive: true });
     }
@@ -593,6 +596,38 @@
       }
       main.appendChild(nav);
     } catch (e) {}
+  }
+
+
+  /* A book's own H1 is written for print: "2 Working with text data",
+   * "Chapter 1. Overview of ...", "appendix AIntroduction to ...". The TOC
+   * gets clean names from the build; the sticky top bar reads the heading
+   * straight from the page, so it needs the same clean-up here. */
+  function cleanChapterTitle(raw) {
+    var t = (raw || '').replace(/\s+/g, ' ').trim();
+    if (!t) return '';
+    t = t.replace(/^appendix\s+([A-Za-z]|[0-9]+)\s*[.:\-\u2013\u2014]?\s*/i, '')
+         .replace(/^part\s+([0-9]+|[A-Za-z])\s*[.:\-\u2013\u2014]?\s*/i, '')
+         .replace(/^(?:[A-Za-z]{2,}\d{3,}\s*)?(?:lecture|chapter|chap\.?|section)\s*([0-9]+(?:\.[0-9]+)*)\s*[.:\-\u2013\u2014]?\s*/i, '')
+         /* a bare number glued to the text: one or two digits only, so
+          * "300K Subs" and "The Only 6 Metrics" keep their numbers */
+         .replace(/^([0-9]{1,2})[\s\.:\)\-\u2013\u2014]*([A-Za-z].*)$/, '$2');
+    return t.trim();
+  }
+
+  /* Some books define their own toggleChapter, some do not (and none of
+   * them define navigateToChapter any more, since rows now navigate with
+   * their own href). One owner, so the arrow always works. */
+  if (!window.toggleChapter) {
+    window.toggleChapter = function (event, idx) {
+      if (event) { event.preventDefault(); event.stopPropagation(); }
+      var arrow = document.getElementById('arrow-' + idx);
+      var subs = document.getElementById('subs-' + idx);
+      if (!subs) return;
+      var open = subs.style.display !== 'none';
+      subs.style.display = open ? 'none' : 'block';
+      if (arrow) arrow.classList.toggle('open', !open);
+    };
   }
 
   ensureCSS();
@@ -736,23 +771,37 @@
     if (typeof updateStatus === 'function') updateStatus();
   }
 
-  /* number the chapters and mark the one being read */
+  /* Badge each row the way the book itself numbers it: chapters get their
+   * own number, appendices a letter, front matter nothing at all. The build
+   * writes data-kind/data-num so nothing is guessed from list position. */
   function markCurrent() {
     var here = currentFile();
     var rows = chapterRows();
-    var current = null;
-    rows.forEach(function (w, i) {
+    var current = null, chapterNo = 0;
+    rows.forEach(function (w) {
       var a = w.querySelector('a.toc-chapter');
       if (!a) return;
       var title = a.querySelector('.rr-toc-title');
       if (!title && a.firstElementChild) a.firstElementChild.classList.add('rr-toc-title');
-      var num = w.querySelector('.rr-toc-num');
-      if (!num) {
-        num = document.createElement('span');
-        num.className = 'rr-toc-num';
-        a.insertBefore(num, a.firstChild);
+      var kind = w.getAttribute('data-kind') || 'chapter';
+      var num = w.getAttribute('data-num') || '';
+      var numEl = w.querySelector('.rr-toc-num');
+      if (kind === 'chapter') chapterNo++;
+      var label = '';
+      if (kind === 'chapter') label = num || String(chapterNo);
+      else if (kind === 'appendix') label = num || '';
+      if (label) {
+        if (!numEl) {
+          numEl = document.createElement('span');
+          numEl.className = 'rr-toc-num';
+          a.insertBefore(numEl, a.firstChild);
+        }
+        numEl.textContent = label;
+        numEl.classList.toggle('rr-toc-num-letter', kind !== 'chapter');
+      } else if (numEl) {
+        numEl.parentNode.removeChild(numEl);
       }
-      num.textContent = (i + 1 < 10 ? '0' : '') + (i + 1);
+      w.classList.toggle('rr-front', kind === 'front');
       var href = (a.getAttribute('href') || '').split('#')[0];
       var hit = here && href && href === here;
       a.classList.toggle('rr-current', !!hit);

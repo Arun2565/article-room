@@ -473,6 +473,29 @@ body.epub-page .progress-bar { left: 0 !important; }
 }
 .toc-chapter-wrap { margin-bottom: 1px; }
 
+/* group headings: front matter / appendices */
+.toc-group {
+  padding: 14px 12px 6px;
+  font-family: 'DM Mono', ui-monospace, monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text3, #777);
+}
+.toc-group:first-child { padding-top: 4px; }
+/* front matter is listed, not numbered: no badge, quieter weight */
+.toc-chapter-wrap[data-kind="front"] a.toc-chapter {
+  color: var(--text2, #444);
+  font-size: 0.86rem;
+}
+.toc-chapter-wrap[data-kind="front"] a.toc-chapter .rr-toc-title {
+  font-style: italic;
+}
+.rr-toc-num-letter {
+  font-size: 0.68rem !important;
+  letter-spacing: 0;
+}
+
 a.toc-chapter {
   display: flex !important;
   align-items: center !important;

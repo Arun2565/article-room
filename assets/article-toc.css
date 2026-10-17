@@ -34,6 +34,32 @@
 .toc-nav::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb,var(--ink-2) 45%,transparent);
   background-clip:content-box}
 .toc-chapter-wrap{border-radius:10px;margin-bottom:2px}
+/* Chapter rows: number, title, arrow on one baseline. The course-room
+   theme forces JetBrains Mono on .toc-chapter with !important, so these
+   selectors carry one more class to win, and the title gets a two-line
+   clamp instead of an ellipsis that hides the chapter's name. */
+body .toc-panel a.toc-chapter{
+  display:flex!important;align-items:flex-start!important;gap:9px!important;
+  padding:8px 10px!important;border-radius:8px!important;
+  border-left:2px solid transparent!important;background:transparent!important;
+  font-family:var(--rr-readfont,'Spectral',Georgia,serif)!important;
+  font-size:.9rem!important;font-weight:400!important;line-height:1.35!important;
+  color:var(--ink)!important;text-align:left!important;text-decoration:none!important;
+}
+body .toc-panel a.toc-chapter>.rr-toc-title,
+body .toc-panel a.toc-chapter>span:first-of-type{
+  flex:1 1 auto!important;min-width:0!important;text-align:left!important;
+  display:-webkit-box!important;-webkit-line-clamp:2!important;
+  -webkit-box-orient:vertical!important;overflow:hidden!important;
+  overflow-wrap:anywhere!important;
+}
+body .toc-panel a.toc-chapter>.rr-toc-title{flex:0 1 auto!important;width:auto!important}
+body .toc-panel a.toc-chapter>.rr-toc-num{
+  flex:none!important;min-width:1.6em!important;
+  font-family:'DM Mono',ui-monospace,monospace!important;
+  font-size:.62rem!important;line-height:1.65!important;color:var(--ink-2)!important;
+}
+body .toc-panel a.toc-chapter>.toc-arrow{flex:none!important;margin-top:.15em}
 .toc-chapter{
   gap:10px;padding:9px 10px;border-left:0;border-radius:10px;
   font-size:.9rem;font-weight:500;letter-spacing:-.005em;line-height:1.35;
