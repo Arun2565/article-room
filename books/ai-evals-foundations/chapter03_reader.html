@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generate Synthetic Datasets for AI Evals — AI Evals Foundations: From Vibe Checking to Measurable AI</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css');
+
+    :root {
+      --bg: #FAF6EE;
+      --surface: #FFFFFF;
+      --ink: #2D2522;
+      --ink-2: #6E625B;
+      --accent: #A34A2E;
+      --border: rgba(163,74,46,0.1);
+      --font-reader: 'Newsreader', 'EB Garamond', 'Baskerville', 'Garamond', Georgia, serif;
+      --toc-width: 280px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #1a1a1a;
+      --surface: #2d2d2d;
+      --ink: #e0e0e0;
+      --ink-2: #a0a0a0;
+      --accent: #E28C68;
+      --border: rgba(243,239,233,0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-reader);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+
+    .top-bar button {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .top-bar button:hover {
+      background: rgba(163,74,46,0.08);
+    }
+
+    .top-bar button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .top-bar-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--ink-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60%;
+    }
+
+    .reader-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 60px 80px;
+    }
+
+    .reader-content h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      line-height: 1.3;
+    }
+
+    .reader-content h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 32px 0 16px;
+    }
+
+    .reader-content h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 24px 0 12px;
+      color: var(--ink-2);
+    }
+
+    .reader-content p {
+      font-size: 1.15rem;
+      line-height: 1.85;
+      margin-bottom: 1.2em;
+      text-align: left;
+    }
+
+    .reader-content blockquote {
+      margin: 20px 0;
+      padding: 16px 20px;
+      border-left: 3px solid var(--accent);
+      background: rgba(163,74,46,0.04);
+      font-style: italic;
+    }
+
+    .reader-content dl {
+      margin: 20px 0;
+    }
+
+    .reader-content dt {
+      font-weight: 600;
+      margin: 16px 0 8px;
+      font-style: italic;
+    }
+
+    .reader-content dd {
+      margin-left: 20px;
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .reader-content table {
+      display: table;
+      width: 100%;
+      margin: 24px 0;
+      border-collapse: collapse;
+      font-size: 1rem;
+      border: 1px solid #c3c3c3;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .reader-content th {
+      display: table-cell;
+      background: #f0f4f8;
+      border-bottom: 2px solid #9d9d9d;
+      padding: 14px 16px;
+      font-weight: 600;
+      text-align: left;
+      font-size: 0.95rem;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td {
+      display: table-cell;
+      padding: 14px 16px;
+      border-bottom: 1px solid #ddd;
+      border-right: 1px solid #eee;
+      vertical-align: top;
+      font-size: 1rem;
+      line-height: 1.7;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td:last-child {
+      border-right: none;
+    }
+
+    .reader-content tr:nth-of-type(even) {
+      background-color: #fafbfd;
+    }
+
+    .reader-content figure,
+    .reader-content .figure {
+      margin: 24px auto;
+      text-align: center;
+    }
+
+    .reader-content img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .reader-content figcaption,
+    .reader-content figure h6,
+    .reader-content .figure h6 {
+      font-size: 0.9rem;
+      font-style: italic;
+      color: var(--ink-2);
+      margin-top: 8px;
+    }
+
+    .reader-content .note,
+    .reader-content [data-type="note"] {
+      margin: 20px 0;
+      padding: 16px 20px;
+      background: #f8f4e8;
+      border: 1px solid #e6d48a;
+      border-radius: 6px;
+    }
+
+    .ann-hl { border-radius: 2px; }
+    .ann-note { border-radius: 2px; }
+
+    pre.code, pre[data-lang], .code {
+      background: #1e1e1e !important;
+      border-radius: 8px !important;
+      padding: 16px 20px !important;
+      margin: 20px 0 !important;
+      overflow-x: auto !important;
+      position: relative !important;
+      border: 1px solid #333 !important;
+    }
+
+    pre.code[data-lang]::before, pre[data-lang]::before {
+      content: attr(data-lang);
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      font-size: 0.7rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace;
+    }
+
+    pre.code code, pre[data-lang] code, .code code {
+      color: #e0e0e0 !important;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace !important;
+      font-size: 0.9rem !important;
+      line-height: 1.6 !important;
+      background: none !important;
+      padding: 0 !important;
+      border: none !important;
+      white-space: pre !important;
+    }
+
+    p code, li code, td code {
+      background: rgba(0,0,0,0.06) !important;
+      padding: 2px 6px !important;
+      border-radius: 4px !important;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace !important;
+      font-size: 0.85em !important;
+    }
+
+    .line-numbers-rows { border-right: 1px solid #444 !important; }
+
+    .progress-bar {
+      position: fixed;
+      top: 52px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 99;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .ann-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent);
+      color: white;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .chapter-title {
+      text-align: center;
+      padding: 40px 20px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chapter-title h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .toc-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--toc-width);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      z-index: 200;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+    }
+
+    .toc-panel.open {
+      transform: translateX(0);
+    }
+
+    .toc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      height: 52px;
+    }
+
+    .toc-header h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .toc-close {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+    }
+
+    .toc-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+
+    .toc-chapter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .toc-chapter:hover {
+      background: rgba(163,74,46,0.06);
+      border-left-color: var(--accent);
+    }
+
+    .toc-ann-count {
+      background: var(--accent);
+      color: white;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      min-width: 22px;
+      text-align: center;
+    }
+
+    .toc-arrow {
+      font-size: 0.6rem;
+      color: var(--ink-2);
+      transition: transform 0.2s ease;
+      margin-left: auto;
+    }
+
+    .toc-arrow.open {
+      transform: rotate(90deg);
+    }
+
+    .toc-subs {
+      padding: 4px 0;
+      border-left: 2px solid var(--border);
+      margin-left: 20px;
+    }
+
+    .toc-sub {
+      padding-left: 32px;
+      font-weight: 400;
+    }
+
+    .toc-sub-sub {
+      padding-left: 48px;
+      font-size: 0.75rem;
+    }
+
+    .toc-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 199;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .toc-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--ink-2);
+      z-index: 100;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 60px;
+      border-top: 1px solid var(--border);
+      color: var(--ink-2);
+      font-size: 0.8rem;
+    }
+  
+    /* Substack markup mapped onto the reader theme */
+    .reader-content .callout-block {
+      background: color-mix(in srgb, var(--accent) 7%, transparent);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin: 22px 0;
+    }
+    .reader-content .callout-block p { margin: 0.4em 0; }
+    .reader-content .callout-block p:first-child { margin-top: 0; }
+    .reader-content .callout-block p:last-child { margin-bottom: 0; }
+    .reader-content [data-type='quote'] {
+      border-left: 3px solid var(--border);
+      padding-left: 16px;
+      color: var(--ink-2);
+    }
+    .reader-content .image-link { text-decoration: none; }
+    .reader-content hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+    .reader-content .available-content > p > u { text-decoration: none; }
+    .reader-content sup a, .reader-content sub a { text-decoration: none; }
+    .chapter-nav a { color: var(--accent); text-decoration: none; }
+    .chapter-nav a:hover { text-decoration: underline; }
+
+  </style>
+<link rel="stylesheet" href="../../assets/site.css?v=18">
+<link rel="stylesheet" href="../../assets/article-toc.css?v=1">
+<link rel="stylesheet" href="../../assets/course-theme.css?v=3">
+</head>
+<body>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="toc-overlay" id="tocOverlay" onclick="toggleTOC()"></div>
+
+  <div class="toc-panel" id="tocPanel">
+    <div class="toc-header">
+      <h3>Table of Contents</h3>
+      <button class="toc-close" onclick="toggleTOC()">✕</button>
+    </div>
+    <nav class="toc-nav">
+<div class="toc-chapter-wrap" data-chapter="0">
+<a href="chapter01_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter01_reader.html')"><span>Integrating AI Evals Into Your AI App</span><span class="toc-arrow" id="arrow-0" onclick="toggleChapter(event, 0)">&#9654;</span></a>
+<div class="toc-subs" id="subs-0" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">Opik: Open-Source Observability for Your Multimodal AI Agents (Sponsored )</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">The Holistic View of AI Evals</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Using Evals for Optimization</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Using Evals for Regression</a>
+<a class="toc-heading toc-sub" href="#rr-h-5">Using Evals for Production Monitoring</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Looking at Common Misconceptions</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-7">Guardrails vs. Evaluators</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-8">App Evaluators vs. LLM Evaluators</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-9">Evaluator vs. Classic Software Tests</a>
+<a class="toc-heading toc-sub" href="#rr-h-10">So What Is the Tech Stack?</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-12">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-13">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-14">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="1">
+<a href="chapter02_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter02_reader.html')"><span>Build an AI Evals Dataset from Scratch</span><span class="toc-arrow" id="arrow-1" onclick="toggleChapter(event, 1)">&#9654;</span></a>
+<div class="toc-subs" id="subs-1" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">Opik: Open-Source Observability for Your Multimodal AI Agents (Sponsored )</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Create the AI Evals Dataset</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Manually Label Your Dataset</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Manually Fix Errors</a>
+<a class="toc-heading toc-sub" href="#rr-h-5">Iteratively Build Your Evaluator</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Doing Error Analysis</a>
+<a class="toc-heading toc-sub" href="#rr-h-7">Create Specialized Evaluators</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">Demo</a>
+<a class="toc-heading toc-sub" href="#rr-h-9">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-12">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="2">
+<a href="chapter03_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter03_reader.html')"><span>Generate Synthetic Datasets for AI Evals</span><span class="toc-arrow" id="arrow-2" onclick="toggleChapter(event, 2)">&#9654;</span></a>
+<div class="toc-subs" id="subs-2" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">Opik: Automated Agent Optimization Using Your Evals Data (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">When Do We Need Synthetic Data?</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Understanding the Core Principles</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Seeing Your Inputs as Dimensions</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-5">How much data do you need?</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-6">Does this actually work?</a>
+<a class="toc-heading toc-sub" href="#rr-h-7">When Having Some Production Data</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">When Building Agents</a>
+<a class="toc-heading toc-sub" href="#rr-h-9">When Doing RAG</a>
+<a class="toc-heading toc-sub" href="#rr-h-10">For Deterministic Testing</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-12">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-13">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-14">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="3">
+<a href="chapter04_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter04_reader.html')"><span>How to Design Evaluators</span><span class="toc-arrow" id="arrow-3" onclick="toggleChapter(event, 3)">&#9654;</span></a>
+<div class="toc-subs" id="subs-3" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">How to Design Evaluators</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Opik: Open-Source LLMOps Platform (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Understanding the Evaluation Harness</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Dataset and Metric Types: Three Ways to Grade</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-5">1. Direct Scoring (Pointwise Evaluation)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-6">2. Pairwise Comparison</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-7">3. Reference-Based Evaluation</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">Model Evaluation vs. App Evaluation (Why Benchmarks Lie)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-9">Model Evaluation (Benchmarks)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">App Evaluation (What You Actually Need)</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">Components of an Evaluator</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-12">1. Reference Examples (Few-Shot Prompts)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-13">2. Metrics</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-14">3. Rubrics</a>
+<a class="toc-heading toc-sub" href="#rr-h-15">Code-Based Evaluators: Fast, Cheap, Objective</a>
+<a class="toc-heading toc-sub" href="#rr-h-16">LLM Judges: Flexible, Scalable, Nuanced</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-17">Strengths of LLM Judges</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-18">Weaknesses of LLM Judges</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-19">Making LLM Judges More Stable</a>
+<a class="toc-heading toc-sub" href="#rr-h-20">Common Mistakes (And How to Avoid Them)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-21">Mistake 1: Not Providing Critiques</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-22">Mistake 2: Overly Terse Critiques</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-23">Mistake 3: Missing Context</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-24">Mistake 4: Not Providing Diverse Examples</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-25">Mistake 5: Using Ready-Made Metrics Without Validation</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-26">Mistake 6: Using 1-5 Scales Instead of Binary Pass/Fail</a>
+<a class="toc-heading toc-sub" href="#rr-h-27">When Should I Use Similarity Metrics (BERTScore, ROUGE, etc.)?</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-28">When They Work</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-29">When They Fail</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-30">The Rule</a>
+<a class="toc-heading toc-sub" href="#rr-h-31">Advanced Metric Designs</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-32">Evaluating Multi-Turn Conversation Traces</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-33">Evaluating Complex Multi-Step Workflows</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-34">Evaluating Agentic Workflows</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-35">Phase 1: End-to-End Task Success</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-36">Phase 2: Step-Level Diagnostics</a>
+<a class="toc-heading toc-sub" href="#rr-h-37">Bringing It All Together</a>
+<a class="toc-heading toc-sub" href="#rr-h-38">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-39">Most AI newsletters give you news. The AI Engineer gives you understanding.</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-40">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-41">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-42">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="4">
+<a href="chapter05_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter05_reader.html')"><span>How to Evaluate the Evaluator</span><span class="toc-arrow" id="arrow-4" onclick="toggleChapter(event, 4)">&#9654;</span></a>
+<div class="toc-subs" id="subs-4" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">How to Evaluate the Evaluator</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Opik: Automated Agent Optimization Using Your Data (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Structuring Your Data for Validation</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Measuring Alignment With Human Judgment</a>
+<a class="toc-heading toc-sub" href="#rr-h-5">When High Scores Hide Real Failures</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Closing the Gap Between Judge and Expert</a>
+<a class="toc-heading toc-sub" href="#rr-h-7">Dealing With Non-Determinism</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">Demo</a>
+<a class="toc-heading toc-sub" href="#rr-h-9">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-12">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="5">
+<a href="chapter06_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter06_reader.html')"><span>RAG Evaluation: The Only 6 Metrics You Need</span><span class="toc-arrow" id="arrow-5" onclick="toggleChapter(event, 5)">&#9654;</span></a>
+<div class="toc-subs" id="subs-5" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">RAG Evaluation: The Only 6 Metrics You Need</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Opik: Open-Source LLMOps Platform (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">The Only 6 RAG Evaluation Metrics That Can Exist</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Tier 1: If Retrieval Is Broken, Nothing Else Matters</a>
+<a class="toc-heading toc-sub" href="#rr-h-5">Tier 2: The Three RAG Metrics You Always Need</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Tier 3: When the Core Metrics Can’t Explain the Failure</a>
+<a class="toc-heading toc-sub" href="#rr-h-7">Matching Frequency and Strictness to Your Domain</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">Building the RAG Evaluation Harness</a>
+<a class="toc-heading toc-sub" href="#rr-h-9">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-12">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="6">
+<a href="chapter07_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter07_reader.html')"><span>Lessons from 6 Months of Evals on a Production AI Companion</span><span class="toc-arrow" id="arrow-6" onclick="toggleChapter(event, 6)">&#9654;</span></a>
+<div class="toc-subs" id="subs-6" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">Opik: Open-Source LLMOps Platform (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Problems With AI Observability</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-3">Falling for Classic Metrics or Trying to Define What’s “Good” or “Bad”</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-4">Not Going Through Manual Annotations</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-5">Not Treating Your AI Agents as a Data Product</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Implementing AI Observability</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-7">Opik Overview</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-8">Opik MCP Server</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-9">Figuring Out Evaluation Criteria</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">Refining Evaluation Criteria</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-11">Running Annotation Sessions</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-12">Making Sense of Annotated Feedback</a>
+<a class="toc-heading toc-sub" href="#rr-h-13">Backstory of This Framework</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-14">Do you want more articles like this from Alejandro?</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-15">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-16">Images</a>
+</div>
+</div>
+</nav>
+  </div>
+
+  <nav class="top-bar">
+    <button onclick="toggleTOC()" title="Table of Contents">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <span class="top-bar-title">AI Evals Foundations: From Vibe Checking to Measurable AI</span>
+    <button onclick="toggleTheme()" title="Toggle theme">
+      <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    </button>
+  </nav>
+
+  <main class="reader-content">
+<div class="chapter-title">
+<h1 id="rr-h-0">Generate Synthetic Datasets for AI Evals</h1>
+<p style="color:var(--ink-2);font-size:.9rem">Chapter 3 of 7 &middot; Paul Iusztin, <a href="https://www.decodingai.com/p/generate-synthetic-datasets-for-ai-evals" target="_blank" rel="noopener">read the original post</a></p>
+</div>
+<div class="body markup" dir="auto"><p><em><span>Welcome to the </span><strong><a href="https://www.decodingai.com/t/ai-evals-foundations">AI Evals Foundations series</a></strong><span>: A 7-part journey from shipping AI apps to systematically improving them. Made by busy people. For busy people.</span></em></p><p>🧐 Everyone says you need AI evals. Few explain how to actually build them and answer questions such as…</p><p>How do we avoid creating evals that waste our time and resources? How do we build datasets and design evaluators that matter? How do we adapt them for RAG? ...and most importantly, how do we stop “vibe checking” and leverage evals to actually track and optimize our app?</p><p><em>This 7-article series breaks it all down from first principles:</em></p><ol><li><p><a href="https://www.decodingai.com/p/integrating-ai-evals-into-your-ai-app">Integrating AI Evals Into Your AI App</a><strong> </strong></p></li><li><p><a href="https://www.decodingai.com/p/build-an-ai-evals-dataset-with-error-analysis">Build an AI Evals Dataset from Scratch</a><span> </span></p></li><li><p><strong>Generate Synthetic Datasets for AI Evals</strong><span> ← </span><em>You are here</em></p></li><li><p><a href="https://www.decodingai.com/p/how-to-design-ai-evaluators-that-catch-failures">How to Design Evaluators</a></p></li><li><p><a href="https://www.decodingai.com/p/how-to-evaluate-the-evaluator-validate-llm-judge">How to Evaluate the Evaluator</a></p></li><li><p><a href="https://www.decodingai.com/p/rag-evaluation-6-metrics-framework">RAG Evaluation: The Only 6 Metrics You Need</a></p></li><li><p><a href="https://www.decodingai.com/p/behind-the-scenes-of-ai-observability">Lessons from 6 Months of Evals on a Production AI Companion</a></p></li></ol><p>By the end, you’ll know how to integrate AI evals that actually track and improve the performance of your AI product. No vibe checking required!</p><p><strong>Let’s get started.</strong></p><div><hr/></div><h1 class="header-anchor-post">Generate Synthetic Datasets for AI Evals</h1><p><span>In the </span><a href="https://www.decodingai.com/p/build-an-ai-evals-dataset-with-error-analysis">previous article</a><span>, you learned how to iteratively build an evals dataset using the error analysis framework. You started from production traces, labeled them, fixed errors, and grew your dataset over time. </span><strong>But what if you lack production traces?</strong></p><p>What if your production data only covers a fraction of the features, personas, and edge cases your app supports? Synthetic data fills the gaps that production data alone cannot cover.</p><p><span>When I was building Nova, the deep research agent for my </span><a href="https://academy.towardsai.net/courses/agent-engineering?ref=b3ab31">Agentic AI Engineering course</a><span>, I hit this exact wall. I built an evaluation layer with binary metrics across dozens of dimensions. The metrics were solid, and the LLM judge was calibrated.</span></p><p>But then I needed test data. The agent lacked real users, real generated articles, and traces. I started by manually writing test inputs. After a painful week, I had maybe 15 examples.</p><p>They all reflected my own biases. I was testing the same happy path over and over. Entire categories of failure modes went completely untested.</p><p>The most time-consuming bottleneck wasn’t building the judge. It was generating enough diverse, realistic test inputs. That experience taught me that structured synthetic data generation unlocks your entire evals pipeline.</p><p>Most teams fire off a single generic prompt to create test inputs. The result is a homogenous, shallow dataset where most examples look identical. The LLM converges on the most generic patterns, causing mode collapse.</p><p>You end up testing the same happy path over and over. You need test data, but you lack sufficient or diverse production traffic. Naively generating synthetic data produces datasets that are repetitive and miss your business use cases.</p><p>A structured approach gives you control over the distribution of your test inputs. You achieve this by thinking in terms of dimensions, anchoring it in your business use case, and applying targeted strategies.</p><p><strong>In this article, you will learn:</strong></p><ul><li><p>When to rely on synthetic data generation.</p></li><li><p>Why you should only generate user inputs.</p></li><li><p>How to use dimensions to avoid mode collapse.</p></li><li><p>Strategies to expand existing production data.</p></li><li><p>Approaches for agents, RAG, and deterministic tasks.</p></li></ul><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!FVJv!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc45b991a-4ed5-4d9e-8116-d6c2d8759698_1200x676.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!FVJv!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc45b991a-4ed5-4d9e-8116-d6c2d8759698_1200x676.png 424w, https://substackcdn.com/image/fetch/$s_!FVJv!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc45b991a-4ed5-4d9e-8116-d6c2d8759698_1200x676.png 848w, https://substackcdn.com/image/fetch/$s_!FVJv!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc45b991a-4ed5-4d9e-8116-d6c2d8759698_1200x676.png 1272w, https://substackcdn.com/image/fetch/$s_!FVJv!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc45b991a-4ed5-4d9e-8116-d6c2d8759698_1200x676.png 1456w" type="image/webp"/><img alt="Synthetic data and production traces both feed into the evals dataset, which drives the error analysis flywheel" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/c45b991a-4ed5-4d9e-8116-d6c2d8759698_1200x676.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":676,"width":1200,"resizeWidth":null,"bytes":null,"alt":"Synthetic data and production traces both feed into the evals dataset, which drives the error analysis flywheel","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="676" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!FVJv!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc45b991a-4ed5-4d9e-8116-d6c2d8759698_1200x676.png" srcset="https://substackcdn.com/image/fetch/$s_!FVJv!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc45b991a-4ed5-4d9e-8116-d6c2d8759698_1200x676.png 424w, https://substackcdn.com/image/fetch/$s_!FVJv!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc45b991a-4ed5-4d9e-8116-d6c2d8759698_1200x676.png 848w, https://substackcdn.com/image/fetch/$s_!FVJv!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc45b991a-4ed5-4d9e-8116-d6c2d8759698_1200x676.png 1272w, https://substackcdn.com/image/fetch/$s_!FVJv!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc45b991a-4ed5-4d9e-8116-d6c2d8759698_1200x676.png 1456w" title="Synthetic data and production traces both feed into the evals dataset, which drives the error analysis flywheel" width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 1: Synthetic data is a complementary input to production traces — both feed the same evals dataset that drives the error analysis flywheel.</em></figcaption></figure></div><p><em>Before digging into the article, a quick word from our sponsor, Opik.</em><span> ↓</span></p><div><hr/></div><h2 class="header-anchor-post" id="rr-h-1"><a href="https://www.comet.com/docs/opik/agent_optimization/quickstart?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik: Automated Agent Optimization Using Your Evals Data (Sponsored)</a></h2><p><span>This AI Evals &amp; Observability series is brought to you by </span><strong><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik</a></strong><span>, the LLMOps open-source platform used by Uber, Netflix, Etsy, and more.</span></p><p><span>We use Opik daily across our courses and AI products. Not just for observability, but now to </span><strong>automatically optimize our agents’ prompts</strong><span> using the same datasets and metrics we already have in the platform.</span></p><p><span>You are learning how to build diverse synthetic datasets to evaluate your AI app. But once you have those datasets and metrics, why stop at measuring quality?</span><strong><span> </span><a href="https://www.comet.com/docs/opik/agent_optimization/quickstart?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik’s agent optimizer</a></strong><span> closes the loop. It uses your </span><strong>eval dataset to automatically improve your prompts</strong><span>. Here is why we love it:</span></p><ul><li><p><strong>Same datasets, zero extra setup</strong><span> — Opik’s optimizer reuses the exact datasets, metrics, and tracing you already have. </span><a href="https://www.comet.com/docs/opik/agent_optimization/quickstart?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Quick start guide</a><span>.</span></p></li><li><p><strong>Six optimization algorithms</strong><span> — Choose from strategies like HRPO (our favorite), which performs root-cause analysis on failures and proposes targeted fixes, or evolutionary optimization to explore diverse prompt structures. </span><a href="https://www.comet.com/docs/opik/agent_optimization/algorithms/overview?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">See all algorithms.</a></p></li><li><p><strong>No-code Optimization Studio</strong><span> — For quick iterations, run optimization directly from the </span><a href="https://www.comet.com/docs/opik/agent_optimization/optimization_studio?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Optimization Studio UI</a><span>. Start from your prompt, pick your dataset, choose an algorithm, and watch Opik test prompt variations against your metrics in real time.</span></p></li></ul><p><strong><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik</a></strong><span> is fully open source and integrates with OpenAI, Anthropic, Gemini, and 100+ providers. </span><em>Start optimizing your agents:</em></p><div><hr/></div><p><span>↓ </span><em>Now, let’s move back to the article.</em></p><h2 class="header-anchor-post" id="rr-h-2">When Do We Need Synthetic Data?</h2><p><span>Before you have any production data, you face </span><em>the cold start problem</em><span>. You might be building a new feature or preparing for a launch. You need to simulate months of traffic in hours to ensure a reliable initial release. You cannot wait for real users to find your bugs. Synthetic data lets you test your application before day one.</span></p><p>Sometimes your app is live, but you lack enough production data. You might have 50 traces instead of 5,000. The error analysis framework needs enough examples to surface recurring patterns. Synthetic data supplements your real traces.</p><p>Other times, your data lacks diversity. You might have plenty of production traces, but they cluster around a few common use cases. Most users ask the same types of questions. You end up with almost no examples of edge cases, adversarial inputs, or minority user personas. Synthetic data lets you deliberately target the underrepresented regions of your input space.</p><p>Now that you know when synthetic data is necessary, let’s understand the core principle behind how it works. Most people get this fundamental concept wrong.</p><h2 class="header-anchor-post" id="rr-h-3">Understanding the Core Principles</h2><p><em><span>The single most important principle is that </span><strong>you generate only the user inputs</strong></em><span>. These queries, messages, or requests should be as diverse as possible. They must cover all your business use cases, edge cases, and user profiles.</span></p><p>You do not generate the intermediate steps or the final outputs. The whole point of your evals dataset is to capture how your actual system behaves. Synthetic outputs would test a fiction, not your real app.</p><p>Instead, you let your real app produce the traces. First, you generate diverse synthetic inputs. Then, you feed all generated inputs into your AI app as if they were real user requests.</p><p><span>You track every trace using your observability platform, such as </span><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik</a><span>. This captures all intermediate tool calls, model reasoning, and final outputs. You then pull these full traces to create your synthetic evals dataset.</span></p><p><span>Finally, you apply the error analysis framework we learned in </span><a href="https://www.decodingai.com/p/build-an-ai-evals-dataset-with-error-analysis">Article 2</a><span>. You label the data with pass/fail judgments, fix errors, build evaluators, and iterate. Your synthetic dataset contains real system behavior triggered by synthetic inputs.</span></p><p><span>This makes it a valid proxy for production. Since the app handles processing and tool calls, </span><strong>the entire challenge reduces to a single thing</strong><span>: </span></p><blockquote><p><em>You must create diverse, realistic, business-grounded inputs.</em></p></blockquote><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!-5_v!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5a406f97-34ad-4c5b-a523-b96cee4b129b_1200x676.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!-5_v!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5a406f97-34ad-4c5b-a523-b96cee4b129b_1200x676.png 424w, https://substackcdn.com/image/fetch/$s_!-5_v!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5a406f97-34ad-4c5b-a523-b96cee4b129b_1200x676.png 848w, https://substackcdn.com/image/fetch/$s_!-5_v!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5a406f97-34ad-4c5b-a523-b96cee4b129b_1200x676.png 1272w, https://substackcdn.com/image/fetch/$s_!-5_v!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5a406f97-34ad-4c5b-a523-b96cee4b129b_1200x676.png 1456w" type="image/webp"/><img alt="The synthetic data pipeline from input generation through your AI app and observability to the evals dataset" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/5a406f97-34ad-4c5b-a523-b96cee4b129b_1200x676.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":676,"width":1200,"resizeWidth":null,"bytes":null,"alt":"The synthetic data pipeline from input generation through your AI app and observability to the evals dataset","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="676" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!-5_v!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5a406f97-34ad-4c5b-a523-b96cee4b129b_1200x676.png" srcset="https://substackcdn.com/image/fetch/$s_!-5_v!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5a406f97-34ad-4c5b-a523-b96cee4b129b_1200x676.png 424w, https://substackcdn.com/image/fetch/$s_!-5_v!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5a406f97-34ad-4c5b-a523-b96cee4b129b_1200x676.png 848w, https://substackcdn.com/image/fetch/$s_!-5_v!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5a406f97-34ad-4c5b-a523-b96cee4b129b_1200x676.png 1272w, https://substackcdn.com/image/fetch/$s_!-5_v!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5a406f97-34ad-4c5b-a523-b96cee4b129b_1200x676.png 1456w" title="The synthetic data pipeline from input generation through your AI app and observability to the evals dataset" width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 2: You only generate the synthetic inputs — your real AI app produces the traces and outputs, which flow through your observability platform into a synthetic evals dataset.</em></figcaption></figure></div><p>Thus, the entire problem reduces to generating input data. Let’s explore concrete strategies for doing so, starting with the most fundamental approach.</p><h2 class="header-anchor-post" id="rr-h-4">Seeing Your Inputs as Dimensions</h2><p>When generating input data, using a generic prompt is a mistake. You have zero control over the distribution of edge cases the LLM generates. The LLM will converge on the most generic, repetitive patterns.</p><p><span>Instead, think about a few key dimensions that matter for your application. Model them as tuples to serve as the seeds for your generation process. </span><em>A common dimension tuple includes the persona, feature, scenario, and input modality.</em></p><p>The persona defines the different user types who interact with your app. You get inputs from an impatient customer, a technical expert, or a confused first-time user.</p><p>The feature represents the different capabilities of your app that you want to test. Examples include answering emails, generating a meeting summary, or drafting an article.</p><p>The scenario defines the specific failure modes or edge cases you want to stress-test. This includes contradictory instructions, garbled input, or outdated information.</p><p>The input modality is the format through which the input arrives. This could be plain text, a forwarded email thread, a voice transcript with filler words, or a pasted spreadsheet snippet.</p><p>If you define 3 personas, 5 features, 10 scenarios, and 3 input modalities (text, image, documents), and combine them all, you get a maximum of 450 unique data seeds. Each seed is a specific combination that drives a targeted, diverse input.</p><p>For each seed, you craft a generation prompt. This prompt includes the dimension values, context about your app, and the scenario’s built-in failure assumption.</p><p><span>Embedding the failure assumption directly in the scenario is highly effective. You tell the LLM exactly what failure to target and what correct behavior looks like </span><a href="https://www.confident-ai.com/blog/the-definitive-guide-to-synthetic-data-generation-using-llms">[1]</a><span>. This makes your synthetic inputs far more precise.</span></p><p>Here are six dimension seeds with their generation prompts for an email and messaging assistant:</p><p>Your dimensions will vary depending on your business use case. You might have entirely different dimensions, such as language or urgency level.</p><h4 class="header-anchor-post" id="rr-h-5">How much data do you need?</h4><p>At a minimum, generate enough data so that you have at least one example for each combination of dimensions. Keep generating more data until you stop seeing new failure modes. A simple chatbot might need 200 examples, while a complex agent might need over a thousand.</p><h4 class="header-anchor-post" id="rr-h-6">Does this actually work?</h4><p>You might wonder if synthetic data actually works. From my experience, if well-guided, LLMs are highly capable of generating excellent, diverse examples of user prompts. Synthetic data is the fastest way to build a meaningful evals dataset early on.</p><p>Dimension-based generation works great when you start from scratch. But what if you already have some production data and want to expand it?</p><h2 class="header-anchor-post" id="rr-h-7">When Having Some Production Data</h2><p>When you have production data, identify your failed or most difficult interactions to use as seeds. If a user input caused your system to fail, generate many variations of that specific input.</p><p>You generate multiple variations of the same input with the same underlying semantics to stress-test your app’s consistency. You can vary the phrasing, the level of aggression, or the ambiguity. This ensures your system never fails the same way twice. This method is known as Metamorphic testing.</p><p>Suppose your agent fails when users send multi-part questions in a single message. You take this real failed trace, combine it with our multi-dimensional strategy, and ask an LLM to generate 20 variations. The resulting inputs target the same failure class with enough variation to test your fix reliably.</p><p><span>Another method is evolutionary complexity, also known as Evol-Instruct. Originally introduced by the WizardLM researchers to generate synthetic training data for LLMs </span><a href="https://arxiv.org/abs/2304.12244">[7]</a><span>, it transfers remarkably well to generating evaluation data.</span></p><p><span>The core problem is the same: producing diverse, progressively complex instructions from a small set of seeds. It uses an evolutionary paradigm to transform simple seed inputs into more complex, realistic ones </span><a href="https://www.confident-ai.com/blog/the-definitive-guide-to-synthetic-data-generation-using-llms">[1]</a><span>.</span></p><p><em>Evol-Instruct is based on 3 core steps:</em></p><ol><li><p><strong>In-depth evolving</strong><span> takes a simple instruction and increases its complexity. It adds constraints, deepens the subject matter, or increases reasoning requirements. A simple order status query evolves into a complex rerouting request.</span></p></li><li><p><strong>In-breadth evolving</strong><span> generates completely new, diverse instructions. This ensures the evaluation suite covers a broad range of topics. While in-depth evolving makes existing inputs harder, in-breadth evolving widens the dataset.</span></p></li><li><p><strong>Elimination evolving</strong><span> is a filtration step. A critic LLM evaluates evolved instructions and discards those that provide no information gain or are nonsensical. This keeps the quality high as complexity grows.</span></p></li></ol><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!sO-t!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5393e2f2-1404-4c34-b485-48eb2f3b29f9_1200x888.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!sO-t!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5393e2f2-1404-4c34-b485-48eb2f3b29f9_1200x888.png 424w, https://substackcdn.com/image/fetch/$s_!sO-t!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5393e2f2-1404-4c34-b485-48eb2f3b29f9_1200x888.png 848w, https://substackcdn.com/image/fetch/$s_!sO-t!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5393e2f2-1404-4c34-b485-48eb2f3b29f9_1200x888.png 1272w, https://substackcdn.com/image/fetch/$s_!sO-t!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5393e2f2-1404-4c34-b485-48eb2f3b29f9_1200x888.png 1456w" type="image/webp"/><img alt="Evol-Instruct evolutionary data expansion showing in-depth, in-breadth, and elimination evolving from a seed input" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/5393e2f2-1404-4c34-b485-48eb2f3b29f9_1200x888.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":888,"width":1200,"resizeWidth":null,"bytes":null,"alt":"Evol-Instruct evolutionary data expansion showing in-depth, in-breadth, and elimination evolving from a seed input","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="888" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!sO-t!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5393e2f2-1404-4c34-b485-48eb2f3b29f9_1200x888.png" srcset="https://substackcdn.com/image/fetch/$s_!sO-t!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5393e2f2-1404-4c34-b485-48eb2f3b29f9_1200x888.png 424w, https://substackcdn.com/image/fetch/$s_!sO-t!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5393e2f2-1404-4c34-b485-48eb2f3b29f9_1200x888.png 848w, https://substackcdn.com/image/fetch/$s_!sO-t!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5393e2f2-1404-4c34-b485-48eb2f3b29f9_1200x888.png 1272w, https://substackcdn.com/image/fetch/$s_!sO-t!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5393e2f2-1404-4c34-b485-48eb2f3b29f9_1200x888.png 1456w" title="Evol-Instruct evolutionary data expansion showing in-depth, in-breadth, and elimination evolving from a seed input" width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 3: Evol-Instruct uses three evolutionary strategies — in-depth, in-breadth, and elimination evolving — to expand a seed input into a diverse, high-quality evolved dataset.</em></figcaption></figure></div><p>These methods work well for single-turn interactions. But what about AI agents that handle multi-step, multi-turn conversations?</p><h2 class="header-anchor-post" id="rr-h-8">When Building Agents</h2><p>For complex AI agents that plan and execute multi-step workflows, evaluation moves beyond single-turn queries. You need to generate an entire conversation.</p><p><span>To evaluate these systems, you set up a dual-agent dynamic: a tester agent simulating the user, and your actual app agent. The tester agent dynamically generates synthetic inputs turn by turn, reacting to your app’s responses just like a real user would </span><a href="https://www.zendesk.com/au/blog/zip1-building-realistic-multi-turn-tests-for-ai-agents/">[3]</a><span>. For example, a tester agent playing a frustrated customer might escalate their tone if the first response is vague or pivot to a different request mid-conversation.</span></p><p>Implementing this tester agent uses the exact same ideas as single-turn generation. You define dimensions like personas and scenarios to impersonate, but you simply run the generation iteratively for each conversation turn.</p><p><span>Some recent research from Nov 2025 shows that agents achieve over 90% accuracy on single-step tasks, but conversation correctness drops to 10-15% on full conversations </span><a href="https://www.zendesk.com/au/blog/zip1-building-realistic-multi-turn-tests-for-ai-agents/">[3]</a><span>. This makes multi-turn flow evaluation a necessity for production reliability.</span></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!iClD!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6d48fe0d-be1e-4826-b232-1ab98efe9a37_1200x888.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!iClD!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6d48fe0d-be1e-4826-b232-1ab98efe9a37_1200x888.png 424w, https://substackcdn.com/image/fetch/$s_!iClD!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6d48fe0d-be1e-4826-b232-1ab98efe9a37_1200x888.png 848w, https://substackcdn.com/image/fetch/$s_!iClD!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6d48fe0d-be1e-4826-b232-1ab98efe9a37_1200x888.png 1272w, https://substackcdn.com/image/fetch/$s_!iClD!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6d48fe0d-be1e-4826-b232-1ab98efe9a37_1200x888.png 1456w" type="image/webp"/><img alt="Multi-turn synthetic interaction between a tester agent and your AI app with session-level evaluation" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/6d48fe0d-be1e-4826-b232-1ab98efe9a37_1200x888.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":888,"width":1200,"resizeWidth":null,"bytes":null,"alt":"Multi-turn synthetic interaction between a tester agent and your AI app with session-level evaluation","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="888" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!iClD!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6d48fe0d-be1e-4826-b232-1ab98efe9a37_1200x888.png" srcset="https://substackcdn.com/image/fetch/$s_!iClD!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6d48fe0d-be1e-4826-b232-1ab98efe9a37_1200x888.png 424w, https://substackcdn.com/image/fetch/$s_!iClD!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6d48fe0d-be1e-4826-b232-1ab98efe9a37_1200x888.png 848w, https://substackcdn.com/image/fetch/$s_!iClD!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6d48fe0d-be1e-4826-b232-1ab98efe9a37_1200x888.png 1272w, https://substackcdn.com/image/fetch/$s_!iClD!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6d48fe0d-be1e-4826-b232-1ab98efe9a37_1200x888.png 1456w" title="Multi-turn synthetic interaction between a tester agent and your AI app with session-level evaluation" width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 4: A tester agent dynamically generates reactive inputs across multiple conversation turns, and the entire session is evaluated for goal completion, tone, and process correctness.</em></figcaption></figure></div><p>Multi-turn interactions are one specialized case for synthetic data. Another common scenario is information retrieval, where your app searches a knowledge base before responding.</p><h2 class="header-anchor-post" id="rr-h-9">When Doing RAG</h2><p><span>When your AI app retrieves information from a knowledge base before generating a response is known as Retrieval-Augmented Generation (RAG). In this scenario, you can use a reverse workflow to create ground-truth datasets. Instead of the standard retrieval flow, you start with the knowledge base and work backwards </span><a href="https://www.evidentlyai.com/llm-guide/llm-test-dataset-synthetic-data">[4]</a><span>.</span></p><p>You start by taking your documents, PDFs, or structured data. You use an LLM to extract key facts, procedures, numbers, or policies from a specific document chunk that’s part of your knowledge base.</p><p>The LLM then generates a realistic user question that can only be answered using that specific chunk. Because the question is derived directly from the source material, you know exactly which document chunk should be retrieved. Which means you can easily generate the right answer as well.</p><p>This guarantees perfect alignment between the input, the expected retrieval context, and the expected output. You get a complete ground-truth triplet containing the question, relevant context, and expected answer.</p><p>To create more diversity within the dataset, you can use the same strategy to define multiple dimensions and mix up question styles and complexity levels to avoid a shallow dataset.</p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!EZyL!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F51414f2b-d109-4a5d-8086-ab41f2bbf027_1200x752.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!EZyL!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F51414f2b-d109-4a5d-8086-ab41f2bbf027_1200x752.png 424w, https://substackcdn.com/image/fetch/$s_!EZyL!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F51414f2b-d109-4a5d-8086-ab41f2bbf027_1200x752.png 848w, https://substackcdn.com/image/fetch/$s_!EZyL!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F51414f2b-d109-4a5d-8086-ab41f2bbf027_1200x752.png 1272w, https://substackcdn.com/image/fetch/$s_!EZyL!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F51414f2b-d109-4a5d-8086-ab41f2bbf027_1200x752.png 1456w" type="image/webp"/><img alt="Reverse-workflow RAG synthesis deriving questions and answers from knowledge base chunks to create ground-truth triplets" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/51414f2b-d109-4a5d-8086-ab41f2bbf027_1200x752.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":752,"width":1200,"resizeWidth":null,"bytes":null,"alt":"Reverse-workflow RAG synthesis deriving questions and answers from knowledge base chunks to create ground-truth triplets","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="752" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!EZyL!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F51414f2b-d109-4a5d-8086-ab41f2bbf027_1200x752.png" srcset="https://substackcdn.com/image/fetch/$s_!EZyL!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F51414f2b-d109-4a5d-8086-ab41f2bbf027_1200x752.png 424w, https://substackcdn.com/image/fetch/$s_!EZyL!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F51414f2b-d109-4a5d-8086-ab41f2bbf027_1200x752.png 848w, https://substackcdn.com/image/fetch/$s_!EZyL!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F51414f2b-d109-4a5d-8086-ab41f2bbf027_1200x752.png 1272w, https://substackcdn.com/image/fetch/$s_!EZyL!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F51414f2b-d109-4a5d-8086-ab41f2bbf027_1200x752.png 1456w" title="Reverse-workflow RAG synthesis deriving questions and answers from knowledge base chunks to create ground-truth triplets" width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 5: The reverse workflow starts from your knowledge base, extracts key facts, generates questions and expected answers, and produces perfectly aligned ground-truth triplets.</em></figcaption></figure></div><p>This reverse synthesis works because you can derive questions and answers from documents. But what about purely deterministic tasks where the correct answer can be computed exactly?</p><h2 class="header-anchor-post" id="rr-h-10">For Deterministic Testing</h2><p>For tasks with deterministic correct answers, you can use your system’s schema or rules to generate both the input and the ground truth. This applies to structured data extraction or calculations, such as text-to-SQL, JSON, code, or math.</p><p><span>You work from the answer backward to the question, similar to the reverse workflow for RAG. However, instead of text, you use schemas, databases, or rule sets </span><a href="https://deepeval.com/guides/guides-using-synthesizer">[6]</a><span>.</span></p><p><span>Suppose you want to generate </span><em>(text, SQL)</em><span> tuples. You have a database with tables for customers, orders, and products. You use your database schema to programmatically generate valid SQL queries of varying complexity. These SQL queries serve as your ground truth.</span></p><p>You then use an LLM to translate each SQL query back into a natural language question. A query selecting customers with pending orders over a specific amount becomes a plain English question.</p><p>Your evals dataset now has a natural language input and the correct SQL mapping. You can test whether your system generates the right query and returns the right data.</p><h2 class="header-anchor-post" id="rr-h-11">Next Steps</h2><p>Building an evals dataset from production traces alone has limits. Synthetic data solves the cold start problem and fills coverage gaps.</p><p>Synthetic data generation is not about blindly asking an LLM to create test cases. It is about structuring your inputs as dimensions, anchoring them in your business use case, and applying the right strategy. The result is a diverse, controlled dataset that you can feed into your error analysis framework.</p><p>Now you know how to build your evals dataset from both production and synthetic data. In the next article, we will show you the right way to build your evalautor(s).</p><p><span>Also, remember that this article is part of a </span><strong><a href="https://www.decodingai.com/t/ai-evals-and-observability">7-piece series on AI Evals &amp; Observability</a></strong><span>. </span><strong>Here is what’s ahead:</strong></p><ol><li><p><a href="https://www.decodingai.com/p/integrating-ai-evals-into-your-ai-app">Integrating AI Evals Into Your AI App</a><span> </span></p></li><li><p><a href="https://www.decodingai.com/p/build-an-ai-evals-dataset-with-error-analysis">Build an AI Evals Dataset from Scratch</a><span> </span></p></li><li><p><strong>Generate Synthetic Datasets for AI Evals</strong><span>  ← </span><em>You just finished this one</em></p></li><li><p><a href="https://www.decodingai.com/p/how-to-design-ai-evaluators-that-catch-failures">How to Design Evaluators</a></p></li><li><p><a href="https://www.decodingai.com/p/how-to-evaluate-the-evaluator-validate-llm-judge">How to Evaluate the Evaluator</a></p></li><li><p><a href="https://www.decodingai.com/p/rag-evaluation-6-metrics-framework">RAG Evaluation: The Only 6 Metrics You Need</a></p></li><li><p><a href="https://www.decodingai.com/p/behind-the-scenes-of-ai-observability">Lessons from 6 Months of Evals on a Production AI Companion</a></p></li></ol><p>See you next Tuesday.</p><p><a href="https://www.pauliusztin.ai/">Paul Iusztin</a></p><div><hr/></div><p><em>What’s your opinion? Do you agree, disagree, or is there something I missed?</em></p><div><hr/></div><p><em>Enjoyed the article? The most sincere compliment is to share our work.</em></p><div><hr/></div><div class="callout-block" data-callout="true"><h4 id="rr-h-12">Whenever you’re ready, here is how I can help you</h4><p><em>Go from agent user to agent builder.</em><span> Master the foundations of AI agents and turn fragile demo code into reliable, production-ready systems with my course, </span><strong><a href="https://academy.towardsai.net/courses/agent-engineering?ref=b3ab31&amp;utm_source=decodingai&amp;utm_medium=partner&amp;utm_campaign=agent_engineering">Agent Engineering: Building Multi-Agent Systems</a></strong><span> (made with Towards AI).</span></p><p>35 lessons. Pure foundations from scratch. 4 mini-projects. 2 production systems. A certificate and direct access to me &amp; industry experts in our Discord.</p><p><span>Built for software and data professionals transitioning into AI engineering. </span><em>Rated 5/5 with 300+ students. The first 7 lessons are free:</em></p><p><em>Not ready to commit?</em><span> Start with our </span><strong><a href="https://email-course.towardsai.net/?ref=b3ab31&amp;utm_source=decodingai&amp;utm_medium=partner&amp;utm_campaign=agent_engineering">free Agent AI Engineering Guide</a></strong><span>, a 6-day email course on the mistakes that silently break AI agents in production.</span></p></div><div><hr/></div><p><em><span>Thanks again to </span><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik</a><span> for sponsoring the series and keeping it free!</span></em></p><div class="captioned-image-container"><figure><a class="image-link image2 can-restack" data-component-name="Image2ToDOM" href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!oSDm!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 424w, https://substackcdn.com/image/fetch/$s_!oSDm!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 848w, https://substackcdn.com/image/fetch/$s_!oSDm!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 1272w, https://substackcdn.com/image/fetch/$s_!oSDm!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 1456w" type="image/webp"/><img alt="Opik Banner" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":364,"width":1456,"resizeWidth":null,"bytes":null,"alt":"Opik Banner","title":"Opik Banner","type":null,"href":"https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul","belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="364" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!oSDm!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png" srcset="https://substackcdn.com/image/fetch/$s_!oSDm!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 424w, https://substackcdn.com/image/fetch/$s_!oSDm!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 848w, https://substackcdn.com/image/fetch/$s_!oSDm!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 1272w, https://substackcdn.com/image/fetch/$s_!oSDm!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 1456w" title="Opik Banner" width="1456"/></picture></div></a><figcaption class="image-caption"><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Try Opik for free here</a><span> (25k spans/month free)</span></figcaption></figure></div><p><strong>If you want to monitor, evaluate and optimize your AI workflows and agents:</strong></p><div><hr/></div><h2 class="header-anchor-post" id="rr-h-13">References</h2><ol><li><p><span>Confident AI. (n.d.). The Definitive Guide to Synthetic Data Generation Using LLMs. Confident AI. </span><a href="https://www.confident-ai.com/blog/the-definitive-guide-to-synthetic-data-generation-using-llms">https://www.confident-ai.com/blog/the-definitive-guide-to-synthetic-data-generation-using-llms</a></p></li><li><p><span>Husain, H. (n.d.). Using LLM-as-a-Judge For Evaluation: A Complete Guide. Hamel’s Blog. </span><a href="https://hamel.dev/blog/posts/llm-judge/#example-llm-prompts-for-generating-user-inputs">https://hamel.dev/blog/posts/llm-judge/#example-llm-prompts-for-generating-user-inputs</a></p></li><li><p><span>Zendesk. (n.d.). Building realistic multi-turn tests for AI agents. Zendesk. </span><a href="https://www.zendesk.com/au/blog/zip1-building-realistic-multi-turn-tests-for-ai-agents/">https://www.zendesk.com/au/blog/zip1-building-realistic-multi-turn-tests-for-ai-agents/</a></p></li><li><p><span>Evidently AI. (n.d.). How to create LLM test datasets with synthetic data. Evidently AI. </span><a href="https://www.evidentlyai.com/llm-guide/llm-test-dataset-synthetic-data">https://www.evidentlyai.com/llm-guide/llm-test-dataset-synthetic-data</a></p></li><li><p><span>Langfuse. (n.d.). Synthetic Dataset Generation for LLM Evaluation. Langfuse. </span><a href="https://langfuse.com/guides/cookbook/example_synthetic_datasets">https://langfuse.com/guides/cookbook/example_synthetic_datasets</a></p></li><li><p><span>DeepEval. (n.d.). Generate Synthetic Test Data for LLM Applications. DeepEval. </span><a href="https://deepeval.com/guides/guides-using-synthesizer">https://deepeval.com/guides/guides-using-synthesizer</a></p></li><li><p><span>Xu, C., Sun, Q., Zheng, K., Geng, X., Zhao, P., Feng, J., Tao, C., &amp; Jiang, D. (2023). WizardLM: Empowering Large Language Models to Follow Complex Instructions. arXiv. </span><a href="https://arxiv.org/abs/2304.12244">https://arxiv.org/abs/2304.12244</a></p></li></ol><div><hr/></div><h2 class="header-anchor-post" id="rr-h-14">Images</h2><p>If not otherwise stated, all images are created by the author.</p></div>
+<div class="chapter-nav" style="margin-top:56px;padding-top:20px;border-top:1px solid var(--border);display:flex;gap:18px;font-family:system-ui,sans-serif;font-size:.9rem"><a href="chapter02_reader.html">&larr; Previous</a><a href="../../index.html">Index</a><a href="chapter04_reader.html">Next &rarr;</a></div>
+  </main>
+
+  <footer class="bottom-bar">
+    <span id="pageInfo">Chapter 3 of 7</span>
+    <span id="progressPercent">0%</span>
+  </footer>
+
+  <footer class="footer">
+    Compiled from the Decoding AI Magazine series
+  </footer>
+
+  <script>
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+    });
+
+    function toggleTOC() {
+      const panel = document.getElementById('tocPanel');
+      const overlay = document.getElementById('tocOverlay');
+      panel.classList.toggle('open');
+      overlay.classList.toggle('show');
+    }
+
+    function toggleChapter(event, idx) {
+      event.preventDefault();
+      event.stopPropagation();
+      const arrow = document.getElementById('arrow-' + idx);
+      const subs = document.getElementById('subs-' + idx);
+      if (arrow && subs) {
+        const isOpen = subs.style.display !== 'none';
+        subs.style.display = isOpen ? 'none' : 'block';
+        arrow.classList.toggle('open', !isOpen);
+      }
+    }
+
+    function navigateToChapter(url) {
+      window.location.href = url;
+    }
+
+    function toggleTheme() {
+      const root = document.documentElement;
+      const isDark = root.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        root.removeAttribute('data-theme');
+        document.getElementById('theme-icon').innerHTML = '<circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+      } else {
+        root.setAttribute('data-theme', 'dark');
+        document.getElementById('theme-icon').innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+      }
+    }
+  </script>
+  <!--rr-annotate-->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23FAF6EE'/%3E%3Ctext x='16' y='24' font-size='22' text-anchor='middle' fill='%23A34A2E' font-family='Georgia' font-style='italic'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="../../assets/annotate.css?v=18">
+<script type="application/json" id="rr-notes">{}</script>
+<script data-rr-palette="apple" src="../../assets/annotate.js?v=18" data-rr-book="ai-evals-foundations" data-rr-page="chapter03_reader.html" data-rr-prefix="../../"></script>
+<script src="../../assets/chapter-toc.js?v=18"></script>
+<script src="../../assets/code-copy.js?v=18"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<script src="../../assets/article-toc.js?v=1"></script>
+<script src="../../assets/course-theme.js?v=3"></script>
+</body>
+</html>

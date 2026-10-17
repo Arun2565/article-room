@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAG Evaluation: The Only 6 Metrics You Need — AI Evals Foundations: From Vibe Checking to Measurable AI</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css');
+
+    :root {
+      --bg: #FAF6EE;
+      --surface: #FFFFFF;
+      --ink: #2D2522;
+      --ink-2: #6E625B;
+      --accent: #A34A2E;
+      --border: rgba(163,74,46,0.1);
+      --font-reader: 'Newsreader', 'EB Garamond', 'Baskerville', 'Garamond', Georgia, serif;
+      --toc-width: 280px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #1a1a1a;
+      --surface: #2d2d2d;
+      --ink: #e0e0e0;
+      --ink-2: #a0a0a0;
+      --accent: #E28C68;
+      --border: rgba(243,239,233,0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-reader);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+
+    .top-bar button {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .top-bar button:hover {
+      background: rgba(163,74,46,0.08);
+    }
+
+    .top-bar button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .top-bar-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--ink-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60%;
+    }
+
+    .reader-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 60px 80px;
+    }
+
+    .reader-content h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      line-height: 1.3;
+    }
+
+    .reader-content h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 32px 0 16px;
+    }
+
+    .reader-content h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 24px 0 12px;
+      color: var(--ink-2);
+    }
+
+    .reader-content p {
+      font-size: 1.15rem;
+      line-height: 1.85;
+      margin-bottom: 1.2em;
+      text-align: left;
+    }
+
+    .reader-content blockquote {
+      margin: 20px 0;
+      padding: 16px 20px;
+      border-left: 3px solid var(--accent);
+      background: rgba(163,74,46,0.04);
+      font-style: italic;
+    }
+
+    .reader-content dl {
+      margin: 20px 0;
+    }
+
+    .reader-content dt {
+      font-weight: 600;
+      margin: 16px 0 8px;
+      font-style: italic;
+    }
+
+    .reader-content dd {
+      margin-left: 20px;
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .reader-content table {
+      display: table;
+      width: 100%;
+      margin: 24px 0;
+      border-collapse: collapse;
+      font-size: 1rem;
+      border: 1px solid #c3c3c3;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .reader-content th {
+      display: table-cell;
+      background: #f0f4f8;
+      border-bottom: 2px solid #9d9d9d;
+      padding: 14px 16px;
+      font-weight: 600;
+      text-align: left;
+      font-size: 0.95rem;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td {
+      display: table-cell;
+      padding: 14px 16px;
+      border-bottom: 1px solid #ddd;
+      border-right: 1px solid #eee;
+      vertical-align: top;
+      font-size: 1rem;
+      line-height: 1.7;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td:last-child {
+      border-right: none;
+    }
+
+    .reader-content tr:nth-of-type(even) {
+      background-color: #fafbfd;
+    }
+
+    .reader-content figure,
+    .reader-content .figure {
+      margin: 24px auto;
+      text-align: center;
+    }
+
+    .reader-content img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .reader-content figcaption,
+    .reader-content figure h6,
+    .reader-content .figure h6 {
+      font-size: 0.9rem;
+      font-style: italic;
+      color: var(--ink-2);
+      margin-top: 8px;
+    }
+
+    .reader-content .note,
+    .reader-content [data-type="note"] {
+      margin: 20px 0;
+      padding: 16px 20px;
+      background: #f8f4e8;
+      border: 1px solid #e6d48a;
+      border-radius: 6px;
+    }
+
+    .ann-hl { border-radius: 2px; }
+    .ann-note { border-radius: 2px; }
+
+    pre.code, pre[data-lang], .code {
+      background: #1e1e1e !important;
+      border-radius: 8px !important;
+      padding: 16px 20px !important;
+      margin: 20px 0 !important;
+      overflow-x: auto !important;
+      position: relative !important;
+      border: 1px solid #333 !important;
+    }
+
+    pre.code[data-lang]::before, pre[data-lang]::before {
+      content: attr(data-lang);
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      font-size: 0.7rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace;
+    }
+
+    pre.code code, pre[data-lang] code, .code code {
+      color: #e0e0e0 !important;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace !important;
+      font-size: 0.9rem !important;
+      line-height: 1.6 !important;
+      background: none !important;
+      padding: 0 !important;
+      border: none !important;
+      white-space: pre !important;
+    }
+
+    p code, li code, td code {
+      background: rgba(0,0,0,0.06) !important;
+      padding: 2px 6px !important;
+      border-radius: 4px !important;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace !important;
+      font-size: 0.85em !important;
+    }
+
+    .line-numbers-rows { border-right: 1px solid #444 !important; }
+
+    .progress-bar {
+      position: fixed;
+      top: 52px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 99;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .ann-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent);
+      color: white;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .chapter-title {
+      text-align: center;
+      padding: 40px 20px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chapter-title h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .toc-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--toc-width);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      z-index: 200;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+    }
+
+    .toc-panel.open {
+      transform: translateX(0);
+    }
+
+    .toc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      height: 52px;
+    }
+
+    .toc-header h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .toc-close {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+    }
+
+    .toc-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+
+    .toc-chapter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .toc-chapter:hover {
+      background: rgba(163,74,46,0.06);
+      border-left-color: var(--accent);
+    }
+
+    .toc-ann-count {
+      background: var(--accent);
+      color: white;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      min-width: 22px;
+      text-align: center;
+    }
+
+    .toc-arrow {
+      font-size: 0.6rem;
+      color: var(--ink-2);
+      transition: transform 0.2s ease;
+      margin-left: auto;
+    }
+
+    .toc-arrow.open {
+      transform: rotate(90deg);
+    }
+
+    .toc-subs {
+      padding: 4px 0;
+      border-left: 2px solid var(--border);
+      margin-left: 20px;
+    }
+
+    .toc-sub {
+      padding-left: 32px;
+      font-weight: 400;
+    }
+
+    .toc-sub-sub {
+      padding-left: 48px;
+      font-size: 0.75rem;
+    }
+
+    .toc-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 199;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .toc-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--ink-2);
+      z-index: 100;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 60px;
+      border-top: 1px solid var(--border);
+      color: var(--ink-2);
+      font-size: 0.8rem;
+    }
+  
+    /* Substack markup mapped onto the reader theme */
+    .reader-content .callout-block {
+      background: color-mix(in srgb, var(--accent) 7%, transparent);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin: 22px 0;
+    }
+    .reader-content .callout-block p { margin: 0.4em 0; }
+    .reader-content .callout-block p:first-child { margin-top: 0; }
+    .reader-content .callout-block p:last-child { margin-bottom: 0; }
+    .reader-content [data-type='quote'] {
+      border-left: 3px solid var(--border);
+      padding-left: 16px;
+      color: var(--ink-2);
+    }
+    .reader-content .image-link { text-decoration: none; }
+    .reader-content hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+    .reader-content .available-content > p > u { text-decoration: none; }
+    .reader-content sup a, .reader-content sub a { text-decoration: none; }
+    .chapter-nav a { color: var(--accent); text-decoration: none; }
+    .chapter-nav a:hover { text-decoration: underline; }
+
+  </style>
+<link rel="stylesheet" href="../../assets/site.css?v=18">
+<link rel="stylesheet" href="../../assets/article-toc.css?v=1">
+<link rel="stylesheet" href="../../assets/course-theme.css?v=3">
+</head>
+<body>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="toc-overlay" id="tocOverlay" onclick="toggleTOC()"></div>
+
+  <div class="toc-panel" id="tocPanel">
+    <div class="toc-header">
+      <h3>Table of Contents</h3>
+      <button class="toc-close" onclick="toggleTOC()">✕</button>
+    </div>
+    <nav class="toc-nav">
+<div class="toc-chapter-wrap" data-chapter="0">
+<a href="chapter01_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter01_reader.html')"><span>Integrating AI Evals Into Your AI App</span><span class="toc-arrow" id="arrow-0" onclick="toggleChapter(event, 0)">&#9654;</span></a>
+<div class="toc-subs" id="subs-0" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">Opik: Open-Source Observability for Your Multimodal AI Agents (Sponsored )</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">The Holistic View of AI Evals</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Using Evals for Optimization</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Using Evals for Regression</a>
+<a class="toc-heading toc-sub" href="#rr-h-5">Using Evals for Production Monitoring</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Looking at Common Misconceptions</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-7">Guardrails vs. Evaluators</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-8">App Evaluators vs. LLM Evaluators</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-9">Evaluator vs. Classic Software Tests</a>
+<a class="toc-heading toc-sub" href="#rr-h-10">So What Is the Tech Stack?</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-12">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-13">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-14">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="1">
+<a href="chapter02_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter02_reader.html')"><span>Build an AI Evals Dataset from Scratch</span><span class="toc-arrow" id="arrow-1" onclick="toggleChapter(event, 1)">&#9654;</span></a>
+<div class="toc-subs" id="subs-1" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">Opik: Open-Source Observability for Your Multimodal AI Agents (Sponsored )</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Create the AI Evals Dataset</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Manually Label Your Dataset</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Manually Fix Errors</a>
+<a class="toc-heading toc-sub" href="#rr-h-5">Iteratively Build Your Evaluator</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Doing Error Analysis</a>
+<a class="toc-heading toc-sub" href="#rr-h-7">Create Specialized Evaluators</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">Demo</a>
+<a class="toc-heading toc-sub" href="#rr-h-9">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-12">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="2">
+<a href="chapter03_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter03_reader.html')"><span>Generate Synthetic Datasets for AI Evals</span><span class="toc-arrow" id="arrow-2" onclick="toggleChapter(event, 2)">&#9654;</span></a>
+<div class="toc-subs" id="subs-2" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">Opik: Automated Agent Optimization Using Your Evals Data (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">When Do We Need Synthetic Data?</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Understanding the Core Principles</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Seeing Your Inputs as Dimensions</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-5">How much data do you need?</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-6">Does this actually work?</a>
+<a class="toc-heading toc-sub" href="#rr-h-7">When Having Some Production Data</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">When Building Agents</a>
+<a class="toc-heading toc-sub" href="#rr-h-9">When Doing RAG</a>
+<a class="toc-heading toc-sub" href="#rr-h-10">For Deterministic Testing</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-12">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-13">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-14">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="3">
+<a href="chapter04_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter04_reader.html')"><span>How to Design Evaluators</span><span class="toc-arrow" id="arrow-3" onclick="toggleChapter(event, 3)">&#9654;</span></a>
+<div class="toc-subs" id="subs-3" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">How to Design Evaluators</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Opik: Open-Source LLMOps Platform (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Understanding the Evaluation Harness</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Dataset and Metric Types: Three Ways to Grade</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-5">1. Direct Scoring (Pointwise Evaluation)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-6">2. Pairwise Comparison</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-7">3. Reference-Based Evaluation</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">Model Evaluation vs. App Evaluation (Why Benchmarks Lie)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-9">Model Evaluation (Benchmarks)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">App Evaluation (What You Actually Need)</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">Components of an Evaluator</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-12">1. Reference Examples (Few-Shot Prompts)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-13">2. Metrics</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-14">3. Rubrics</a>
+<a class="toc-heading toc-sub" href="#rr-h-15">Code-Based Evaluators: Fast, Cheap, Objective</a>
+<a class="toc-heading toc-sub" href="#rr-h-16">LLM Judges: Flexible, Scalable, Nuanced</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-17">Strengths of LLM Judges</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-18">Weaknesses of LLM Judges</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-19">Making LLM Judges More Stable</a>
+<a class="toc-heading toc-sub" href="#rr-h-20">Common Mistakes (And How to Avoid Them)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-21">Mistake 1: Not Providing Critiques</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-22">Mistake 2: Overly Terse Critiques</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-23">Mistake 3: Missing Context</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-24">Mistake 4: Not Providing Diverse Examples</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-25">Mistake 5: Using Ready-Made Metrics Without Validation</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-26">Mistake 6: Using 1-5 Scales Instead of Binary Pass/Fail</a>
+<a class="toc-heading toc-sub" href="#rr-h-27">When Should I Use Similarity Metrics (BERTScore, ROUGE, etc.)?</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-28">When They Work</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-29">When They Fail</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-30">The Rule</a>
+<a class="toc-heading toc-sub" href="#rr-h-31">Advanced Metric Designs</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-32">Evaluating Multi-Turn Conversation Traces</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-33">Evaluating Complex Multi-Step Workflows</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-34">Evaluating Agentic Workflows</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-35">Phase 1: End-to-End Task Success</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-36">Phase 2: Step-Level Diagnostics</a>
+<a class="toc-heading toc-sub" href="#rr-h-37">Bringing It All Together</a>
+<a class="toc-heading toc-sub" href="#rr-h-38">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-39">Most AI newsletters give you news. The AI Engineer gives you understanding.</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-40">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-41">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-42">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="4">
+<a href="chapter05_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter05_reader.html')"><span>How to Evaluate the Evaluator</span><span class="toc-arrow" id="arrow-4" onclick="toggleChapter(event, 4)">&#9654;</span></a>
+<div class="toc-subs" id="subs-4" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">How to Evaluate the Evaluator</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Opik: Automated Agent Optimization Using Your Data (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Structuring Your Data for Validation</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Measuring Alignment With Human Judgment</a>
+<a class="toc-heading toc-sub" href="#rr-h-5">When High Scores Hide Real Failures</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Closing the Gap Between Judge and Expert</a>
+<a class="toc-heading toc-sub" href="#rr-h-7">Dealing With Non-Determinism</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">Demo</a>
+<a class="toc-heading toc-sub" href="#rr-h-9">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-12">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="5">
+<a href="chapter06_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter06_reader.html')"><span>RAG Evaluation: The Only 6 Metrics You Need</span><span class="toc-arrow" id="arrow-5" onclick="toggleChapter(event, 5)">&#9654;</span></a>
+<div class="toc-subs" id="subs-5" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">RAG Evaluation: The Only 6 Metrics You Need</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Opik: Open-Source LLMOps Platform (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">The Only 6 RAG Evaluation Metrics That Can Exist</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Tier 1: If Retrieval Is Broken, Nothing Else Matters</a>
+<a class="toc-heading toc-sub" href="#rr-h-5">Tier 2: The Three RAG Metrics You Always Need</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Tier 3: When the Core Metrics Can’t Explain the Failure</a>
+<a class="toc-heading toc-sub" href="#rr-h-7">Matching Frequency and Strictness to Your Domain</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">Building the RAG Evaluation Harness</a>
+<a class="toc-heading toc-sub" href="#rr-h-9">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-12">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="6">
+<a href="chapter07_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter07_reader.html')"><span>Lessons from 6 Months of Evals on a Production AI Companion</span><span class="toc-arrow" id="arrow-6" onclick="toggleChapter(event, 6)">&#9654;</span></a>
+<div class="toc-subs" id="subs-6" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">Opik: Open-Source LLMOps Platform (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Problems With AI Observability</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-3">Falling for Classic Metrics or Trying to Define What’s “Good” or “Bad”</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-4">Not Going Through Manual Annotations</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-5">Not Treating Your AI Agents as a Data Product</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Implementing AI Observability</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-7">Opik Overview</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-8">Opik MCP Server</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-9">Figuring Out Evaluation Criteria</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">Refining Evaluation Criteria</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-11">Running Annotation Sessions</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-12">Making Sense of Annotated Feedback</a>
+<a class="toc-heading toc-sub" href="#rr-h-13">Backstory of This Framework</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-14">Do you want more articles like this from Alejandro?</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-15">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-16">Images</a>
+</div>
+</div>
+</nav>
+  </div>
+
+  <nav class="top-bar">
+    <button onclick="toggleTOC()" title="Table of Contents">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <span class="top-bar-title">AI Evals Foundations: From Vibe Checking to Measurable AI</span>
+    <button onclick="toggleTheme()" title="Toggle theme">
+      <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    </button>
+  </nav>
+
+  <main class="reader-content">
+<div class="chapter-title">
+<h1 id="rr-h-0">RAG Evaluation: The Only 6 Metrics You Need</h1>
+<p style="color:var(--ink-2);font-size:.9rem">Chapter 6 of 7 &middot; Paul Iusztin, <a href="https://www.decodingai.com/p/rag-evaluation-6-metrics-framework" target="_blank" rel="noopener">read the original post</a></p>
+</div>
+<div class="body markup" dir="auto"><p><em><span>Welcome to the </span><strong><a href="https://www.decodingai.com/t/ai-evals-foundations">AI Evals Foundations series</a></strong><span>: A 7-part journey from shipping AI apps to systematically improving them. Made by busy people. For busy people.</span></em></p><p>🧐 Everyone says you need AI evals. Few explain how to actually build them and answer questions such as…</p><p>How do we avoid creating evals that waste our time and resources? How do we build datasets and design evaluators that matter? How do we adapt them for RAG? ...and most importantly, how do we stop “vibe checking” and leverage evals to actually track and optimize our app?</p><p><em>This 7-article series breaks it all down from first principles:</em></p><ol><li><p><a href="https://www.decodingai.com/p/integrating-ai-evals-into-your-ai-app">Integrating AI Evals Into Your AI App</a><strong> </strong></p></li><li><p><a href="https://www.decodingai.com/p/build-an-ai-evals-dataset-with-error-analysis">Build an AI Evals Dataset from Scratch</a><span> </span></p></li><li><p><a href="https://www.decodingai.com/p/generate-synthetic-datasets-for-ai-evals">Generate Synthetic Datasets for AI Evals </a></p></li><li><p><a href="https://www.decodingai.com/p/how-to-design-ai-evaluators-that-catch-failures">How to Design Evaluators</a><span> </span></p></li><li><p><a href="https://www.decodingai.com/p/how-to-evaluate-the-evaluator-validate-llm-judge">How to Evaluate the Evaluator</a></p></li><li><p><em><strong>RAG Evaluation: The Only 6 Metrics You Need</strong><span> ← You are here</span></em></p></li><li><p><a href="https://www.decodingai.com/p/behind-the-scenes-of-ai-observability">Lessons from 6 Months of Evals on a Production AI Companion</a></p></li></ol><p>By the end, you’ll know how to integrate AI evals that actually track and improve the performance of your AI product. No vibe checking required!</p><p><em>Let’s get started.</em></p><div><hr/></div><h2 class="header-anchor-post" id="rr-h-1">RAG Evaluation: The Only 6 Metrics You Need</h2><p>In our previous article, we covered how to validate your AI judges. We measured agreement with human judgment and iterated until alignment was high. Thus, you can now deploy with confidence.</p><p>However, a specialized challenge exists that general-purpose grading tools do not fully address. Evaluating RAG systems introduces a third variable, specifically the retrieved context. With this new element comes a distinct set of failure modes requiring their own metrics.</p><p>I am currently building a financial personal assistant at the stealth AI startup I work for. The application runs heavily on RAG. It pulls financial data from Postgres and integrates with external services such as email, Customer Relationship Management (CRM) tools, and cloud drives.</p><p><span>When it came time to evaluate the system, building the dataset proved harder than choosing metrics. Fortunately, we had a domain expert on the team who manually tested the application from the start. Therefore, we translated all of that Quality Assurance (QA) work into our AI evals collection using the error analysis workflow from </span><a href="https://www.decodingai.com/p/build-an-ai-evals-dataset-with-error-analysis">Article 2</a><span>.</span></p><p>Evaluating RAG systems introduces a unique difficulty. Each data sample required the correct context to be loaded into the database. We solved this by coupling every test case with a Postgres SQL export.</p><p>This file contained documents, chunks, embeddings, and metadata. We injected it directly into the storage system. This effectively created a cache that bypassed the ingestion pipeline during evals.</p><p><span>Once the data was in place, implementing the core RAG metrics became straightforward. We used tools like </span><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik</a><span> and foundational models like Gemini Pro as the LLM judge. We had the context, the query, and the answer, which is everything you need.</span></p><p>What surprised me was that not every capability needed this level of dissection. For our report generation feature, we expect an exact format with specific values pulled from the storage. Checking the final document against a ground truth served as a better proxy than tracing every retrieval step.</p><p><em>Sometimes assessing the destination matters more than checking the route.</em></p><p>RAG evaluation feels needlessly complex. Vendors have an incentive to make it difficult. Every framework ships with many metrics and a dashboard, making you feel like you need a PhD to know if your system works.</p><p><span>Underneath all the complexity, </span><strong>RAG systems possess exactly three core components</strong><span>. These are the Question (Q), the retrieved Context (C), and the generated Answer (A). Furthermore, with these elements, there are </span><strong>exactly six possible relationships</strong><span> between them. When your RAG system fails, it breaks along one of these six relationships every single time. </span></p><p>The beauty of this framework is its exhaustive nature. There are no hidden variables.</p><p>You do not always need to evaluate all six individually. For core conversational features, you need the primary metrics because there are many silent failure modes. However, for structured output tasks, an end-to-end check against expected results can be sufficient.</p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!gtpu!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc2378513-3c4f-4119-92d0-1cd651bb2be3_1456x1048.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!gtpu!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc2378513-3c4f-4119-92d0-1cd651bb2be3_1456x1048.png 424w, https://substackcdn.com/image/fetch/$s_!gtpu!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc2378513-3c4f-4119-92d0-1cd651bb2be3_1456x1048.png 848w, https://substackcdn.com/image/fetch/$s_!gtpu!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc2378513-3c4f-4119-92d0-1cd651bb2be3_1456x1048.png 1272w, https://substackcdn.com/image/fetch/$s_!gtpu!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc2378513-3c4f-4119-92d0-1cd651bb2be3_1456x1048.png 1456w" type="image/webp"/><img alt="The six exhaustive relationships between the three RAG variables — Question, Context, and Answer." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/c2378513-3c4f-4119-92d0-1cd651bb2be3_1456x1048.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":1048,"width":1456,"resizeWidth":null,"bytes":null,"alt":"The six exhaustive relationships between the three RAG variables — Question, Context, and Answer.","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="1048" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!gtpu!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc2378513-3c4f-4119-92d0-1cd651bb2be3_1456x1048.png" srcset="https://substackcdn.com/image/fetch/$s_!gtpu!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc2378513-3c4f-4119-92d0-1cd651bb2be3_1456x1048.png 424w, https://substackcdn.com/image/fetch/$s_!gtpu!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc2378513-3c4f-4119-92d0-1cd651bb2be3_1456x1048.png 848w, https://substackcdn.com/image/fetch/$s_!gtpu!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc2378513-3c4f-4119-92d0-1cd651bb2be3_1456x1048.png 1272w, https://substackcdn.com/image/fetch/$s_!gtpu!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc2378513-3c4f-4119-92d0-1cd651bb2be3_1456x1048.png 1456w" title="The six exhaustive relationships between the three RAG variables — Question, Context, and Answer." width="1456"/></picture></div></a><figcaption class="image-caption"><em>Image 1: The six exhaustive relationships between the three RAG variables — Question, Context, and Answer.</em></figcaption></figure></div><p><strong>Here is what you will learn in this article:</strong></p><ul><li><p>The only six relationships that exist in a RAG system.</p></li><li><p>How to evaluate your retrieval step before looking at generation.</p></li><li><p>The three core metrics every RAG application needs.</p></li><li><p>Advanced metrics for diagnosing subtle hallucinations.</p></li><li><p>How to match evaluation frequency and strictness to your domain.</p></li><li><p>How to collect and prepare the data your evaluators need.</p></li></ul><p><em>Before digging into the article, a quick word from our sponsor, Opik.</em><span> ↓</span></p><div><hr/></div><h2 class="header-anchor-post" id="rr-h-2"><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik: Open-Source LLMOps Platform (Sponsored)</a></h2><p><span>This </span><strong>AI Evals &amp; Observability</strong><span> series is brought to you by </span><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik</a><span>, the LLMOps open-source platform used by Uber, Etsy, Netflix, and more. </span></p><p>We use Opik daily across our courses and AI products. Not just for observability, but to design and run the exact RAG evaluators this article teaches. All from the same platform.</p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!Y-VS!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4ad35092-8407-4336-9b50-972f57252a3d_869x450.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!Y-VS!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4ad35092-8407-4336-9b50-972f57252a3d_869x450.png 424w, https://substackcdn.com/image/fetch/$s_!Y-VS!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4ad35092-8407-4336-9b50-972f57252a3d_869x450.png 848w, https://substackcdn.com/image/fetch/$s_!Y-VS!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4ad35092-8407-4336-9b50-972f57252a3d_869x450.png 1272w, https://substackcdn.com/image/fetch/$s_!Y-VS!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4ad35092-8407-4336-9b50-972f57252a3d_869x450.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/4ad35092-8407-4336-9b50-972f57252a3d_869x450.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":450,"width":869,"resizeWidth":null,"bytes":92542,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.decodingai.com/i/191141901?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4ad35092-8407-4336-9b50-972f57252a3d_869x450.png","isProcessing":false,"align":null,"offset":false}' height="450" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!Y-VS!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4ad35092-8407-4336-9b50-972f57252a3d_869x450.png" srcset="https://substackcdn.com/image/fetch/$s_!Y-VS!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4ad35092-8407-4336-9b50-972f57252a3d_869x450.png 424w, https://substackcdn.com/image/fetch/$s_!Y-VS!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4ad35092-8407-4336-9b50-972f57252a3d_869x450.png 848w, https://substackcdn.com/image/fetch/$s_!Y-VS!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4ad35092-8407-4336-9b50-972f57252a3d_869x450.png 1272w, https://substackcdn.com/image/fetch/$s_!Y-VS!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4ad35092-8407-4336-9b50-972f57252a3d_869x450.png 1456w" width="869"/></picture></div></a><figcaption class="image-caption"><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Try Opik for free here</a><span> (25k spans/month free)</span></figcaption></figure></div><p>This article shows you how to evaluate RAG systems. Opik gives you the harness to run those evaluations at scale. Here is how we use it:</p><ul><li><p><strong>Custom LLM judges with rubrics</strong><span> — Build the evaluators this article describes: define your criteria, add few-shot examples, and run them across hundreds of traces automatically.</span></p></li><li><p><strong>Run experiments, compare results</strong><span> — Test different prompts, models, or configurations side by side. Opik scores each variant with your evaluators and shows you which one wins.</span></p></li><li><p><strong>Plug evaluators into production</strong><span> — The same LLM judges you design for testing run on live traces too. Set up alarms when scores drop below your threshold so you catch regressions before users do.</span></p></li></ul><p><strong><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik</a></strong><span> is fully </span><strong>open-source</strong><span> and works with custom code or most AI frameworks. You can also use the managed version for free (with 25K spans/month on their generous free tier):</span></p><div><hr/></div><p><em>↓</em><span> </span><em>Now, let’s move back to the article.</em></p><h2 class="header-anchor-post" id="rr-h-3">The Only 6 RAG Evaluation Metrics That Can Exist</h2><p><span>Jason Liu properly articulated the framework I am about to walk you through </span><a href="https://jxnl.co/writing/2025/05/19/there-are-only-6-rag-evals/">[1]</a><span>. Since I wrote the </span><a href="https://www.amazon.com/LLM-Engineers-Handbook-engineering-production/dp/1836200072/">LLM Engineer’s Handbook</a><span> two years ago, I have watched many RAG evaluation tools emerge. They overcomplicate everything with proprietary metric suites.</span></p><p>Through all of that, I already internalized that only three variables matter in any RAG system. Testing the combinations between them is the only thing you should actually do. Jason Liu gave a clean, formal articulation to what I had in mind.</p><p>He nailed the structure and deserves the recognition for that.</p><p><span>Every RAG system has three variables. We define </span><code>Q</code><span> as the user’s question, </span><code>C</code><span> as the retrieved context, and </span><code>A</code><span> representing the generated answer. Thus, we use the notation </span><code>X|Y</code><span> to mean the quality of </span><code>X</code><span> given </span><code>Y</code><span>.</span></p><p><span>There are </span><strong>exactly six relationships</strong><span> between these variables:</span></p><ol><li><p><code>C|Q</code><span> (Context Relevance) asks if the retrieved context addresses the question. This measures your retriever, because if it pulls irrelevant passages, the generator cannot fix the issue. </span></p></li><li><p><code>A|C</code><span> (Faithfulness) checks if the answer sticks to what is in the context. This measures your generator to see if the model hallucinated or stayed grounded in the documents. </span></p></li><li><p><code>A|Q</code><span> (Answer Relevance) verifies if the response actually addresses the prompt. This is the end-to-end user experience metric. Even if the context is good and the reply is faithful, it must help the person asking. </span></p></li><li><p><code>C|A</code><span> (Context Support) ensures the retrieved text contains everything needed to support every claim in the answer. This checks if the provided information was sufficient. </span></p></li><li><p><code>Q|C</code><span> (Question Answerability) evaluates if the prompt can even be resolved with this context. This determines whether the system should attempt to reply at all.</span></p></li><li><p><code>Q|A</code><span> (Self-Containment) asks if someone can infer the original question from reading the answer alone. This measures whether the output provides enough background to stand on its own.</span></p></li></ol><p>This framework is exhaustive. Three components produce exactly six conditional relationships. There are no hidden factors.</p><p>Therefore, when your RAG system fails, one of these six metrics is broken.</p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!j-9F!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8214a72c-1511-4a4d-9806-7914a70aba3d_1200x630.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!j-9F!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8214a72c-1511-4a4d-9806-7914a70aba3d_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!j-9F!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8214a72c-1511-4a4d-9806-7914a70aba3d_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!j-9F!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8214a72c-1511-4a4d-9806-7914a70aba3d_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!j-9F!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8214a72c-1511-4a4d-9806-7914a70aba3d_1200x630.png 1456w" type="image/webp"/><img alt="The complete grid of six RAG relationships — each mapped to the component it diagnoses." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/8214a72c-1511-4a4d-9806-7914a70aba3d_1200x630.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":630,"width":1200,"resizeWidth":null,"bytes":null,"alt":"The complete grid of six RAG relationships — each mapped to the component it diagnoses.","title":"The complete grid of six RAG relationships — each mapped to the component it diagnoses.","type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="630" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!j-9F!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8214a72c-1511-4a4d-9806-7914a70aba3d_1200x630.png" srcset="https://substackcdn.com/image/fetch/$s_!j-9F!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8214a72c-1511-4a4d-9806-7914a70aba3d_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!j-9F!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8214a72c-1511-4a4d-9806-7914a70aba3d_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!j-9F!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8214a72c-1511-4a4d-9806-7914a70aba3d_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!j-9F!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8214a72c-1511-4a4d-9806-7914a70aba3d_1200x630.png 1456w" title="The complete grid of six RAG relationships — each mapped to the component it diagnoses." width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 2: The complete grid of six RAG relationships — each mapped to the component it diagnoses (Retriever, Generator, or End-to-End).</em></figcaption></figure></div><p>Not all six relationships matter equally in every context. We organize them into three tiers. Let us start with retrieval metrics as the prerequisite foundation.</p><h2 class="header-anchor-post" id="rr-h-4">Tier 1: If Retrieval Is Broken, Nothing Else Matters</h2><p>RAG is first and foremost a retrieval problem. If the search mechanism does not retrieve the right documents, nothing downstream can save you. The generator will either hallucinate or produce irrelevant answers based on whatever junk it received.</p><p>Before evaluating any of the six RAG relationships, you need to know if your retriever even works. You can use classic information retrieval metrics that measure how well you find relevant documents before generation starts. They are fast to compute and do not require LLM judges.</p><p>Hence, these measurements give quick feedback for tuning your retriever.</p><p><span>You must establish ground-truth labels to compute these metrics. For each query, you must know which text blocks are actually relevant. You can build this dataset using the reverse workflow presented in depth in </span><a href="https://www.decodingai.com/p/generate-synthetic-datasets-for-ai-evals">Article 3</a><span>.</span></p><p>As a quick recap, you start from your knowledge base of document chunks. Then, based on a set of closely related chunks, you generate realistic questions that can only be answered using that unique set of chunks.</p><p>Because the prompt derives from the source material, you know exactly which segment should be retrieved. This gives you a perfectly aligned ground-truth triplet: (question, answer, context). Thus, it becomes straightforward to check whether your search tool actually surfaces the right information.</p><p><span>There are four main metrics. </span><code>Precision@K</code><span> measures the fraction of the top K retrieved chunks that are actually relevant. If your retriever returns 5 chunks but only 2 are useful, your precision is 40%. </span><code>Recall@K</code><span> asks: of all the relevant chunks that exist in your entire corpus, how many did your retriever actually find in the top K? If the database has 4 chunks that could answer the question but you only retrieved 2 of them, your recall is 50%.</span></p><p><span>In addition, Mean Average Precision (</span><code>MAP@K</code><span>) averages precision across multiple queries, rewarding retrievers that consistently rank relevant chunks early. It works by computing precision at every position where a relevant item appears, then averaging those values. Here is a step-by-step example where the truly relevant items are A and C:</span></p><div class="captioned-image-container"><figure><div class="image-link image2 can-restack" data-component-name="Image2ToDOM"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!aVBN!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2d2e729b-b697-4ddb-b112-d86baa24b08e_1920x415.png 424w, https://substackcdn.com/image/fetch/$s_!aVBN!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2d2e729b-b697-4ddb-b112-d86baa24b08e_1920x415.png 848w, https://substackcdn.com/image/fetch/$s_!aVBN!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2d2e729b-b697-4ddb-b112-d86baa24b08e_1920x415.png 1272w, https://substackcdn.com/image/fetch/$s_!aVBN!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2d2e729b-b697-4ddb-b112-d86baa24b08e_1920x415.png 1456w" type="image/webp"/><img alt="table" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/2d2e729b-b697-4ddb-b112-d86baa24b08e_1920x415.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":315,"width":1456,"resizeWidth":null,"bytes":null,"alt":"table","title":"table","type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="315" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!aVBN!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2d2e729b-b697-4ddb-b112-d86baa24b08e_1920x415.png" srcset="https://substackcdn.com/image/fetch/$s_!aVBN!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2d2e729b-b697-4ddb-b112-d86baa24b08e_1920x415.png 424w, https://substackcdn.com/image/fetch/$s_!aVBN!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2d2e729b-b697-4ddb-b112-d86baa24b08e_1920x415.png 848w, https://substackcdn.com/image/fetch/$s_!aVBN!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2d2e729b-b697-4ddb-b112-d86baa24b08e_1920x415.png 1272w, https://substackcdn.com/image/fetch/$s_!aVBN!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2d2e729b-b697-4ddb-b112-d86baa24b08e_1920x415.png 1456w" title="table" width="1456"/></picture></div></div></figure></div><p><span>Average Precision for this query = (1.0 + 0.66) / 2 = 0.83. We only average the precision values at positions where a relevant item appeared (ranks 1 and 3). </span><code>MAP@K</code><span> then takes this score and averages it across all your queries.</span></p><p><span>Finally, Mean Reciprocal Rank (</span><code>MRR@K</code><span>) focuses on the position of the first relevant match. If the first relevant chunk appears at position 3, the reciprocal rank is 1/3; if it appears at position 1, it is 1/1. Higher is better.</span></p><p>Use these for daily development. These indicators are great for tuning embeddings and chunk sizes, while also being perfect for A/B testing retrieval strategies. No LLM is needed, making the process cheap and fast.</p><p>These numbers tell you if the search phase works, as illustrated in Image 3. The six RAG relationships tell you if the whole system functions properly, meaning you need both.</p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!EMDz!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F32e356fc-efd5-420e-a2d4-5025295e9996_1200x630.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!EMDz!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F32e356fc-efd5-420e-a2d4-5025295e9996_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!EMDz!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F32e356fc-efd5-420e-a2d4-5025295e9996_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!EMDz!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F32e356fc-efd5-420e-a2d4-5025295e9996_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!EMDz!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F32e356fc-efd5-420e-a2d4-5025295e9996_1200x630.png 1456w" type="image/webp"/><img alt="Retrieval metrics applied to a financial assistant query." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/32e356fc-efd5-420e-a2d4-5025295e9996_1200x630.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":630,"width":1200,"resizeWidth":null,"bytes":null,"alt":"Retrieval metrics applied to a financial assistant query.","title":"Retrieval metrics applied to a financial assistant query.","type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="630" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!EMDz!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F32e356fc-efd5-420e-a2d4-5025295e9996_1200x630.png" srcset="https://substackcdn.com/image/fetch/$s_!EMDz!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F32e356fc-efd5-420e-a2d4-5025295e9996_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!EMDz!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F32e356fc-efd5-420e-a2d4-5025295e9996_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!EMDz!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F32e356fc-efd5-420e-a2d4-5025295e9996_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!EMDz!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F32e356fc-efd5-420e-a2d4-5025295e9996_1200x630.png 1456w" title="Retrieval metrics applied to a financial assistant query." width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 3: Retrieval metrics applied to a financial assistant query — checking whether the retriever surfaces the right chunks.</em></figcaption></figure></div><p>With the retrieval confirmed working, you can evaluate the generation step. Let us look at the three core RAG relationships that every system needs.</p><h2 class="header-anchor-post" id="rr-h-5">Tier 2: The Three RAG Metrics You Always Need</h2><p>These three metrics directly assess how well your RAG system functions. Most evaluation frameworks prioritize these specific measurements. They map to the three most critical of the six relationships.</p><p><span>First, we have </span><strong>Context Relevance</strong><span> (</span><code>C|Q</code><span>). This checks if the retrieved text actually addresses the prompt’s information needs. Therefore, it measures your search component similar to the metrics from Tier 1, but only looking at the dynamics between the context and question, without any ground truth.</span></p><p>Suppose we have a query about recent payouts from Q4. A good example is when the retrieved data contains the user’s dividend payment records from Q4, which passes. On the other side, a bad scenario occurs when the system returns general information about how these distributions work and their tax implications.</p><p>This represents the most common RAG failure mode. In our financial assistant, this often happened when the search tool pulled educational content instead of actual account data.</p><p><span>Second, we have </span><strong>Faithfulness</strong><span> (</span><code>A|C</code><span>). This asks if the reply restricts itself to claims that can be verified from the provided text. Hence, it measures whether your generator hallucinates or not.</span></p><p>In our use case, a good example is when the source contains a CRM record showing a client meeting scheduled for portfolio rebalancing. If the response states exactly that, it passes. A bad example happens when the model adds hallucinated agenda items like tax-loss harvesting strategies, resulting in a failure.</p><p><span>Third, we have </span><strong>Answer Relevance</strong><span> (</span><code>A|Q</code><span>). This checks if the output directly addresses the specific query from the prompt. This serves as the end-to-end user experience metric.</span></p><p>A good example is when a person asks how much their investments grew last month. The reply provides the specific percentage change and absolute dollar amount. A bad scenario is when the text discusses general market performance without mentioning the actual account.</p><p><span>We measure all three metrics using LLM judges as designed in </span><a href="https://www.decodingai.com/p/how-to-design-ai-evaluators-that-catch-failures">Article 4</a><span> and validated in </span><a href="https://www.decodingai.com/p/how-to-evaluate-the-evaluator-validate-llm-judge">Article 5</a><span>.</span></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!gNmS!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F13d9fabd-661e-47ec-a8fc-1afbdcead725_1200x630.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!gNmS!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F13d9fabd-661e-47ec-a8fc-1afbdcead725_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!gNmS!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F13d9fabd-661e-47ec-a8fc-1afbdcead725_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!gNmS!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F13d9fabd-661e-47ec-a8fc-1afbdcead725_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!gNmS!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F13d9fabd-661e-47ec-a8fc-1afbdcead725_1200x630.png 1456w" type="image/webp"/><img alt="The three core RAG metrics illustrated with financial assistant examples." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/13d9fabd-661e-47ec-a8fc-1afbdcead725_1200x630.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":630,"width":1200,"resizeWidth":null,"bytes":null,"alt":"The three core RAG metrics illustrated with financial assistant examples.","title":"The three core RAG metrics illustrated with financial assistant examples.","type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="630" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!gNmS!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F13d9fabd-661e-47ec-a8fc-1afbdcead725_1200x630.png" srcset="https://substackcdn.com/image/fetch/$s_!gNmS!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F13d9fabd-661e-47ec-a8fc-1afbdcead725_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!gNmS!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F13d9fabd-661e-47ec-a8fc-1afbdcead725_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!gNmS!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F13d9fabd-661e-47ec-a8fc-1afbdcead725_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!gNmS!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F13d9fabd-661e-47ec-a8fc-1afbdcead725_1200x630.png 1456w" title="The three core RAG metrics illustrated with financial assistant examples." width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 4: The three core RAG metrics illustrated with financial assistant examples — each measures a critical relationship between Question, Context, and Answer.</em></figcaption></figure></div><p>These three metrics cover the most common failure modes. For specific domains and failure cases, we have to dig deeper into the next 3 metrics.</p><h2 class="header-anchor-post" id="rr-h-6">Tier 3: When the Core Metrics Can’t Explain the Failure</h2><p>The last three metrics provide deeper diagnostic insights usually required in sensitive domains or use cases.</p><p><span>First, we have </span><strong>Context Support</strong><span> (</span><code>C|A</code><span>). This checks if the retrieved context contains all the information needed to fully back every claim in the response. While this sounds similar to Faithfulness (</span><code>A|C</code><span>), the direction is different. Faithfulness asks: </span><em>“did the answer deviate from the context?”</em><span> , where you look at the answer and check if it introduced claims that aren’t there. Context Support asks: </span><em>“was the context sufficient to support the answer?”</em><span>, where you look at the context and check if it actually contains everything the answer needs.</span></p><p><span>Here is a concrete example. Suppose the answer says your total Q4 dividend income was 2,340 </span><em>across</em><span> 5 </span><em>holdings</em><span>, </span><em>with</em><span> </span><em>the</em><span> </span><em>largest</em><span> </span><em>payout</em><span> </span><em>from</em><span> </span><em>MSFT</em><span> </span><em>at </em><span>890. Now look at the context: it only contains the total dividend amount of $2,340. The per-holding breakdown is nowhere in the retrieved documents. The context was insufficient. It had the total but not the details. The LLM produced a plausible breakdown, but the context could not support it. This is low-context support.</span></p><p><span>Second, we have </span><strong>Question Answerability</strong><span> (</span><code>Q|C</code><span>). This asks if the user's question can even be resolved with the given information.</span></p><p>Suppose the user asks about crypto portfolio performance, but the retrieved documents only contain equity data. This makes the request unanswerable. The system should refuse rather than guess. This metric is important when you want to validate that your agent answers with “I don’t know” instead of confidently hallucinating an answer due to insufficient context.</p><p>In our financial assistant, this was important because some queries can only be resolved if the agent has permissions to access the right external tool first.</p><p><span>Third, we have </span><strong>Self-Containment</strong><span> (</span><code>Q|A</code><span>). This checks if someone can infer the original prompt from the reply alone.</span></p><p>A response stating your portfolio’s return is 12.4% stands alone. A reply stating just 12.4% does not. Prioritize this metric when outputs are forwarded via email, logged in CRM notes, or read without the original conversation.</p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!TV-5!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fef6c62c8-1af1-4dce-b455-48ed7fea0797_1200x630.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!TV-5!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fef6c62c8-1af1-4dce-b455-48ed7fea0797_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!TV-5!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fef6c62c8-1af1-4dce-b455-48ed7fea0797_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!TV-5!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fef6c62c8-1af1-4dce-b455-48ed7fea0797_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!TV-5!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fef6c62c8-1af1-4dce-b455-48ed7fea0797_1200x630.png 1456w" type="image/webp"/><img alt="Faithfulness vs Context Support — two types of hallucination detection." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/ef6c62c8-1af1-4dce-b455-48ed7fea0797_1200x630.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":630,"width":1200,"resizeWidth":null,"bytes":null,"alt":"Faithfulness vs Context Support — two types of hallucination detection.","title":"Faithfulness vs Context Support — two types of hallucination detection.","type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="630" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!TV-5!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fef6c62c8-1af1-4dce-b455-48ed7fea0797_1200x630.png" srcset="https://substackcdn.com/image/fetch/$s_!TV-5!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fef6c62c8-1af1-4dce-b455-48ed7fea0797_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!TV-5!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fef6c62c8-1af1-4dce-b455-48ed7fea0797_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!TV-5!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fef6c62c8-1af1-4dce-b455-48ed7fea0797_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!TV-5!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fef6c62c8-1af1-4dce-b455-48ed7fea0797_1200x630.png 1456w" title="Faithfulness vs Context Support — two types of hallucination detection." width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 5: Faithfulness catches obvious hallucinations where the answer deviates from context. Context Support catches the subtler case where the context was insufficient, and the LLM silently filled the gaps.</em></figcaption></figure></div><p>You now know what to measure at each tier. Two questions remain. How often should you run each one? Which metrics deserve the most attention for your specific domain?</p><h2 class="header-anchor-post" id="rr-h-7">Matching Frequency and Strictness to Your Domain</h2><p>Each tier maps to a different running frequency depending on how fast and cheap you can run the evaluations. It also depends on their overall impact on the system.</p><p><strong>Start with Tier 1</strong><span> on a daily basis. Implement fast retrieval metrics for everyday development and to tune your retrieval component. These are the cheapest to execute as they do not require LLM judges.</span></p><p>Furthermore, they provide quick feedback cycles. Use them for the improvement flywheel with synthetic data from day zero, focusing on these basic indicators before moving to more complex approaches.</p><p><strong>Move to Tier 2</strong><span> on a weekly basis. Implement the three primary RAG connections. These core metrics directly assess how well your system functions.</span></p><p>Use LLM-based grading for a more nuanced assessment of these interactions.</p><p><strong>Incorporate Tier 3</strong><span> on a monthly basis. Introduce advanced metrics when you need deeper insights. Run a full evaluation to identify prompts that the application should not be answering.</span></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!P9iE!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe7db8998-edea-4843-96e6-f2767bb2d9a9_1200x630.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!P9iE!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe7db8998-edea-4843-96e6-f2767bb2d9a9_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!P9iE!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe7db8998-edea-4843-96e6-f2767bb2d9a9_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!P9iE!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe7db8998-edea-4843-96e6-f2767bb2d9a9_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!P9iE!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe7db8998-edea-4843-96e6-f2767bb2d9a9_1200x630.png 1456w" type="image/webp"/><img alt="The tiered evaluation cadence." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/e7db8998-edea-4843-96e6-f2767bb2d9a9_1200x630.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":630,"width":1200,"resizeWidth":null,"bytes":null,"alt":"The tiered evaluation cadence.","title":"The tiered evaluation cadence.","type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="630" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!P9iE!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe7db8998-edea-4843-96e6-f2767bb2d9a9_1200x630.png" srcset="https://substackcdn.com/image/fetch/$s_!P9iE!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe7db8998-edea-4843-96e6-f2767bb2d9a9_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!P9iE!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe7db8998-edea-4843-96e6-f2767bb2d9a9_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!P9iE!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe7db8998-edea-4843-96e6-f2767bb2d9a9_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!P9iE!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe7db8998-edea-4843-96e6-f2767bb2d9a9_1200x630.png 1456w" title="The tiered evaluation cadence." width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 6: The tiered evaluation cadence — cheapest and fastest at the top, deepest and most expensive at the bottom.</em></figcaption></figure></div><p>Here, we focused only on RAG-related measurements. However, this actually applies to any type of AI evals layer. You could implement Tier 1 checks in your CI/CD pipeline to execute on each commit.</p><p>You can trigger Tier 2 evaluations manually before merging your code from your feature branch. Finally, manually run Tier 3 metrics before major releases and strategic decisions.</p><p>There is another dimension to consider when choosing metrics for your use case, which is the good old domain.</p><p><strong>Different domains require emphasis on distinct indicators</strong><span>. What matters most depends on the severity of the use case.</span></p><p><strong>High-severity domains</strong><span> include finance, medical, and legal applications. In these fields, Faithfulness (</span><code>A|C</code><span>) and Context Support (</span><code>C|A</code><span>) are non-negotiable because every claim must be traceable. Answerability (</span><code>Q|C</code><span>) is also critical, meaning the application must refuse rather than guess.</span></p><p>Thus, you want precision over recall, which is the exact profile we use for our financial assistant.</p><p><strong>Medium severity domains</strong><span> include customer support and technical documents. Answer Relevance (</span><code>A|Q</code><span>) leads here, as the output must be helpful and correct. Answerability (</span><code>Q|C</code><span>) helps you know when to hand off to a human, and you generally want recall over precision in retrieval.</span></p><p><strong>Low-severity domains</strong><span> include research, writing, and content generation, where synthesis and creative reframing are expected. Context Relevance (</span><code>C|Q</code><span>) and Answer Relevance (</span><code>A|Q</code><span>) is primary, while Faithfulness (</span><code>A|C</code><span>) thresholds remain lower. The generator is supposed to add value beyond the raw text.</span></p><p>Therefore, you want high recall in the search phase to cast a wide net across sources.</p><p>You know what to measure, when, and what to prioritize. None of this works without the right data and infrastructure. Let us explore how to build the evaluation harness.</p><h2 class="header-anchor-post" id="rr-h-8">Building the RAG Evaluation Harness</h2><p>RAG evaluation requires inputs, outputs, and the retrieved context. You need the full triplet.</p><p>The most common blind spot involves treating RAG testing like any other LLM assessment. Teams measure the final reply’s quality, but never capture what background data the generator actually worked with. Without that information, half the metrics in this article are impossible to compute.</p><p>Next, you should ground your RAG dataset in real human judgment. In our financial assistant, we had a domain specialist on the team who manually QA’d the application from the start. They ran queries, checked whether the right data was retrieved, and verified that the replies made sense.</p><p><span>We translated all of that manual work into our AI evals collection using the error analysis workflow from </span><a href="https://www.decodingai.com/p/build-an-ai-evals-dataset-with-error-analysis">Article 2</a><span>.</span></p><p>Also, building RAG datasets introduces a unique difficulty. Each test case needs the right documents, chunks, and embeddings available in the database. Otherwise, the search tool has nothing to work with.</p><p>Running the full ingestion pipeline for every evaluation run is slow and introduces variability.</p><p>We solved this by coupling each data point with a Postgres SQL export containing the relevant documents, chunks, embeddings, and metadata. We loaded this file directly into the storage system for each test, effectively creating a context cache. This made the process fast and reproducible.</p><p>We inject the records, run the query, evaluate the trace, reset the environment, and move to the next item. Image 7 illustrates these data preparation paths.</p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!1KvQ!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0f9c048e-214e-481e-b46b-4ca2c6d9a397_1200x630.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!1KvQ!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0f9c048e-214e-481e-b46b-4ca2c6d9a397_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!1KvQ!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0f9c048e-214e-481e-b46b-4ca2c6d9a397_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!1KvQ!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0f9c048e-214e-481e-b46b-4ca2c6d9a397_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!1KvQ!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0f9c048e-214e-481e-b46b-4ca2c6d9a397_1200x630.png 1456w" type="image/webp"/><img alt="Two paths for building your RAG evaluation dataset." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/0f9c048e-214e-481e-b46b-4ca2c6d9a397_1200x630.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":630,"width":1200,"resizeWidth":null,"bytes":null,"alt":"Two paths for building your RAG evaluation dataset.","title":"Two paths for building your RAG evaluation dataset.","type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="630" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!1KvQ!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0f9c048e-214e-481e-b46b-4ca2c6d9a397_1200x630.png" srcset="https://substackcdn.com/image/fetch/$s_!1KvQ!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0f9c048e-214e-481e-b46b-4ca2c6d9a397_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!1KvQ!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0f9c048e-214e-481e-b46b-4ca2c6d9a397_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!1KvQ!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0f9c048e-214e-481e-b46b-4ca2c6d9a397_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!1KvQ!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0f9c048e-214e-481e-b46b-4ca2c6d9a397_1200x630.png 1456w" title="Two paths for building your RAG evaluation dataset." width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 7: Two paths for building your RAG evaluation dataset — manual expert QA (Article 2) and synthetic reverse workflow (Article 3) — both requiring proper context preparation.</em></figcaption></figure></div><p><span>If you do not have enough production data or expert QA samples, you can create synthetic RAG evaluation sets. Use the reverse workflow from </span><a href="https://www.decodingai.com/p/generate-synthetic-datasets-for-ai-evals">Article 3</a><span> by starting from your knowledge base. Use an LLM to extract key facts from specific passages.</span></p><p>Then, formulate realistic user questions that can only be answered using that exact text block.</p><p>Because the prompt derives directly from the source material, the input, expected retrieval context, and expected reply are perfectly aligned by construction. This gives you a complete ground-truth triplet. Furthermore, this technique is especially powerful for bootstrapping coverage across your entire document corpus.</p><p>Include unanswerable queries in your collection. Do not only formulate prompts that the application should resolve correctly. Instead, create scenarios where the context deliberately lacks the information needed, forcing the agent to refuse or say it does not know.</p><p>Without these negative examples, your testing suite is one-sided. Your evals will optimize for always attempting a reply, whereas adding them directly exercises the Answerability metric from Tier 3.</p><p>Next, if your RAG architecture integrates with external services, the retrieval path is not just a vector database search. Your agent needs to decide which tool to call first. Should it query Postgres, search the CRM, or check the user’s email?</p><p>The best retrieval metrics will not help if your model invoked the wrong data source entirely.</p><p>In our financial assistant, this was critical. A query about a client meeting should hit the CRM, not the transaction database. Therefore, we added code-based checks for tool selection alongside our RAG metrics.</p><p>Another important trick is to run separate graders per RAG dimension. Do not ask one LLM to evaluate context relevance, faithfulness, and answer relevance in a single prompt. Isolated checks with dimension-specific rubrics produce more consistent results than a unified evaluation.</p><p><span>Ultimately, you need to log specific data for every trace using tools such as </span><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik</a><span>. Record retrieved chunks to see what the generator had access to. If faithfulness fails, check whether the reply used information that was not provided. Track metadata such as document IDs and scores, because when context relevance fails, you need to know which items ranked highest. This represents the same observability infrastructure from </span><a href="https://www.decodingai.com/p/integrating-ai-evals-into-your-ai-app">Article 1</a><span>.</span></p><h2 class="header-anchor-post" id="rr-h-9">Next Steps</h2><p>RAG evaluation is not complex. It is just three variables and six relationships. When your RAG system fails, one of these specific links is broken.</p><p>Fix that exact issue and ignore the complexity theater.</p><p>Start with Tier 1 retrieval checks as daily prerequisites. Add Tier 2 primary indicators weekly. Extend to Tier 3 when specific failure modes demand it.</p><p>Ultimately, match your evaluation priorities to your domain’s risk profile.</p><p>Next time you see a vendor dashboard with dozens of RAG metrics, map each one back to the six relationships. If an indicator does not clearly measure one of the core links, it is noise. Drop it and focus on what actually diagnoses failures.</p><p><span>Next up is the </span><a href="https://www.decodingai.com/p/behind-the-scenes-of-ai-observability">final piece in the series</a><span>. We will explore real-world lessons from months of running evals on a production AI companion. We will discuss what worked, what failed, and what the team would do differently.</span></p><p><span>Also, remember that this article is part of a </span><strong><a href="https://www.decodingai.com/t/ai-evals-and-observability">7-piece series on AI Evals &amp; Observability</a></strong><span>. </span><strong>Here’s what’s ahead:</strong></p><ol><li><p><a href="https://www.decodingai.com/p/integrating-ai-evals-into-your-ai-app">Integrating AI Evals Into Your AI App</a><span> </span></p></li><li><p><a href="https://www.decodingai.com/p/build-an-ai-evals-dataset-with-error-analysis">Build an AI Evals Dataset from Scratch</a><span> </span></p></li><li><p><a href="https://www.decodingai.com/p/generate-synthetic-datasets-for-ai-evals">Generate Synthetic Datasets for AI Evals</a><span> </span></p></li><li><p><a href="https://www.decodingai.com/p/how-to-design-ai-evaluators-that-catch-failures">How to Design Evaluators</a></p></li><li><p><a href="https://www.decodingai.com/p/how-to-evaluate-the-evaluator-validate-llm-judge">How to Evaluate the Evaluator</a></p></li><li><p><em><strong>RAG Evaluation: The Only 6 Metrics You Need</strong><span> ← You just finished this one</span></em></p></li><li><p><a href="https://www.decodingai.com/p/behind-the-scenes-of-ai-observability">Lessons from 6 Months of Evals on a Production AI Companion</a></p></li></ol><p>See you next Tuesday.</p><p><a href="https://www.pauliusztin.ai/">Paul Iusztin</a></p><div><hr/></div><p><em>What’s your opinion? Do you agree, disagree, or is there something I missed?</em></p><div><hr/></div><p><em>Enjoyed the article? The most sincere compliment is to share our work.</em></p><div><hr/></div><div class="callout-block" data-callout="true"><h4 id="rr-h-10">Whenever you’re ready, here is how I can help you</h4><p><em>Go from agent user to agent builder.</em><span> Master the foundations of AI agents and turn fragile demo code into reliable, production-ready systems with my course, </span><strong><a href="https://academy.towardsai.net/courses/agent-engineering?ref=b3ab31&amp;utm_source=decodingai&amp;utm_medium=partner&amp;utm_campaign=agent_engineering">Agent Engineering: Building Multi-Agent Systems</a></strong><span> (made with Towards AI).</span></p><p>35 lessons. Pure foundations from scratch. 4 mini-projects. 2 production systems. A certificate and direct access to me &amp; industry experts in our Discord.</p><p><span>Built for software and data professionals transitioning into AI engineering. </span><em>Rated 5/5 with 300+ students. The first 7 lessons are free:</em></p><p><em>Not ready to commit?</em><span> Start with our </span><strong><a href="https://email-course.towardsai.net/?ref=b3ab31&amp;utm_source=decodingai&amp;utm_medium=partner&amp;utm_campaign=agent_engineering">free Agent AI Engineering Guide</a></strong><span>, a 6-day email course on the mistakes that silently break AI agents in production.</span></p></div><div><hr/></div><p><em><span>Thanks again to </span><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik</a><span> for sponsoring the series and keeping it free!</span></em></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!yeD8!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png 424w, https://substackcdn.com/image/fetch/$s_!yeD8!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png 848w, https://substackcdn.com/image/fetch/$s_!yeD8!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png 1272w, https://substackcdn.com/image/fetch/$s_!yeD8!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png 1456w" type="image/webp"/><img alt="Opik Banner" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/deaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":400,"width":1200,"resizeWidth":null,"bytes":null,"alt":"Opik Banner","title":"Opik Banner","type":null,"href":"https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul","belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="400" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!yeD8!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png" srcset="https://substackcdn.com/image/fetch/$s_!yeD8!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png 424w, https://substackcdn.com/image/fetch/$s_!yeD8!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png 848w, https://substackcdn.com/image/fetch/$s_!yeD8!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png 1272w, https://substackcdn.com/image/fetch/$s_!yeD8!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png 1456w" title="Opik Banner" width="1200"/></picture></div></a><figcaption class="image-caption"><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Try Opik for free here</a><span> (25k spans/month free)</span></figcaption></figure></div><p><strong>If you want to monitor, evaluate and optimize your AI workflows and agents:</strong></p><div><hr/></div><h2 class="header-anchor-post" id="rr-h-11">References</h2><ol><li><p><span>Liu, J. (2025, May 19). There Are Only 6 RAG Evals. jxnl.co. </span><a href="https://jxnl.co/writing/2025/05/19/there-are-only-6-rag-evals/">https://jxnl.co/writing/2025/05/19/there-are-only-6-rag-evals/</a></p></li><li><p><span>Grace, M., Hadfield, J., Olivares, R., &amp; De Jonghe, J. (2026, January 09). Demystifying Evals for AI Agents. Anthropic Engineering Blog. </span><a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents">https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents</a></p></li></ol><div><hr/></div><h2 class="header-anchor-post" id="rr-h-12">Images</h2><p>If not otherwise stated, all images are created by the author.</p></div>
+<div class="chapter-nav" style="margin-top:56px;padding-top:20px;border-top:1px solid var(--border);display:flex;gap:18px;font-family:system-ui,sans-serif;font-size:.9rem"><a href="chapter05_reader.html">&larr; Previous</a><a href="../../index.html">Index</a><a href="chapter07_reader.html">Next &rarr;</a></div>
+  </main>
+
+  <footer class="bottom-bar">
+    <span id="pageInfo">Chapter 6 of 7</span>
+    <span id="progressPercent">0%</span>
+  </footer>
+
+  <footer class="footer">
+    Compiled from the Decoding AI Magazine series
+  </footer>
+
+  <script>
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+    });
+
+    function toggleTOC() {
+      const panel = document.getElementById('tocPanel');
+      const overlay = document.getElementById('tocOverlay');
+      panel.classList.toggle('open');
+      overlay.classList.toggle('show');
+    }
+
+    function toggleChapter(event, idx) {
+      event.preventDefault();
+      event.stopPropagation();
+      const arrow = document.getElementById('arrow-' + idx);
+      const subs = document.getElementById('subs-' + idx);
+      if (arrow && subs) {
+        const isOpen = subs.style.display !== 'none';
+        subs.style.display = isOpen ? 'none' : 'block';
+        arrow.classList.toggle('open', !isOpen);
+      }
+    }
+
+    function navigateToChapter(url) {
+      window.location.href = url;
+    }
+
+    function toggleTheme() {
+      const root = document.documentElement;
+      const isDark = root.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        root.removeAttribute('data-theme');
+        document.getElementById('theme-icon').innerHTML = '<circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+      } else {
+        root.setAttribute('data-theme', 'dark');
+        document.getElementById('theme-icon').innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+      }
+    }
+  </script>
+  <!--rr-annotate-->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23FAF6EE'/%3E%3Ctext x='16' y='24' font-size='22' text-anchor='middle' fill='%23A34A2E' font-family='Georgia' font-style='italic'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="../../assets/annotate.css?v=18">
+<script type="application/json" id="rr-notes">{}</script>
+<script data-rr-palette="apple" src="../../assets/annotate.js?v=18" data-rr-book="ai-evals-foundations" data-rr-page="chapter06_reader.html" data-rr-prefix="../../"></script>
+<script src="../../assets/chapter-toc.js?v=18"></script>
+<script src="../../assets/code-copy.js?v=18"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<script src="../../assets/article-toc.js?v=1"></script>
+<script src="../../assets/course-theme.js?v=3"></script>
+</body>
+</html>

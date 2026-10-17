@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Build an AI Evals Dataset from Scratch — AI Evals Foundations: From Vibe Checking to Measurable AI</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css');
+
+    :root {
+      --bg: #FAF6EE;
+      --surface: #FFFFFF;
+      --ink: #2D2522;
+      --ink-2: #6E625B;
+      --accent: #A34A2E;
+      --border: rgba(163,74,46,0.1);
+      --font-reader: 'Newsreader', 'EB Garamond', 'Baskerville', 'Garamond', Georgia, serif;
+      --toc-width: 280px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #1a1a1a;
+      --surface: #2d2d2d;
+      --ink: #e0e0e0;
+      --ink-2: #a0a0a0;
+      --accent: #E28C68;
+      --border: rgba(243,239,233,0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-reader);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+
+    .top-bar button {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .top-bar button:hover {
+      background: rgba(163,74,46,0.08);
+    }
+
+    .top-bar button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .top-bar-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--ink-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60%;
+    }
+
+    .reader-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 60px 80px;
+    }
+
+    .reader-content h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      line-height: 1.3;
+    }
+
+    .reader-content h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 32px 0 16px;
+    }
+
+    .reader-content h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 24px 0 12px;
+      color: var(--ink-2);
+    }
+
+    .reader-content p {
+      font-size: 1.15rem;
+      line-height: 1.85;
+      margin-bottom: 1.2em;
+      text-align: left;
+    }
+
+    .reader-content blockquote {
+      margin: 20px 0;
+      padding: 16px 20px;
+      border-left: 3px solid var(--accent);
+      background: rgba(163,74,46,0.04);
+      font-style: italic;
+    }
+
+    .reader-content dl {
+      margin: 20px 0;
+    }
+
+    .reader-content dt {
+      font-weight: 600;
+      margin: 16px 0 8px;
+      font-style: italic;
+    }
+
+    .reader-content dd {
+      margin-left: 20px;
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .reader-content table {
+      display: table;
+      width: 100%;
+      margin: 24px 0;
+      border-collapse: collapse;
+      font-size: 1rem;
+      border: 1px solid #c3c3c3;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .reader-content th {
+      display: table-cell;
+      background: #f0f4f8;
+      border-bottom: 2px solid #9d9d9d;
+      padding: 14px 16px;
+      font-weight: 600;
+      text-align: left;
+      font-size: 0.95rem;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td {
+      display: table-cell;
+      padding: 14px 16px;
+      border-bottom: 1px solid #ddd;
+      border-right: 1px solid #eee;
+      vertical-align: top;
+      font-size: 1rem;
+      line-height: 1.7;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td:last-child {
+      border-right: none;
+    }
+
+    .reader-content tr:nth-of-type(even) {
+      background-color: #fafbfd;
+    }
+
+    .reader-content figure,
+    .reader-content .figure {
+      margin: 24px auto;
+      text-align: center;
+    }
+
+    .reader-content img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .reader-content figcaption,
+    .reader-content figure h6,
+    .reader-content .figure h6 {
+      font-size: 0.9rem;
+      font-style: italic;
+      color: var(--ink-2);
+      margin-top: 8px;
+    }
+
+    .reader-content .note,
+    .reader-content [data-type="note"] {
+      margin: 20px 0;
+      padding: 16px 20px;
+      background: #f8f4e8;
+      border: 1px solid #e6d48a;
+      border-radius: 6px;
+    }
+
+    .ann-hl { border-radius: 2px; }
+    .ann-note { border-radius: 2px; }
+
+    pre.code, pre[data-lang], .code {
+      background: #1e1e1e !important;
+      border-radius: 8px !important;
+      padding: 16px 20px !important;
+      margin: 20px 0 !important;
+      overflow-x: auto !important;
+      position: relative !important;
+      border: 1px solid #333 !important;
+    }
+
+    pre.code[data-lang]::before, pre[data-lang]::before {
+      content: attr(data-lang);
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      font-size: 0.7rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace;
+    }
+
+    pre.code code, pre[data-lang] code, .code code {
+      color: #e0e0e0 !important;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace !important;
+      font-size: 0.9rem !important;
+      line-height: 1.6 !important;
+      background: none !important;
+      padding: 0 !important;
+      border: none !important;
+      white-space: pre !important;
+    }
+
+    p code, li code, td code {
+      background: rgba(0,0,0,0.06) !important;
+      padding: 2px 6px !important;
+      border-radius: 4px !important;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace !important;
+      font-size: 0.85em !important;
+    }
+
+    .line-numbers-rows { border-right: 1px solid #444 !important; }
+
+    .progress-bar {
+      position: fixed;
+      top: 52px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 99;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .ann-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent);
+      color: white;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .chapter-title {
+      text-align: center;
+      padding: 40px 20px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chapter-title h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .toc-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--toc-width);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      z-index: 200;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+    }
+
+    .toc-panel.open {
+      transform: translateX(0);
+    }
+
+    .toc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      height: 52px;
+    }
+
+    .toc-header h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .toc-close {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+    }
+
+    .toc-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+
+    .toc-chapter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .toc-chapter:hover {
+      background: rgba(163,74,46,0.06);
+      border-left-color: var(--accent);
+    }
+
+    .toc-ann-count {
+      background: var(--accent);
+      color: white;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      min-width: 22px;
+      text-align: center;
+    }
+
+    .toc-arrow {
+      font-size: 0.6rem;
+      color: var(--ink-2);
+      transition: transform 0.2s ease;
+      margin-left: auto;
+    }
+
+    .toc-arrow.open {
+      transform: rotate(90deg);
+    }
+
+    .toc-subs {
+      padding: 4px 0;
+      border-left: 2px solid var(--border);
+      margin-left: 20px;
+    }
+
+    .toc-sub {
+      padding-left: 32px;
+      font-weight: 400;
+    }
+
+    .toc-sub-sub {
+      padding-left: 48px;
+      font-size: 0.75rem;
+    }
+
+    .toc-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 199;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .toc-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--ink-2);
+      z-index: 100;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 60px;
+      border-top: 1px solid var(--border);
+      color: var(--ink-2);
+      font-size: 0.8rem;
+    }
+  
+    /* Substack markup mapped onto the reader theme */
+    .reader-content .callout-block {
+      background: color-mix(in srgb, var(--accent) 7%, transparent);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin: 22px 0;
+    }
+    .reader-content .callout-block p { margin: 0.4em 0; }
+    .reader-content .callout-block p:first-child { margin-top: 0; }
+    .reader-content .callout-block p:last-child { margin-bottom: 0; }
+    .reader-content [data-type='quote'] {
+      border-left: 3px solid var(--border);
+      padding-left: 16px;
+      color: var(--ink-2);
+    }
+    .reader-content .image-link { text-decoration: none; }
+    .reader-content hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+    .reader-content .available-content > p > u { text-decoration: none; }
+    .reader-content sup a, .reader-content sub a { text-decoration: none; }
+    .chapter-nav a { color: var(--accent); text-decoration: none; }
+    .chapter-nav a:hover { text-decoration: underline; }
+
+  </style>
+<link rel="stylesheet" href="../../assets/site.css?v=18">
+<link rel="stylesheet" href="../../assets/article-toc.css?v=1">
+<link rel="stylesheet" href="../../assets/course-theme.css?v=3">
+</head>
+<body>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="toc-overlay" id="tocOverlay" onclick="toggleTOC()"></div>
+
+  <div class="toc-panel" id="tocPanel">
+    <div class="toc-header">
+      <h3>Table of Contents</h3>
+      <button class="toc-close" onclick="toggleTOC()">✕</button>
+    </div>
+    <nav class="toc-nav">
+<div class="toc-chapter-wrap" data-chapter="0">
+<a href="chapter01_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter01_reader.html')"><span>Integrating AI Evals Into Your AI App</span><span class="toc-arrow" id="arrow-0" onclick="toggleChapter(event, 0)">&#9654;</span></a>
+<div class="toc-subs" id="subs-0" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">Opik: Open-Source Observability for Your Multimodal AI Agents (Sponsored )</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">The Holistic View of AI Evals</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Using Evals for Optimization</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Using Evals for Regression</a>
+<a class="toc-heading toc-sub" href="#rr-h-5">Using Evals for Production Monitoring</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Looking at Common Misconceptions</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-7">Guardrails vs. Evaluators</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-8">App Evaluators vs. LLM Evaluators</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-9">Evaluator vs. Classic Software Tests</a>
+<a class="toc-heading toc-sub" href="#rr-h-10">So What Is the Tech Stack?</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-12">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-13">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-14">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="1">
+<a href="chapter02_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter02_reader.html')"><span>Build an AI Evals Dataset from Scratch</span><span class="toc-arrow" id="arrow-1" onclick="toggleChapter(event, 1)">&#9654;</span></a>
+<div class="toc-subs" id="subs-1" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">Opik: Open-Source Observability for Your Multimodal AI Agents (Sponsored )</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Create the AI Evals Dataset</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Manually Label Your Dataset</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Manually Fix Errors</a>
+<a class="toc-heading toc-sub" href="#rr-h-5">Iteratively Build Your Evaluator</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Doing Error Analysis</a>
+<a class="toc-heading toc-sub" href="#rr-h-7">Create Specialized Evaluators</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">Demo</a>
+<a class="toc-heading toc-sub" href="#rr-h-9">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-12">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="2">
+<a href="chapter03_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter03_reader.html')"><span>Generate Synthetic Datasets for AI Evals</span><span class="toc-arrow" id="arrow-2" onclick="toggleChapter(event, 2)">&#9654;</span></a>
+<div class="toc-subs" id="subs-2" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">Opik: Automated Agent Optimization Using Your Evals Data (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">When Do We Need Synthetic Data?</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Understanding the Core Principles</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Seeing Your Inputs as Dimensions</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-5">How much data do you need?</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-6">Does this actually work?</a>
+<a class="toc-heading toc-sub" href="#rr-h-7">When Having Some Production Data</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">When Building Agents</a>
+<a class="toc-heading toc-sub" href="#rr-h-9">When Doing RAG</a>
+<a class="toc-heading toc-sub" href="#rr-h-10">For Deterministic Testing</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-12">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-13">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-14">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="3">
+<a href="chapter04_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter04_reader.html')"><span>How to Design Evaluators</span><span class="toc-arrow" id="arrow-3" onclick="toggleChapter(event, 3)">&#9654;</span></a>
+<div class="toc-subs" id="subs-3" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">How to Design Evaluators</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Opik: Open-Source LLMOps Platform (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Understanding the Evaluation Harness</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Dataset and Metric Types: Three Ways to Grade</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-5">1. Direct Scoring (Pointwise Evaluation)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-6">2. Pairwise Comparison</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-7">3. Reference-Based Evaluation</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">Model Evaluation vs. App Evaluation (Why Benchmarks Lie)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-9">Model Evaluation (Benchmarks)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">App Evaluation (What You Actually Need)</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">Components of an Evaluator</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-12">1. Reference Examples (Few-Shot Prompts)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-13">2. Metrics</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-14">3. Rubrics</a>
+<a class="toc-heading toc-sub" href="#rr-h-15">Code-Based Evaluators: Fast, Cheap, Objective</a>
+<a class="toc-heading toc-sub" href="#rr-h-16">LLM Judges: Flexible, Scalable, Nuanced</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-17">Strengths of LLM Judges</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-18">Weaknesses of LLM Judges</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-19">Making LLM Judges More Stable</a>
+<a class="toc-heading toc-sub" href="#rr-h-20">Common Mistakes (And How to Avoid Them)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-21">Mistake 1: Not Providing Critiques</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-22">Mistake 2: Overly Terse Critiques</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-23">Mistake 3: Missing Context</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-24">Mistake 4: Not Providing Diverse Examples</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-25">Mistake 5: Using Ready-Made Metrics Without Validation</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-26">Mistake 6: Using 1-5 Scales Instead of Binary Pass/Fail</a>
+<a class="toc-heading toc-sub" href="#rr-h-27">When Should I Use Similarity Metrics (BERTScore, ROUGE, etc.)?</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-28">When They Work</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-29">When They Fail</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-30">The Rule</a>
+<a class="toc-heading toc-sub" href="#rr-h-31">Advanced Metric Designs</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-32">Evaluating Multi-Turn Conversation Traces</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-33">Evaluating Complex Multi-Step Workflows</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-34">Evaluating Agentic Workflows</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-35">Phase 1: End-to-End Task Success</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-36">Phase 2: Step-Level Diagnostics</a>
+<a class="toc-heading toc-sub" href="#rr-h-37">Bringing It All Together</a>
+<a class="toc-heading toc-sub" href="#rr-h-38">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-39">Most AI newsletters give you news. The AI Engineer gives you understanding.</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-40">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-41">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-42">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="4">
+<a href="chapter05_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter05_reader.html')"><span>How to Evaluate the Evaluator</span><span class="toc-arrow" id="arrow-4" onclick="toggleChapter(event, 4)">&#9654;</span></a>
+<div class="toc-subs" id="subs-4" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">How to Evaluate the Evaluator</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Opik: Automated Agent Optimization Using Your Data (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Structuring Your Data for Validation</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Measuring Alignment With Human Judgment</a>
+<a class="toc-heading toc-sub" href="#rr-h-5">When High Scores Hide Real Failures</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Closing the Gap Between Judge and Expert</a>
+<a class="toc-heading toc-sub" href="#rr-h-7">Dealing With Non-Determinism</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">Demo</a>
+<a class="toc-heading toc-sub" href="#rr-h-9">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-12">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="5">
+<a href="chapter06_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter06_reader.html')"><span>RAG Evaluation: The Only 6 Metrics You Need</span><span class="toc-arrow" id="arrow-5" onclick="toggleChapter(event, 5)">&#9654;</span></a>
+<div class="toc-subs" id="subs-5" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">RAG Evaluation: The Only 6 Metrics You Need</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Opik: Open-Source LLMOps Platform (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">The Only 6 RAG Evaluation Metrics That Can Exist</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Tier 1: If Retrieval Is Broken, Nothing Else Matters</a>
+<a class="toc-heading toc-sub" href="#rr-h-5">Tier 2: The Three RAG Metrics You Always Need</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Tier 3: When the Core Metrics Can’t Explain the Failure</a>
+<a class="toc-heading toc-sub" href="#rr-h-7">Matching Frequency and Strictness to Your Domain</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">Building the RAG Evaluation Harness</a>
+<a class="toc-heading toc-sub" href="#rr-h-9">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-12">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="6">
+<a href="chapter07_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter07_reader.html')"><span>Lessons from 6 Months of Evals on a Production AI Companion</span><span class="toc-arrow" id="arrow-6" onclick="toggleChapter(event, 6)">&#9654;</span></a>
+<div class="toc-subs" id="subs-6" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">Opik: Open-Source LLMOps Platform (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Problems With AI Observability</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-3">Falling for Classic Metrics or Trying to Define What’s “Good” or “Bad”</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-4">Not Going Through Manual Annotations</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-5">Not Treating Your AI Agents as a Data Product</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Implementing AI Observability</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-7">Opik Overview</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-8">Opik MCP Server</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-9">Figuring Out Evaluation Criteria</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">Refining Evaluation Criteria</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-11">Running Annotation Sessions</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-12">Making Sense of Annotated Feedback</a>
+<a class="toc-heading toc-sub" href="#rr-h-13">Backstory of This Framework</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-14">Do you want more articles like this from Alejandro?</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-15">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-16">Images</a>
+</div>
+</div>
+</nav>
+  </div>
+
+  <nav class="top-bar">
+    <button onclick="toggleTOC()" title="Table of Contents">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <span class="top-bar-title">AI Evals Foundations: From Vibe Checking to Measurable AI</span>
+    <button onclick="toggleTheme()" title="Toggle theme">
+      <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    </button>
+  </nav>
+
+  <main class="reader-content">
+<div class="chapter-title">
+<h1 id="rr-h-0">Build an AI Evals Dataset from Scratch</h1>
+<p style="color:var(--ink-2);font-size:.9rem">Chapter 2 of 7 &middot; Paul Iusztin, <a href="https://www.decodingai.com/p/build-an-ai-evals-dataset-with-error-analysis" target="_blank" rel="noopener">read the original post</a></p>
+</div>
+<div class="body markup" dir="auto"><p><em><span>Welcome to the </span><strong><a href="https://www.decodingai.com/t/ai-evals-foundations">AI Evals Foundations series</a></strong><span>: A 7-part journey from shipping AI apps to systematically improving them. Made by busy people. For busy people.</span></em></p><p>🧐 Everyone says you need AI evals. Few explain how to actually build them and answer questions such as…</p><p>How do we avoid creating evals that waste our time and resources? How do we build datasets and design evaluators that matter? How do we adapt them for RAG? ...and most importantly, how do we stop “vibe checking” and leverage evals to actually track and optimize our app?</p><p><em>This 7-article series breaks it all down from first principles:</em></p><ol><li><p><a href="https://www.decodingai.com/p/integrating-ai-evals-into-your-ai-app">Integrating AI Evals Into Your AI App</a><strong> </strong></p></li><li><p><strong>Build an AI Evals Dataset from Scratch</strong><span> ← </span><em>You are here</em></p></li><li><p><a href="https://www.decodingai.com/p/generate-synthetic-datasets-for-ai-evals">Generate Synthetic Datasets for AI Evals</a></p></li><li><p><a href="https://www.decodingai.com/p/how-to-design-ai-evaluators-that-catch-failures">How to Design Evaluators</a></p></li><li><p><a href="https://www.decodingai.com/p/how-to-evaluate-the-evaluator-validate-llm-judge">How to Evaluate the Evaluator</a></p></li><li><p><a href="https://www.decodingai.com/p/rag-evaluation-6-metrics-framework">RAG Evaluation: The Only 6 Metrics You Need</a></p></li><li><p><a href="https://www.decodingai.com/p/behind-the-scenes-of-ai-observability">Lessons from 6 Months of Evals on a Production AI Companion</a></p></li></ol><p>By the end, you’ll know how to integrate AI evals that actually track and improve the performance of your AI product. No vibe checking required!</p><p><strong>Let’s get started.</strong></p><div><hr/></div><h1 class="header-anchor-post">Build an AI Evals Dataset from Scratch</h1><p><span>In the </span><a href="https://www.decodingai.com/p/integrating-ai-evals-into-your-ai-app">previous article</a><span>, you learned where, when, why and what AI Evals are. You saw the three core scenarios (optimization, regression, production monitoring) and the tech stack. But knowing </span><em>where</em><span> to use evals is only half the battle. You still need the actual dataset and evaluators to run them. That is what the rest of the articles from the series are about. </span><strong>The “how”.</strong></p><p><span>For example, after shipping Brown (the writer agent from our </span><a href="https://academy.towardsai.net/courses/agent-engineering?ref=b3ab31">Agentic AI Engineer course</a><span> capstone project), I've been actively using it to write articles and lessons (even this one, haha), thus generating a lot of “production” traces. However, I had no structured way to evaluate them. I would look at a few outputs, tweak a prompt, and hope for the best. It wasn’t until I sat down, pulled 50 traces, and started writing notes on what went wrong with each one that I realized most of my failures fell into just 3–4 categories. That simple exercise of looking at the data changed everything. It told me exactly what to measure and what to fix first.</span></p><p><em>In reality, is not that simple, but not far from it. That’s what I want to teach you in this article.</em></p><p><span>Instead, most teams skip straight to building fancy evaluation dashboards or crafting elaborate scoring criteria without ever looking at their data. As Hamel Husain puts it: </span><em>“Many teams make the mistake of crafting elaborate eval criteria without first looking at the data”</em><span> </span><a href="https://hamel.dev/blog/posts/evals-faq/why-is-error-analysis-so-important-in-llm-evals-and-how-is-it-performed.html">[2]</a><span>. This leads to two common traps: creating irrelevant criteria that waste resources on low-probability defects, or setting unrealistic criteria that the technology isn’t ready for.</span></p><p>You know you need AI evals, but you likely don’t have a dataset, you don’t have an evaluator, and you don’t know where to start. Building everything from scratch feels overwhelming. That is why many people start using generic tools and metrics, which is another huge mistake.</p><p><em>The solution is the error analysis framework.</em><span> This is a step-by-step flywheel: start small, let the data guide you, and iteratively grow your dataset and evaluators. You do not need hundreds of examples or a perfect system on day one. You need 20–50 real traces and the discipline to look at them carefully, which you can easily start from day zero of your project.</span></p><p><strong>In this article, we will cover:</strong></p><ol><li><p>How to create and format your initial dataset from production or synthetic traces.</p></li><li><p>How to manually label your data.</p></li><li><p>How to fix errors and grow your dataset with regression tests.</p></li><li><p>The iterative process of building and aligning an LLM judge.</p></li><li><p>How to perform systematic error analysis to cluster and prioritize fixes.</p></li><li><p>When to move from generic evaluators to specialized ones.</p></li></ol><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!HoRg!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F50162cce-1890-424b-ab13-e3fa910dc94b_1200x1200.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!HoRg!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F50162cce-1890-424b-ab13-e3fa910dc94b_1200x1200.png 424w, https://substackcdn.com/image/fetch/$s_!HoRg!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F50162cce-1890-424b-ab13-e3fa910dc94b_1200x1200.png 848w, https://substackcdn.com/image/fetch/$s_!HoRg!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F50162cce-1890-424b-ab13-e3fa910dc94b_1200x1200.png 1272w, https://substackcdn.com/image/fetch/$s_!HoRg!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F50162cce-1890-424b-ab13-e3fa910dc94b_1200x1200.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/50162cce-1890-424b-ab13-e3fa910dc94b_1200x1200.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":1200,"width":1200,"resizeWidth":null,"bytes":183015,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.decodingai.com/i/187935789?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F50162cce-1890-424b-ab13-e3fa910dc94b_1200x1200.png","isProcessing":false,"align":null,"offset":false}' height="1200" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!HoRg!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F50162cce-1890-424b-ab13-e3fa910dc94b_1200x1200.png" srcset="https://substackcdn.com/image/fetch/$s_!HoRg!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F50162cce-1890-424b-ab13-e3fa910dc94b_1200x1200.png 424w, https://substackcdn.com/image/fetch/$s_!HoRg!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F50162cce-1890-424b-ab13-e3fa910dc94b_1200x1200.png 848w, https://substackcdn.com/image/fetch/$s_!HoRg!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F50162cce-1890-424b-ab13-e3fa910dc94b_1200x1200.png 1272w, https://substackcdn.com/image/fetch/$s_!HoRg!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F50162cce-1890-424b-ab13-e3fa910dc94b_1200x1200.png 1456w" width="1200"/></picture></div></a></figure></div><p><em>Before digging into the article, a quick word from our sponsor, Opik.</em><span> ↓</span></p><div><hr/></div><h2 class="header-anchor-post" id="rr-h-1"><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik: Open-Source Observability for Your Multimodal AI Agents (Sponsored</a><span>)</span></h2><p><span>This </span><em><strong>AI Evals &amp; Observability series</strong></em><span> is brought to you by </span><em><strong><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik</a></strong></em><span>, the LLMOps open-source platform used by Uber, Netflix, Etsy, and more.</span></p><p><span>We’re proud to partner with a tool we actually use daily across our open-source courses and real-world AI products. Why? </span><em>Because it makes evaluating multimodal AI apps as easy as evaluating text ones.</em></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://www.comet.com/docs/opik/evaluation/evaluate_multimodal?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!DvE9!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc89e180b-7253-4edd-91d3-5ef78afccff7_3020x1516.png 424w, https://substackcdn.com/image/fetch/$s_!DvE9!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc89e180b-7253-4edd-91d3-5ef78afccff7_3020x1516.png 848w, https://substackcdn.com/image/fetch/$s_!DvE9!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc89e180b-7253-4edd-91d3-5ef78afccff7_3020x1516.png 1272w, https://substackcdn.com/image/fetch/$s_!DvE9!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc89e180b-7253-4edd-91d3-5ef78afccff7_3020x1516.png 1456w" type="image/webp"/><img alt="" class="sizing-large" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/c89e180b-7253-4edd-91d3-5ef78afccff7_3020x1516.png","srcNoWatermark":null,"fullscreen":false,"imageSize":"large","height":731,"width":1456,"resizeWidth":1200,"bytes":null,"alt":null,"title":null,"type":null,"href":"https://www.comet.com/docs/opik/evaluation/evaluate_multimodal?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul","belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":"center","offset":false}' height="602.4725274725274" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!DvE9!,w_2400,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc89e180b-7253-4edd-91d3-5ef78afccff7_3020x1516.png" srcset="https://substackcdn.com/image/fetch/$s_!DvE9!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc89e180b-7253-4edd-91d3-5ef78afccff7_3020x1516.png 424w, https://substackcdn.com/image/fetch/$s_!DvE9!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc89e180b-7253-4edd-91d3-5ef78afccff7_3020x1516.png 848w, https://substackcdn.com/image/fetch/$s_!DvE9!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc89e180b-7253-4edd-91d3-5ef78afccff7_3020x1516.png 1272w, https://substackcdn.com/image/fetch/$s_!DvE9!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc89e180b-7253-4edd-91d3-5ef78afccff7_3020x1516.png 1456w" width="1200"/></picture></div></a><figcaption class="image-caption"><span>Monitoring traces that contain generated videos, such as when using OpenAI Sora. </span><a href="https://www.comet.com/docs/opik/evaluation/evaluate_multimodal?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Learn more about monitoring multimodal traces with Opik</a><span> or about </span><a href="https://www.comet.com/docs/opik/integrations/openai#video-generation-sora?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">hooking Opik to OpenAI Sora</a><span>.</span></figcaption></figure></div><p><em>AI apps are no longer just text-in, text-out.</em><span> They process images, generate videos, parse PDFs, and more. Monitoring and evaluating all of that used to be painful. With Opik, it’s not. Here is why we love it:</span></p><ul><li><p><strong>Trace everything</strong><span> — Opik renders images, videos and PDFs directly inside your traces. No more guessing what your model actually saw or generated. We use this daily, and it changed how we debug multimodal pipelines.</span></p></li><li><p><strong>Zero-friction multimodal evals</strong><span> — Add image URLs or upload files directly in the UI, then run LLM-as-a-Judge evaluations on them. Opik auto-detects vision-capable models (GPT-4o, Claude 3+, Gemini) and warns you if the model doesn’t support vision.</span></p></li><li><p><strong>Video generation? Traced automatically</strong><span> — Wrap your OpenAI client in one line, and Opik tracks the full Sora workflow: creation, polling, download, and logs the generated video as an attachment. Full visibility, minimal setup. </span><a href="https://www.comet.com/docs/opik/integrations/openai#video-generation-sora?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Guide here</a><span>.</span></p></li></ul><p><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik</a><span> is fully open-source and works with custom code or most AI frameworks. You can also use the managed version for free (with 25K spans/month on their generous free tier). </span><em>Learn more about evaluating multimodal traces:</em></p><p><span>↓ </span><em>Now, let’s move back to the article.</em></p><div><hr/></div><h2 class="header-anchor-post" id="rr-h-2">Create the AI Evals Dataset</h2><p><span>Before you can evaluate anything, you need a evals dataset. This is a collection of examples that represent how your app should behave. This is the foundation on which everything else builds. Start small, as 20–50 examples are enough, and grow it over time. As Anthropic recommends: </span><em>“20-50 simple tasks drawn from real failures are a great start”</em><span> </span><a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents">[3]</a><span>.</span></p><p>The highest-value source for your evals dataset is real production traces. These are actual user interactions with your app. These reflect genuine usage patterns, edge cases, and failure modes that you could never fully anticipate upfront.</p><p>If you are pre-launch or have limited production data, start with the manual checks you already run during development. These are the behaviors you verify before each release, and common tasks end users try.</p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!SGXS!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbcf6142a-a653-4ddb-995c-df7a1cfe870c_1200x978.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!SGXS!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbcf6142a-a653-4ddb-995c-df7a1cfe870c_1200x978.png 424w, https://substackcdn.com/image/fetch/$s_!SGXS!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbcf6142a-a653-4ddb-995c-df7a1cfe870c_1200x978.png 848w, https://substackcdn.com/image/fetch/$s_!SGXS!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbcf6142a-a653-4ddb-995c-df7a1cfe870c_1200x978.png 1272w, https://substackcdn.com/image/fetch/$s_!SGXS!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbcf6142a-a653-4ddb-995c-df7a1cfe870c_1200x978.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/bcf6142a-a653-4ddb-995c-df7a1cfe870c_1200x978.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":978,"width":1200,"resizeWidth":null,"bytes":149381,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.decodingai.com/i/187935789?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbcf6142a-a653-4ddb-995c-df7a1cfe870c_1200x978.png","isProcessing":false,"align":null,"offset":false}' height="978" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!SGXS!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbcf6142a-a653-4ddb-995c-df7a1cfe870c_1200x978.png" srcset="https://substackcdn.com/image/fetch/$s_!SGXS!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbcf6142a-a653-4ddb-995c-df7a1cfe870c_1200x978.png 424w, https://substackcdn.com/image/fetch/$s_!SGXS!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbcf6142a-a653-4ddb-995c-df7a1cfe870c_1200x978.png 848w, https://substackcdn.com/image/fetch/$s_!SGXS!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbcf6142a-a653-4ddb-995c-df7a1cfe870c_1200x978.png 1272w, https://substackcdn.com/image/fetch/$s_!SGXS!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbcf6142a-a653-4ddb-995c-df7a1cfe870c_1200x978.png 1456w" width="1200"/></picture></div></a><figcaption class="image-caption">Step 1</figcaption></figure></div><p><span>You must log everything: user input, system prompt, model output, tool calls, retrieved documents, and metadata such as channel, timestamp, and user ID. Make it easy to browse, filter, and search these traces. You can easily log these traces using observability/LLMOps tools such as </span><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik</a><span> (which we always use) </span><a href="https://youtube.com/watch?v=BsWxPI9UM4c&amp;si=Zn5CgOvM_uqtTrF6">[4]</a><span>.</span></p><p>Aim for 50–100 traces initially. In early development, each change has a noticeable impact, so small sample sizes work fine. More mature systems need larger datasets.</p><p>In case you already have tons of production traces, you need to properly sample them.</p><p>More advanced sampling strategies include outlier detection (sorting by response length, latency, or tool calls and reviewing extremes), user feedback signals (prioritizing traces with negative feedback or escalations), metric-based sorting (using generic metrics as exploration signals), stratified sampling (grouping by user type, feature, or query category and sampling from each), and embedding clustering (generating embeddings of queries, clustering them to reveal natural groupings, then oversampling small clusters for edge cases).</p><p>If you don’t have enough production data, you can automatically create test examples using an LLM to generate synthetic user inputs across different dimensions like features, scenarios, and user personas. We will explore synthetic data generation in detail in Article 3.</p><p>Every example in your dataset should have a consistent structure:</p><ol><li><p><strong>Input:</strong><span> The user query or request.</span></p></li><li><p><strong>Output:</strong><span> The final output of the agent.</span></p></li><li><p><strong>Context:</strong><span> Any additional information the system had access to, such as retrieved documents, conversation history, or system prompts.</span></p></li><li><p><strong>Trace Spans:</strong><span> The intermediate steps, such as tool calls (API calls, search operations), model calls or any other relevant step (e.g., mapping to Pydantic).</span></p></li></ol><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!7D-2!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd1c30676-e9d7-42d7-a2d3-b63456bac388_2036x1566.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!7D-2!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd1c30676-e9d7-42d7-a2d3-b63456bac388_2036x1566.png 424w, https://substackcdn.com/image/fetch/$s_!7D-2!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd1c30676-e9d7-42d7-a2d3-b63456bac388_2036x1566.png 848w, https://substackcdn.com/image/fetch/$s_!7D-2!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd1c30676-e9d7-42d7-a2d3-b63456bac388_2036x1566.png 1272w, https://substackcdn.com/image/fetch/$s_!7D-2!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd1c30676-e9d7-42d7-a2d3-b63456bac388_2036x1566.png 1456w" type="image/webp"/><img alt="" class="sizing-large" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/d1c30676-e9d7-42d7-a2d3-b63456bac388_2036x1566.png","srcNoWatermark":null,"fullscreen":false,"imageSize":"large","height":1120,"width":1456,"resizeWidth":1200,"bytes":488564,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.decodingai.com/i/187935789?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd1c30676-e9d7-42d7-a2d3-b63456bac388_2036x1566.png","isProcessing":false,"align":"center","offset":false}' height="923.0769230769231" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!7D-2!,w_2400,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd1c30676-e9d7-42d7-a2d3-b63456bac388_2036x1566.png" srcset="https://substackcdn.com/image/fetch/$s_!7D-2!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd1c30676-e9d7-42d7-a2d3-b63456bac388_2036x1566.png 424w, https://substackcdn.com/image/fetch/$s_!7D-2!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd1c30676-e9d7-42d7-a2d3-b63456bac388_2036x1566.png 848w, https://substackcdn.com/image/fetch/$s_!7D-2!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd1c30676-e9d7-42d7-a2d3-b63456bac388_2036x1566.png 1272w, https://substackcdn.com/image/fetch/$s_!7D-2!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd1c30676-e9d7-42d7-a2d3-b63456bac388_2036x1566.png 1456w" width="1200"/></picture></div></a><figcaption class="image-caption"><span>Example of monitoring a multi-modal trace from Brown, the writing agent, using </span><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik</a><span> (an LLMOps platform).</span></figcaption></figure></div><p>This structure ensures your evaluators have everything they need to judge whether the system performed correctly. It also makes your dataset portable across different evaluator types, from simple ones that just check whether a specific tool was called to more complex LLM Judges.</p><p>🔎 Suppose you are building a vertical assistant agent that drafts replies to work emails and Slack messages. You have been using it in production for two weeks and have logged traces. Here is how one formatted dataset entry looks like:</p><ul><li><p><strong>Input:</strong><span> A Slack message in #product from your Product Manager: “@you Can you estimate how long it would take to add CSV export to the reports page?”</span></p></li><li><p><strong>Output:</strong><span> The agent’s generated reply: “Based on the current codebase, I’d estimate 3–5 days, including testing. The data layer is already structured for it — the main work would be the export logic and UI. Want me to write up a quick ticket with more detail?”</span></p></li><li><p><strong>Context:</strong><span> The system prompt instructs the agent to match workplace communication norms, the user’s role (engineer), the channel (#product), and relevant prior messages in the thread.</span></p></li><li><p><strong>Trace Spans:</strong><span> (1) A model call to classify the message type and urgency, (2) a retrieval step pulling relevant codebase context about the reports page, (3) a model call generating the draft reply.</span></p></li></ul><p>You pull 50 such traces. These include a mix of emails and Slack messages across scenarios such as executive requests, colleague questions, and phishing attempts. You format each one this way.</p><p>Now that you have a dataset, the next step is to label it. You need to decide, for each example, whether the output is good enough.</p><h2 class="header-anchor-post" id="rr-h-3">Manually Label Your Dataset</h2><p><span>To judge whether each example is </span><em>“good”</em><span> or </span><em>“bad,”</em><span> you need to appoint one or multiple domain experts. To avoid inconsistencies. The less, the better. The domain expert should be someone who genuinely understands your use case to lead the labeling process. </span></p><p><strong>This step is key! </strong><span>Why? Because this person’s judgment becomes the definitive source of truth. In other words, how it labels your dataset will have a cascading effect on everything else. </span></p><p><span>For each example in your dataset, the domain expert makes a binary judgment: </span><strong>Pass</strong><span> or </span><strong>Fail</strong><span>. Do not use a 1–5 scale or letter grades. Just pass or fail.</span></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!Nr0u!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2afdab3e-32a3-4210-ad65-14c4975d2f6a_1200x978.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!Nr0u!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2afdab3e-32a3-4210-ad65-14c4975d2f6a_1200x978.png 424w, https://substackcdn.com/image/fetch/$s_!Nr0u!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2afdab3e-32a3-4210-ad65-14c4975d2f6a_1200x978.png 848w, https://substackcdn.com/image/fetch/$s_!Nr0u!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2afdab3e-32a3-4210-ad65-14c4975d2f6a_1200x978.png 1272w, https://substackcdn.com/image/fetch/$s_!Nr0u!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2afdab3e-32a3-4210-ad65-14c4975d2f6a_1200x978.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/2afdab3e-32a3-4210-ad65-14c4975d2f6a_1200x978.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":978,"width":1200,"resizeWidth":null,"bytes":149310,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.decodingai.com/i/187935789?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2afdab3e-32a3-4210-ad65-14c4975d2f6a_1200x978.png","isProcessing":false,"align":null,"offset":false}' height="978" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!Nr0u!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2afdab3e-32a3-4210-ad65-14c4975d2f6a_1200x978.png" srcset="https://substackcdn.com/image/fetch/$s_!Nr0u!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2afdab3e-32a3-4210-ad65-14c4975d2f6a_1200x978.png 424w, https://substackcdn.com/image/fetch/$s_!Nr0u!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2afdab3e-32a3-4210-ad65-14c4975d2f6a_1200x978.png 848w, https://substackcdn.com/image/fetch/$s_!Nr0u!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2afdab3e-32a3-4210-ad65-14c4975d2f6a_1200x978.png 1272w, https://substackcdn.com/image/fetch/$s_!Nr0u!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2afdab3e-32a3-4210-ad65-14c4975d2f6a_1200x978.png 1456w" width="1200"/></picture></div></a><figcaption class="image-caption">Step 2</figcaption></figure></div><p><span>Binary decisions force clarity. A score of “3.2 out of 5” is hard to interpret and even harder to act on </span><a href="https://www.decodingai.com/p/the-5-star-lie-you-are-doing-ai-evals">[6]</a><span>. Pass/fail forces you to articulate exactly what “good enough” means and creates actionable insights. If something fails, you know it needs fixing. If it passes, you move on.</span></p><p><span>For every judgment, especially failures, the domain expert must write a short critique explaining </span><em>why</em><span> it failed or passed. These critiques are gold. They capture the expert’s reasoning, surface patterns in what goes wrong, and later become a central piece in the few-shot examples you feed to your LLM judge.</span></p><p>Even if your labels are binary, using critiques adds detail, and instead of vague numbers like 3.4/5, a clear explanation highlights exactly what went well or what went wrong. Also, they indirectly act as instructions to your LLM judge. Reason why they are so important when adding them as few-shot examples.</p><p>Do not try to catch every single mistake in a trace. Find the first thing that went wrong, the most upstream error, and move to the next example. The goal is to surface recurring failure patterns, not to write a detailed report for each trace. However, do not be too concise. Each critique should be detailed enough to later serve as a few-shot example for your LLM judge.</p><p><span>With </span><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik’s API</a><span> or </span><a href="https://www.comet.com/docs/opik/prompt_engineering/mcp_server?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">MCP Server</a><span>, you can easily extract traces into a spreadsheet, a simple internal tool, or your custom annotation tool, as discussed in Article 1, to do this. Display the input, the system’s output, and all the context side by side. Make labeling as frictionless as possible.</span></p><p>🔎 Consider our email/Slack assistant example. Your domain expert sits down with the first 50 traces and labels each one:</p><ul><li><p><strong>Trace #5 — FAIL:</strong><span> A vendor sent four specific technical questions about API integration. The agent replied: “I’ll look into these and get back to you.” </span><em>Critique:</em><span> “Failed to answer any of the four specific questions. Gave no timeline for follow-up. A vendor expecting technical answers got a vague brush-off. This damages the partnership.”</span></p></li><li><p><strong>Trace #7 — PASS:</strong><span> The CFO approved a $50K budget reallocation and asked the user to loop in HR. The agent replied by restating the action items, confirming it would initiate the transfer and loop in HR, and promising a confirmation. </span><em>Critique:</em><span> “Accurately restates all action items from the CFO’s approval, commits to the next steps, and matches the professional tone expected for executive communication.”</span></p></li><li><p><strong>Trace #6 — FAIL:</strong><span> An obvious advance-fee scam email from “Prince Makumba” offering $8.5M. The agent replied: “Could you provide more details about this inheritance?” </span><em>Critique:</em><span> “Engaged with a textbook scam email instead of ignoring it. Any reply validates the scammer’s target. Expected behavior: no reply.”</span></p></li></ul><p>You now have a labeled dataset with pass/fail judgments and critiques. The natural next step: fix the obvious problems you’ve just discovered.</p><h2 class="header-anchor-post" id="rr-h-4">Manually Fix Errors</h2><p>The labeling process will reveal generic, often simple issues. Examples include a missing instruction in a prompt, a broken tool call, or a formatting problem. Fix these before doing anything else. Do not build an evaluator for something you can just fix right now.</p><p><span>As Hamel Husain recommends, address obvious errors discovered during review before building judges. The point of the flywheel is product quality, not a pretty eval suite </span><a href="https://youtube.com/watch?v=BsWxPI9UM4c&amp;si=Zn5CgOvM_uqtTrF6">[4]</a><span>. </span></p><p>After fixing, re-run your system with the same inputs and potentially new ones to generate fresh outputs. Label the new outputs. Did your fixes work? Did they introduce new problems? This is the inner loop of the flywheel: create, label, fix, and repeat. Each iteration improves your system and enriches your dataset.</p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!dqSm!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb1ed4005-1671-4c17-915d-533bba04f196_1200x978.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!dqSm!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb1ed4005-1671-4c17-915d-533bba04f196_1200x978.png 424w, https://substackcdn.com/image/fetch/$s_!dqSm!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb1ed4005-1671-4c17-915d-533bba04f196_1200x978.png 848w, https://substackcdn.com/image/fetch/$s_!dqSm!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb1ed4005-1671-4c17-915d-533bba04f196_1200x978.png 1272w, https://substackcdn.com/image/fetch/$s_!dqSm!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb1ed4005-1671-4c17-915d-533bba04f196_1200x978.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/b1ed4005-1671-4c17-915d-533bba04f196_1200x978.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":978,"width":1200,"resizeWidth":null,"bytes":149330,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.decodingai.com/i/187935789?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb1ed4005-1671-4c17-915d-533bba04f196_1200x978.png","isProcessing":false,"align":null,"offset":false}' height="978" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!dqSm!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb1ed4005-1671-4c17-915d-533bba04f196_1200x978.png" srcset="https://substackcdn.com/image/fetch/$s_!dqSm!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb1ed4005-1671-4c17-915d-533bba04f196_1200x978.png 424w, https://substackcdn.com/image/fetch/$s_!dqSm!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb1ed4005-1671-4c17-915d-533bba04f196_1200x978.png 848w, https://substackcdn.com/image/fetch/$s_!dqSm!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb1ed4005-1671-4c17-915d-533bba04f196_1200x978.png 1272w, https://substackcdn.com/image/fetch/$s_!dqSm!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb1ed4005-1671-4c17-915d-533bba04f196_1200x978.png 1456w" width="1200"/></picture></div></a><figcaption class="image-caption">Step 3</figcaption></figure></div><p>Every iteration adds more labeled examples to your dataset. Failed examples that you have now fixed become regression test cases. They ensure old bugs do not come back. New examples expand coverage. Over time, your dataset becomes a living artifact that captures the accumulated knowledge of what “good” and “bad” look like for your specific app. This is the foundation for everything that follows. Aim for continuous growth: start with 20–50, grow to 100+, and keep adding as you discover new failure modes in production.</p><p>🔎 Back to our simple agent example that answers professional emails or Slack messages. During labeling, the domain expert flagged several traces where the agent replied to obvious phishing and scam emails. </p><p>The fix was straightforward: add an explicit instruction to the system prompt telling the agent to never reply to messages from unrecognized external senders requesting money, credentials, or personal information. It should flag them as suspicious instead. After applying the fix, the expert re-runs the same scam inputs through the updated system. The agent now correctly produces no reply for all of them. These previously-failing traces become regression test cases. This ensures this class of errors never returns, even after future prompt changes.</p><p>At some point, manually labeling every example doesn’t scale. That’s when you need an automated evaluator to do the heavy lifting for you.</p><h2 class="header-anchor-post" id="rr-h-5">Iteratively Build Your Evaluator</h2><p>You have been labeling by hand. That worked for the first 50–100 examples, but now you want to evaluate thousands of traces automatically. You need an evaluator. This is a system that can judge outputs without a human in the loop. </p><p><span>The key insight is to build it </span><em>iteratively</em><span> using the human-labeled data you have already collected, rather than designing evaluation criteria from scratch.</span></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!hlLz!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fadc49d15-ad38-4e42-94b3-cb68e48ec2f4_1200x978.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!hlLz!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fadc49d15-ad38-4e42-94b3-cb68e48ec2f4_1200x978.png 424w, https://substackcdn.com/image/fetch/$s_!hlLz!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fadc49d15-ad38-4e42-94b3-cb68e48ec2f4_1200x978.png 848w, https://substackcdn.com/image/fetch/$s_!hlLz!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fadc49d15-ad38-4e42-94b3-cb68e48ec2f4_1200x978.png 1272w, https://substackcdn.com/image/fetch/$s_!hlLz!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fadc49d15-ad38-4e42-94b3-cb68e48ec2f4_1200x978.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/adc49d15-ad38-4e42-94b3-cb68e48ec2f4_1200x978.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":978,"width":1200,"resizeWidth":null,"bytes":149310,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.decodingai.com/i/187935789?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fadc49d15-ad38-4e42-94b3-cb68e48ec2f4_1200x978.png","isProcessing":false,"align":null,"offset":false}' height="978" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!hlLz!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fadc49d15-ad38-4e42-94b3-cb68e48ec2f4_1200x978.png" srcset="https://substackcdn.com/image/fetch/$s_!hlLz!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fadc49d15-ad38-4e42-94b3-cb68e48ec2f4_1200x978.png 424w, https://substackcdn.com/image/fetch/$s_!hlLz!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fadc49d15-ad38-4e42-94b3-cb68e48ec2f4_1200x978.png 848w, https://substackcdn.com/image/fetch/$s_!hlLz!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fadc49d15-ad38-4e42-94b3-cb68e48ec2f4_1200x978.png 1272w, https://substackcdn.com/image/fetch/$s_!hlLz!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fadc49d15-ad38-4e42-94b3-cb68e48ec2f4_1200x978.png 1456w" width="1200"/></picture></div></a><figcaption class="image-caption">Step 4</figcaption></figure></div><p>Before building your evaluator, split your labeled dataset into subsets:</p><ul><li><p><strong>Train:</strong><span> The examples you will use to build and tune your evaluator (e.g., as few-shot examples in your LLM judge prompt).</span></p></li><li><p><strong>Dev:</strong><span> The examples you will use to check whether your evaluator is working while you iterate on it.</span></p></li><li><p><strong>Test:</strong><span> The examples you set aside and never touch until you are ready for a final evaluation of your evaluator’s quality.</span></p></li></ul><p>We will cover the details of how to split effectively and how to evaluate the evaluator’s effectiveness in Article 5. For now, the key idea is: do not train and test on the same data. Exactly how we do when training any other AI model.</p><p><span>Due to the nature of AI app outputs, which are non-deterministic, unstructured, and subjective, the most popular approach is to use an LLM to grade another LLM’s output. This is known as an </span><em>“LLM judge”</em><span> or </span><em>“LLM-as-a-judge”.</em></p><p><span>At this stage, build one binary LLM judge that runs across your entire dataset. Think of it as a binary classifier: for each trace, it returns </span><strong>Pass (1) or Fail (0)</strong><span> plus a </span><strong>critique</strong><span> explaining its reasoning. Not a 1–5 scale. Not a letter grade. Just pass/fail with a written justification. This mirrors exactly what your domain expert did during manual labeling.</span></p><p><span>Binary judgments are clear, actionable, and easy to aggregate. A score of </span><em>“3.2 out of 5”</em><span> is hard to interpret and even harder to act on. Pass/fail forces clarity and creates actionable insights.</span></p><p><span>The real power lies in your few-shot examples and dataset, not your prompt. This is a counterintuitive but critical insight: the system prompt for your LLM judge can be almost neutral. Just specify what the task is, the expected output format (pass/fail + critique), and a few core steps. Keep it simple. The real guidance comes from the </span><strong>few-shot examples</strong><span> you include in the prompt. These are the labeled examples from your dataset with their critiques. These examples encode your domain expert’s judgment, show the LLM what “good” and “bad” look like for your specific use case, and steer the judge far more effectively than elaborate prompt instructions ever could. Your dataset is the secret weapon, not your system prompt. More on this in Article 4.</span></p><p>To build it, start with the critiques your domain expert wrote during manual labeling. Select representative pass and fail examples. These become the few-shot examples in your judge prompt. Test the judge against your dev set and iterate until it mostly agrees with your domain expert’s labels. </p><p>Not everything needs an LLM judge. For anything that can be checked with simple logic (true/false or numeric), use code-based checks. Examples include checking whether the response included a required disclaimer, whether it is within the word limit, whether it returned valid structured output, or whether it called the right tool.</p><p>Code-based evaluators are faster, cheaper, and more reliable than LLM judges for objective checks. Reserve LLM judges for subjective or nuanced checks. These include tone, helpfulness, conversational flow, or quality of handoffs, where correctness is hard to express in code. More on this in Article 4. For now, the rule of thumb is: use code when you can, use an LLM judge when you must.</p><p>Your evaluator is only useful if it agrees with your domain expert. Run the evaluator on the dev set and determine how often it agrees with the human. Create an agreement matrix comparing the human label to the evaluator’s label. If the evaluator says “Pass” when the human said “Fail” (or vice versa), refine the evaluator’s prompt or logic until the agreement is high enough to trust. Be aware that raw agreement can be misleading with imbalanced datasets. More on this in Article 5. For now, the key idea is: always validate your automated evaluator against human judgment before trusting it.</p><p><em>“Many teams make the mistake of crafting elaborate eval criteria without first looking at the data”</em><span> </span><a href="https://hamel.dev/blog/posts/evals-faq/why-is-error-analysis-so-important-in-llm-evals-and-how-is-it-performed.html">[2]</a><span>. This quote from Hamel Husain captures the core philosophy of the error analysis framework. Designing evaluation criteria in a vacuum. Without first reviewing your actual traces and failure modes, you risk creating irrelevant criteria that waste resources on low-probability defects or unrealistic criteria. The solution is to put the data and metrics first, not preset criteria or LLMs. Let the failure modes you discover through manual review and error analysis drive what you evaluate.</span></p><p>🔎 Back to our example. Let’s assume you select 15 labeled traces with their critiques from your dataset and use them as few-shot examples in your LLM judge prompt. For instance, you include the vendor email trace (Fail — “didn’t answer any of the four specific questions, gave no timeline”) and the CFO budget trace (Pass — “accurately restates action items, commits to next steps, matches professional tone”). </p><p><span>The judge's prompt simply says: </span><em>“You are evaluating whether an AI email/Slack assistant produced an appropriate reply. For each trace, output Pass or Fail with a critique explaining your reasoning. Here are examples of how a domain expert judged similar traces:”</em><span> followed by those few-shot examples. You run this judge on your dev set of 20 traces. It agrees with the domain expert’s labels on 18 out of 20. The two disagreements reveal that the judge is too lenient on vague responses to multi-part questions. You add another few-shot example covering that pattern, and agreement improves.</span></p><p>You now have automated evaluators aligned with human judgment. The next step is to run them on new data and analyze the errors they find.</p><h2 class="header-anchor-post" id="rr-h-6">Doing Error Analysis</h2><p><span>Your evaluator is running. It is flagging failures across hundreds or thousands of traces. But a list of pass/fail results is not enough. You need to understand </span><em>which errors are occurring, how often, and which to fix first</em><span>. This is error analysis: the most important activity in evals. It is the systematic process of clustering, ranking, and acting on the failures your evaluators surface. It helps you decide what evaluators to create in the first place, allowing you to identify failure modes unique to your application and data.</span></p><p><span>Sample a fresh batch of production traces (or new synthetic data) from your observability layer, such as </span><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik</a><span>, that your evaluator hasn’t seen before. Run your evaluator on these traces. You now have a set of Pass/Fail results with critiques. </span></p><p><em>This is where the flywheel connects to production monitoring: sample live traces regularly and run your evaluators on them to track quality over time.</em></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!5ZGK!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2b827341-efd2-44c6-b375-aee6b77e74a9_1200x978.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!5ZGK!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2b827341-efd2-44c6-b375-aee6b77e74a9_1200x978.png 424w, https://substackcdn.com/image/fetch/$s_!5ZGK!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2b827341-efd2-44c6-b375-aee6b77e74a9_1200x978.png 848w, https://substackcdn.com/image/fetch/$s_!5ZGK!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2b827341-efd2-44c6-b375-aee6b77e74a9_1200x978.png 1272w, https://substackcdn.com/image/fetch/$s_!5ZGK!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2b827341-efd2-44c6-b375-aee6b77e74a9_1200x978.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/2b827341-efd2-44c6-b375-aee6b77e74a9_1200x978.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":978,"width":1200,"resizeWidth":null,"bytes":149339,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.decodingai.com/i/187935789?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2b827341-efd2-44c6-b375-aee6b77e74a9_1200x978.png","isProcessing":false,"align":null,"offset":false}' height="978" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!5ZGK!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2b827341-efd2-44c6-b375-aee6b77e74a9_1200x978.png" srcset="https://substackcdn.com/image/fetch/$s_!5ZGK!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2b827341-efd2-44c6-b375-aee6b77e74a9_1200x978.png 424w, https://substackcdn.com/image/fetch/$s_!5ZGK!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2b827341-efd2-44c6-b375-aee6b77e74a9_1200x978.png 848w, https://substackcdn.com/image/fetch/$s_!5ZGK!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2b827341-efd2-44c6-b375-aee6b77e74a9_1200x978.png 1272w, https://substackcdn.com/image/fetch/$s_!5ZGK!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2b827341-efd2-44c6-b375-aee6b77e74a9_1200x978.png 1456w" width="1200"/></picture></div></a><figcaption class="image-caption">Step 5</figcaption></figure></div><p>If you have been writing critiques during manual labeling, you have already been practicing open coding. This section formalizes and scales that process using your automated evaluators’ output on new traces.</p><p>For each failed trace, write a short, informal note describing what went wrong. Do this in your own words, free-form. These are called “open codes” in qualitative research. Keep writing until patterns emerge. Examples include “hallucinated product feature,” “wrong tool call,” “missed escalation,” “bad formatting,” or “wrong tone.”</p><p>Once you have enough open codes, use an LLM to help group them into higher-level categories (axial codes). For example, individual notes about “ignored user’s refund request,” “didn’t acknowledge frustration,” and “transferred too late” might cluster into a category called “human handoff issues.” Review and edit these categories yourself. Make labels specific and actionable. Merge or split until they feel right. Add a “none of the above” category so the LLM can signal gaps and help you discover new patterns. Ultimately, identify the most frequent categories. This tells you where to focus.</p><p><span>Not all failure categories are equally important. Your overall pass rate can be misleading. As Jason Liu warns, aggregate metrics lie </span><a href="https://www.decodingai.com/p/the-real-battle-tested-rag-playbook">[7]</a><span>. You need to look at each cluster individually.</span></p><p><span>Rank each error cluster using a </span><strong>2×2 matrix</strong><span> with two dimensions:</span></p><ul><li><p><strong>Frequency (Volume):</strong><span> How often does this error occur?</span></p></li><li><p><strong>Severity (Impact):</strong><span> How bad is this error when it does occur?</span></p></li></ul><p><span>This gives you </span><strong>four quadrants</strong><span>:</span></p><ul><li><p><strong>High frequency + High severity:</strong><span> Your top priority. Fix these immediately. These are the errors that happen often and hurt the most.</span></p></li><li><p><strong>High frequency + Low severity:</strong><span> Important to address, but less urgent. They are annoying but not critical.</span></p></li><li><p><strong>Low frequency + High severity:</strong><span> Monitor closely. They don’t happen often, but when they do, the consequences are serious (e.g., safety issues, data leaks).</span></p></li><li><p><strong>Low frequency + Low severity:</strong><span> Deprioritize. These can wait.</span></p></li></ul><p><span>For a more nuanced prioritization, compute: </span><strong>Priority = Frequency × Severity × Business Value</strong><span>. A low-frequency error might jump to the top of the list if it directly impacts revenue or user safety. For example, a </span><em>“hallucinated pricing”</em><span> error might only happen 5% of the time, but its business impact is critical. This is far more important than a 30% </span><em>“formatting”</em><span> error that merely annoys users. Context matters: let business value break ties and override pure frequency counts.</span></p><p>This step also helps you surface problematic traces for review beyond user feedback. Your evaluators can proactively identify issues that users haven’t yet complained about. The goal is to turn vague impressions (“the app feels off”) into specific, ranked problems (“hallucination errors account for 25% of failures and have a critical business impact”).</p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!W9W_!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9f26204f-7b95-42c6-afb6-a64ec99a98b9_1201x1090.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!W9W_!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9f26204f-7b95-42c6-afb6-a64ec99a98b9_1201x1090.png 424w, https://substackcdn.com/image/fetch/$s_!W9W_!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9f26204f-7b95-42c6-afb6-a64ec99a98b9_1201x1090.png 848w, https://substackcdn.com/image/fetch/$s_!W9W_!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9f26204f-7b95-42c6-afb6-a64ec99a98b9_1201x1090.png 1272w, https://substackcdn.com/image/fetch/$s_!W9W_!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9f26204f-7b95-42c6-afb6-a64ec99a98b9_1201x1090.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/9f26204f-7b95-42c6-afb6-a64ec99a98b9_1201x1090.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":1090,"width":1201,"resizeWidth":null,"bytes":84402,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.decodingai.com/i/187935789?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9f26204f-7b95-42c6-afb6-a64ec99a98b9_1201x1090.png","isProcessing":false,"align":null,"offset":false}' height="1090" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!W9W_!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9f26204f-7b95-42c6-afb6-a64ec99a98b9_1201x1090.png" srcset="https://substackcdn.com/image/fetch/$s_!W9W_!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9f26204f-7b95-42c6-afb6-a64ec99a98b9_1201x1090.png 424w, https://substackcdn.com/image/fetch/$s_!W9W_!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9f26204f-7b95-42c6-afb6-a64ec99a98b9_1201x1090.png 848w, https://substackcdn.com/image/fetch/$s_!W9W_!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9f26204f-7b95-42c6-afb6-a64ec99a98b9_1201x1090.png 1272w, https://substackcdn.com/image/fetch/$s_!W9W_!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9f26204f-7b95-42c6-afb6-a64ec99a98b9_1201x1090.png 1456w" width="1201"/></picture></div></a><figcaption class="image-caption">The Four-Quadrant Prioritization Framework with axes for Frequency (Volume) and Severity (User Satisfaction), and labels for each quadrant</figcaption></figure></div><p>For the highest-priority error categories, take action. Simple fixes might involve adjusting prompts, fixing tool configurations, or updating system instructions. Complex fixes might require redesigning the agent’s workflow, adding new tools, or restructuring the context. After fixing, add the previously failing traces to your dataset as regression test cases. Run your evaluators again to verify the fix worked and didn’t break anything else.</p><p>The first round of error analysis is a one-time investment of about 3–4 days. After the initial setup, 30 minutes per week is enough to review the latest failures and top categories, fix the easiest high-impact issues, and add or refine an evaluator only for stubborn, important problems. Re-run a full error analysis when you see a spike in failure rates, when user feedback reveals a new class of issues, or when your evaluators start feeling stale.</p><p>Over time, the flywheel converges. You fix the biggest problems first, your failure rates drop, and the remaining issues become smaller and less frequent. How often you need to run the flywheel depends on your online signals: are users satisfied, or are there anomalies?</p><p><span>🔎 Based on our example, let’s suppose you run your LLM judge on 200 new production traces from the email/Slack assistant. It flags 60 failures. You write open codes for each. These are quick notes like </span><em>“replied to phishing link,”</em><span> </span><em>“mocked colleague’s achievement,”</em><span> </span><em>“leaked Annual Recurring Revenue (ARR) to external contact,”</em><span> or </span><em>“no reply to urgent CEO request.”</em><span> Then you use an LLM to cluster these into axial codes:</span></p><ul><li><p><strong>Tone &amp; Professionalism Issues</strong><span> (18 failures): hostile replies, dismissive responses, overly casual tone with executives.</span></p></li><li><p><strong>Security Awareness Failures</strong><span> (14 failures): engaging with phishing, falling for CEO impersonation scams, clicking malicious links.</span></p></li><li><p><strong>Information Leaks</strong><span> (10 failures): sharing confidential financials, disclosing unreleased product plans, revealing salary data to strangers.</span></p></li><li><p><strong>Missing/No Response</strong><span> (9 failures): ignoring urgent requests, leaving teammates blocked, not confirming time-sensitive deadlines.</span></p></li></ul><p><span>You rank them: Security Awareness Failures are high-frequency and high-severity (financial and safety risk), so they are the top priority. Tone issues are high-frequency but lower-severity. Information Leaks are lower-frequency but high-severity. You fix the top cluster first, then move down the list </span><a href="https://www.decodingai.com/p/the-real-battle-tested-rag-playbook">[7]</a><span>.</span></p><p>Sometimes your error analysis reveals that a single, generic evaluator isn’t enough. Different types of errors need different evaluators.</p><h2 class="header-anchor-post" id="rr-h-7">Create Specialized Evaluators</h2><p>Real-world AI apps don’t do just one thing. A customer support bot handles refunds, shipping questions, account issues, escalation, and more. Each of these capabilities has its own definition of “good” and its own failure modes. </p><p>A single, generic binary evaluator (Pass/Fail on “overall quality”). Like the one you built in the previous section. It can catch broad issues but will miss category-specific problems. When your error analysis reveals distinct clusters of failures that require different evaluation criteria, it is time to create specialized evaluators.</p><p>Up to this point, your LLM judge has been a generic binary evaluator. It checks whether a trace is generally “good” or “bad.” But the error clusters the previous section might reveal that you need:</p><ul><li><p>A judge specifically for “hallucination” (did the system make up information not in the context?)</p></li><li><p>A judge specifically for “escalation quality” (did the system hand off to a human at the right time, with the right context?)</p></li><li><p>A judge specifically for “tone” (was the system’s tone appropriate for a frustrated user?)</p></li></ul><p><span>Keep each specialized evaluator tightly scoped: Each judge should evaluate only </span><strong>one specific failure mode</strong><span>. Do not build a single judge who tries to assess everything at once. This keeps each judge simple, debuggable, and accurate.</span></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!dPv5!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbfc69589-ab3a-4794-bbec-4da294db29b2_1200x978.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!dPv5!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbfc69589-ab3a-4794-bbec-4da294db29b2_1200x978.png 424w, https://substackcdn.com/image/fetch/$s_!dPv5!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbfc69589-ab3a-4794-bbec-4da294db29b2_1200x978.png 848w, https://substackcdn.com/image/fetch/$s_!dPv5!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbfc69589-ab3a-4794-bbec-4da294db29b2_1200x978.png 1272w, https://substackcdn.com/image/fetch/$s_!dPv5!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbfc69589-ab3a-4794-bbec-4da294db29b2_1200x978.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/bfc69589-ab3a-4794-bbec-4da294db29b2_1200x978.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":978,"width":1200,"resizeWidth":null,"bytes":149268,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.decodingai.com/i/187935789?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbfc69589-ab3a-4794-bbec-4da294db29b2_1200x978.png","isProcessing":false,"align":null,"offset":false}' height="978" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!dPv5!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbfc69589-ab3a-4794-bbec-4da294db29b2_1200x978.png" srcset="https://substackcdn.com/image/fetch/$s_!dPv5!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbfc69589-ab3a-4794-bbec-4da294db29b2_1200x978.png 424w, https://substackcdn.com/image/fetch/$s_!dPv5!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbfc69589-ab3a-4794-bbec-4da294db29b2_1200x978.png 848w, https://substackcdn.com/image/fetch/$s_!dPv5!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbfc69589-ab3a-4794-bbec-4da294db29b2_1200x978.png 1272w, https://substackcdn.com/image/fetch/$s_!dPv5!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbfc69589-ab3a-4794-bbec-4da294db29b2_1200x978.png 1456w" width="1200"/></picture></div></a><figcaption class="image-caption">Step 6</figcaption></figure></div><p>Each specialized evaluator has its own rubric, a few-shot set of examples (drawn from the critiques in your labeled dataset for that specific failure mode), and its own pass/fail definition. Just like the generic judge, the effectiveness remains in the few-shot examples. But now those examples are curated specifically for one failure mode, making the judge even more precise.</p><p><span>Only create a new evaluator when error analysis shows a persistent, high-impact failure category that your generic evaluator can’t reliably detect. Do not create evaluators speculatively. Let the data tell you what you need. Pick 4–7 high-value failure modes that happen often enough to matter and don’t get reliably fixed by a simple prompt change </span><a href="https://hamel.dev/blog/posts/llm-judge/">[8]</a><span>. Start there and add more only when error analysis demands it.</span></p><p><span>🔎 In our email assistant example, your generic evaluator catches broad failures, but the error analysis showed that </span><em>“Security Awareness Failures”</em><span> keep recurring even after prompt fixes. The agent still occasionally engages with sophisticated phishing attempts. You create a specialized evaluator scoped to just this failure mode: </span><em>“Did the agent reply to a message that shows signs of phishing, scam, or social engineering?”</em></p><p>It uses few-shot examples drawn specifically from your security-related failures (the “Prince Makumba” scam reply, the fake Google alert engagement, the CEO impersonation wire transfer). </p><p><span>Separately, you notice “Information Leaks” also persist. So you build a second evaluator: </span><em>“Did the agent disclose confidential company information (financials, roadmap, acquisitions, salaries) to an external or unverified contact?”</em><span> Each evaluator has its own few-shot examples, its own pass/fail definition, and checks exactly one thing.</span></p><p>Let’s see all of this in action with a hands-on demo.</p><h2 class="header-anchor-post" id="rr-h-8">Demo</h2><p><a href="https://aligneval.com/">AlignEval</a><span> is an open-source tool created by Eugene Yan that embodies the error analysis framework we have been discussing. Its tagline: </span><em>“Making Evals Easy, Fun, and Semi-Automated”.</em><span> It provides a streamlined interface for the exact workflow this article teaches: look at your data, label it, evaluate outputs, and optimize your evaluators.</span></p><p><strong>Here is an end-to-end demo of how to label your dataset and build a binary LLM Judge with it</strong><span> ↓</span></p><p><span>The tool is open source and available at </span><a href="https://aligneval.com/">aligneval.com</a><span>, with the source code on GitHub (</span><a href="https://github.com/eugeneyan/align-app">eugeneyan/align-app</a><span>). You can try it for free with your own data or use the prompt below to quickly generate a CSV similar to the one from the demo:</span></p><pre class="code"><code>I want you to generate a CSV file with the following characteristics:
+"""
+* The CSV file must include the following columns:
+   * id: Unique identifier for each row
+   * input: Context used to generate output
+   * output: Generated text to be evaluated
+   * label: Ground truth (values optional but counts towards XP)
+   * explanation: A one-sentence explanation on why we labeled the row as 0 (PASS) or 1 (FAIL)
+* 🚨 The label column only accepts binary labels, either 0 or 1.
+   * 0: Output PASSES your evaluation
+   * 1: Output FAILS your evaluation
+"""
+that contains 100 rows
+
+The goal of the CSV file is to implement a dataset to build an LLM Judge evaluator. 
+
+We want to create some mock, synthetic data to conceptually show how labeling, evaluating and optimizing the LLM judge would look like, based on this tool: https://aligneval.com/
+
+Let's say that we collected data from a vertical assistant agent specialized in answering work emails and Slack messages. Thus, create 100 scenarios based on these dimensions:
+* feature: email/slack
+* scenario: executive, manager, colleague, spam email, phishing email, friend (as an exception)
+* label: success/failure of properly answering the message
+
+Where the input is a single email or Slack message or an email or Slack thread, but the output will ALWAYS be just the generated reply, whether it's email or Slack.
+
+Make the labels a 50%/50% split between passes and fails.
+
+Also, note that NO REPLY is an expected behavior for SPAM and phishing emails. Also, for non-essential emails or toxic or slack messages.</code></pre><p>We used Claude Opus 4.6 within the Claude app to generate it.</p><h2 class="header-anchor-post" id="rr-h-9">Next Steps</h2><p>Building an evals dataset is not a one-time task. It is a continuous flywheel driven by the error analysis framework. Start small, let the data guide you, and grow your dataset and evaluators iteratively.</p><p><span>The full flywheel is: create dataset → label with pass/fail and critiques → fix errors → build evaluators iteratively → run error analysis → create specialized evaluators → repeat. </span><strong>The key principle is: </strong><em><strong>“Put the data and metrics first, not preset criteria or LLMs.”</strong></em></p><p>Now that you know how to build and grow an evals dataset from real data, the next article will show you how to generate synthetic test examples, extremely useful before going to production or when you don't have enough users.</p><p><span>Also, remember that this article is part of a </span><strong><a href="https://www.decodingai.com/t/ai-evals-and-observability">7-piece series on AI Evals &amp; Observability</a></strong><span>. </span><strong>Here is what’s ahead:</strong></p><ol><li><p><a href="https://www.decodingai.com/p/integrating-ai-evals-into-your-ai-app">Integrating AI Evals Into Your AI App</a><span> </span></p></li><li><p><strong>Build an AI Evals Dataset from Scratch</strong><span> ← </span><em>You just finished this one</em></p></li><li><p><a href="https://www.decodingai.com/p/generate-synthetic-datasets-for-ai-evals">Generate Synthetic Datasets for AI Evals</a></p></li><li><p><a href="https://www.decodingai.com/p/how-to-design-ai-evaluators-that-catch-failures">How to Design Evaluators</a></p></li><li><p><a href="https://www.decodingai.com/p/how-to-evaluate-the-evaluator-validate-llm-judge">How to Evaluate the Evaluator</a></p></li><li><p><a href="https://www.decodingai.com/p/rag-evaluation-6-metrics-framework">RAG Evaluation: The Only 6 Metrics You Need</a></p></li><li><p><a href="https://www.decodingai.com/p/behind-the-scenes-of-ai-observability">Lessons from 6 Months of Evals on a Production AI Companion</a></p></li></ol><p>See you next Tuesday.</p><p><a href="https://www.pauliusztin.ai/">Paul Iusztin</a></p><div><hr/></div><p><em>What’s your opinion? Do you agree, disagree, or is there something I missed?</em></p><div><hr/></div><p><em>Enjoyed the article? The most sincere compliment is to share our work.</em></p><div><hr/></div><div class="callout-block" data-callout="true"><h4 id="rr-h-10">Whenever you’re ready, here is how I can help you</h4><p><em>Go from agent user to agent builder.</em><span> Master the foundations of AI agents and turn fragile demo code into reliable, production-ready systems with my course, </span><strong><a href="https://academy.towardsai.net/courses/agent-engineering?ref=b3ab31&amp;utm_source=decodingai&amp;utm_medium=partner&amp;utm_campaign=agent_engineering">Agent Engineering: Building Multi-Agent Systems</a></strong><span> (made with Towards AI).</span></p><p>35 lessons. Pure foundations from scratch. 4 mini-projects. 2 production systems. A certificate and direct access to me &amp; industry experts in our Discord.</p><p><span>Built for software and data professionals transitioning into AI engineering. </span><em>Rated 5/5 with 300+ students. The first 7 lessons are free:</em></p><p><em>Not ready to commit?</em><span> Start with our </span><strong><a href="https://email-course.towardsai.net/?ref=b3ab31&amp;utm_source=decodingai&amp;utm_medium=partner&amp;utm_campaign=agent_engineering">free Agent AI Engineering Guide</a></strong><span>, a 6-day email course on the mistakes that silently break AI agents in production.</span></p></div><div><hr/></div><p><em><span>Thanks again to </span><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik</a><span> for sponsoring the series and keeping it free!</span></em></p><div class="captioned-image-container"><figure><a class="image-link image2 can-restack" data-component-name="Image2ToDOM" href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!oSDm!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 424w, https://substackcdn.com/image/fetch/$s_!oSDm!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 848w, https://substackcdn.com/image/fetch/$s_!oSDm!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 1272w, https://substackcdn.com/image/fetch/$s_!oSDm!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 1456w" type="image/webp"/><img alt="Opik Banner" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":364,"width":1456,"resizeWidth":null,"bytes":null,"alt":"Opik Banner","title":"Opik Banner","type":null,"href":"https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul","belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="364" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!oSDm!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png" srcset="https://substackcdn.com/image/fetch/$s_!oSDm!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 424w, https://substackcdn.com/image/fetch/$s_!oSDm!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 848w, https://substackcdn.com/image/fetch/$s_!oSDm!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 1272w, https://substackcdn.com/image/fetch/$s_!oSDm!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 1456w" title="Opik Banner" width="1456"/></picture></div></a><figcaption class="image-caption"><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Try Opik for free here</a><span> (25k spans/month free)</span></figcaption></figure></div><p><strong>If you want to monitor, evaluate and optimize your AI workflows and agents:</strong></p><div><hr/></div><h2 class="header-anchor-post" id="rr-h-11">References</h2><ol><li><p><span>Husain, H., &amp; Shankar, S. (2024, January 29). Evals Are Not All You Need. O’Reilly Radar. </span><a href="https://www.oreilly.com/radar/evals-are-not-all-you-need/">https://www.oreilly.com/radar/evals-are-not-all-you-need/</a></p></li><li><p><span>Husain, H. (2024, May 6). Why is error analysis so important in LLM evals and how is it performed?. Hamel’s Blog. </span><a href="https://hamel.dev/blog/posts/evals-faq/why-is-error-analysis-so-important-in-llm-evals-and-how-is-it-performed.html">https://hamel.dev/blog/posts/evals-faq/why-is-error-analysis-so-important-in-llm-evals-and-how-is-it-performed.html</a></p></li><li><p><span>Anthropic. (n.d.). Demystifying Evals for AI Agents. Anthropic. </span><a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents">https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents</a></p></li><li><p><span>Lenny’s Podcast. (2024, June 16). Why AI evals are the hottest new skill for product builders | Hamel Husain &amp; Shreya Shankar. YouTube. </span><a href="https://www.youtube.com/watch?v=BsWxPI9UM4c">https://www.youtube.com/watch?v=BsWxPI9UM4c</a></p></li><li><p><span>Husain, H. (2024, May 14). Building Eval Systems That Improve. Lenny’s Newsletter. </span><a href="https://www.lennysnewsletter.com/p/building-eval-systems-that-improve?hide_intro_popup=true">https://www.lennysnewsletter.com/p/building-eval-systems-that-improve</a></p></li><li><p><span>Iusztin, P. (2025, February 11). The 5-Star Lie: You Are Doing AI Evals Wrong. Decoding AI Magazine. </span><a href="https://www.decodingai.com/p/the-5-star-lie-you-are-doing-ai-evals">https://www.decodingai.com/p/the-5-star-lie-you-are-doing-ai-evals</a></p></li><li><p><span>Iusztin, P. (2025, February 18). The Real Battle-Tested RAG Playbook. Decoding AI Magazine. </span><a href="https://www.decodingai.com/p/the-real-battle-tested-rag-playbook">https://www.decodingai.com/p/the-real-battle-tested-rag-playbook</a></p></li><li><p><span>Husain, H. (2024, May 22). Using LLM-as-a-Judge For Evaluation: A Complete Guide. Hamel’s Blog. </span><a href="https://hamel.dev/blog/posts/llm-judge/">https://hamel.dev/blog/posts/llm-judge/</a></p></li><li><p><span>Iusztin, P. (2025, February 25). The Mirage of Generic AI Metrics. Decoding AI Magazine. </span><a href="https://www.decodingai.com/p/the-mirage-of-generic-ai-metrics">https://www.decodingai.com/p/the-mirage-of-generic-ai-metrics</a></p></li></ol><div><hr/></div><h2 class="header-anchor-post" id="rr-h-12">Images</h2><p>If not otherwise stated, all images are created by the author.</p></div>
+<div class="chapter-nav" style="margin-top:56px;padding-top:20px;border-top:1px solid var(--border);display:flex;gap:18px;font-family:system-ui,sans-serif;font-size:.9rem"><a href="chapter01_reader.html">&larr; Previous</a><a href="../../index.html">Index</a><a href="chapter03_reader.html">Next &rarr;</a></div>
+  </main>
+
+  <footer class="bottom-bar">
+    <span id="pageInfo">Chapter 2 of 7</span>
+    <span id="progressPercent">0%</span>
+  </footer>
+
+  <footer class="footer">
+    Compiled from the Decoding AI Magazine series
+  </footer>
+
+  <script>
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+    });
+
+    function toggleTOC() {
+      const panel = document.getElementById('tocPanel');
+      const overlay = document.getElementById('tocOverlay');
+      panel.classList.toggle('open');
+      overlay.classList.toggle('show');
+    }
+
+    function toggleChapter(event, idx) {
+      event.preventDefault();
+      event.stopPropagation();
+      const arrow = document.getElementById('arrow-' + idx);
+      const subs = document.getElementById('subs-' + idx);
+      if (arrow && subs) {
+        const isOpen = subs.style.display !== 'none';
+        subs.style.display = isOpen ? 'none' : 'block';
+        arrow.classList.toggle('open', !isOpen);
+      }
+    }
+
+    function navigateToChapter(url) {
+      window.location.href = url;
+    }
+
+    function toggleTheme() {
+      const root = document.documentElement;
+      const isDark = root.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        root.removeAttribute('data-theme');
+        document.getElementById('theme-icon').innerHTML = '<circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+      } else {
+        root.setAttribute('data-theme', 'dark');
+        document.getElementById('theme-icon').innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+      }
+    }
+  </script>
+  <!--rr-annotate-->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23FAF6EE'/%3E%3Ctext x='16' y='24' font-size='22' text-anchor='middle' fill='%23A34A2E' font-family='Georgia' font-style='italic'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="../../assets/annotate.css?v=18">
+<script type="application/json" id="rr-notes">{}</script>
+<script data-rr-palette="apple" src="../../assets/annotate.js?v=18" data-rr-book="ai-evals-foundations" data-rr-page="chapter02_reader.html" data-rr-prefix="../../"></script>
+<script src="../../assets/chapter-toc.js?v=18"></script>
+<script src="../../assets/code-copy.js?v=18"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<script src="../../assets/article-toc.js?v=1"></script>
+<script src="../../assets/course-theme.js?v=3"></script>
+</body>
+</html>

@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Design Evaluators — AI Evals Foundations: From Vibe Checking to Measurable AI</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css');
+
+    :root {
+      --bg: #FAF6EE;
+      --surface: #FFFFFF;
+      --ink: #2D2522;
+      --ink-2: #6E625B;
+      --accent: #A34A2E;
+      --border: rgba(163,74,46,0.1);
+      --font-reader: 'Newsreader', 'EB Garamond', 'Baskerville', 'Garamond', Georgia, serif;
+      --toc-width: 280px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #1a1a1a;
+      --surface: #2d2d2d;
+      --ink: #e0e0e0;
+      --ink-2: #a0a0a0;
+      --accent: #E28C68;
+      --border: rgba(243,239,233,0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-reader);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+
+    .top-bar button {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .top-bar button:hover {
+      background: rgba(163,74,46,0.08);
+    }
+
+    .top-bar button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .top-bar-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--ink-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60%;
+    }
+
+    .reader-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 60px 80px;
+    }
+
+    .reader-content h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      line-height: 1.3;
+    }
+
+    .reader-content h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 32px 0 16px;
+    }
+
+    .reader-content h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 24px 0 12px;
+      color: var(--ink-2);
+    }
+
+    .reader-content p {
+      font-size: 1.15rem;
+      line-height: 1.85;
+      margin-bottom: 1.2em;
+      text-align: left;
+    }
+
+    .reader-content blockquote {
+      margin: 20px 0;
+      padding: 16px 20px;
+      border-left: 3px solid var(--accent);
+      background: rgba(163,74,46,0.04);
+      font-style: italic;
+    }
+
+    .reader-content dl {
+      margin: 20px 0;
+    }
+
+    .reader-content dt {
+      font-weight: 600;
+      margin: 16px 0 8px;
+      font-style: italic;
+    }
+
+    .reader-content dd {
+      margin-left: 20px;
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .reader-content table {
+      display: table;
+      width: 100%;
+      margin: 24px 0;
+      border-collapse: collapse;
+      font-size: 1rem;
+      border: 1px solid #c3c3c3;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .reader-content th {
+      display: table-cell;
+      background: #f0f4f8;
+      border-bottom: 2px solid #9d9d9d;
+      padding: 14px 16px;
+      font-weight: 600;
+      text-align: left;
+      font-size: 0.95rem;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td {
+      display: table-cell;
+      padding: 14px 16px;
+      border-bottom: 1px solid #ddd;
+      border-right: 1px solid #eee;
+      vertical-align: top;
+      font-size: 1rem;
+      line-height: 1.7;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td:last-child {
+      border-right: none;
+    }
+
+    .reader-content tr:nth-of-type(even) {
+      background-color: #fafbfd;
+    }
+
+    .reader-content figure,
+    .reader-content .figure {
+      margin: 24px auto;
+      text-align: center;
+    }
+
+    .reader-content img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .reader-content figcaption,
+    .reader-content figure h6,
+    .reader-content .figure h6 {
+      font-size: 0.9rem;
+      font-style: italic;
+      color: var(--ink-2);
+      margin-top: 8px;
+    }
+
+    .reader-content .note,
+    .reader-content [data-type="note"] {
+      margin: 20px 0;
+      padding: 16px 20px;
+      background: #f8f4e8;
+      border: 1px solid #e6d48a;
+      border-radius: 6px;
+    }
+
+    .ann-hl { border-radius: 2px; }
+    .ann-note { border-radius: 2px; }
+
+    pre.code, pre[data-lang], .code {
+      background: #1e1e1e !important;
+      border-radius: 8px !important;
+      padding: 16px 20px !important;
+      margin: 20px 0 !important;
+      overflow-x: auto !important;
+      position: relative !important;
+      border: 1px solid #333 !important;
+    }
+
+    pre.code[data-lang]::before, pre[data-lang]::before {
+      content: attr(data-lang);
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      font-size: 0.7rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace;
+    }
+
+    pre.code code, pre[data-lang] code, .code code {
+      color: #e0e0e0 !important;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace !important;
+      font-size: 0.9rem !important;
+      line-height: 1.6 !important;
+      background: none !important;
+      padding: 0 !important;
+      border: none !important;
+      white-space: pre !important;
+    }
+
+    p code, li code, td code {
+      background: rgba(0,0,0,0.06) !important;
+      padding: 2px 6px !important;
+      border-radius: 4px !important;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace !important;
+      font-size: 0.85em !important;
+    }
+
+    .line-numbers-rows { border-right: 1px solid #444 !important; }
+
+    .progress-bar {
+      position: fixed;
+      top: 52px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 99;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .ann-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent);
+      color: white;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .chapter-title {
+      text-align: center;
+      padding: 40px 20px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chapter-title h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .toc-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--toc-width);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      z-index: 200;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+    }
+
+    .toc-panel.open {
+      transform: translateX(0);
+    }
+
+    .toc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      height: 52px;
+    }
+
+    .toc-header h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .toc-close {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+    }
+
+    .toc-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+
+    .toc-chapter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .toc-chapter:hover {
+      background: rgba(163,74,46,0.06);
+      border-left-color: var(--accent);
+    }
+
+    .toc-ann-count {
+      background: var(--accent);
+      color: white;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      min-width: 22px;
+      text-align: center;
+    }
+
+    .toc-arrow {
+      font-size: 0.6rem;
+      color: var(--ink-2);
+      transition: transform 0.2s ease;
+      margin-left: auto;
+    }
+
+    .toc-arrow.open {
+      transform: rotate(90deg);
+    }
+
+    .toc-subs {
+      padding: 4px 0;
+      border-left: 2px solid var(--border);
+      margin-left: 20px;
+    }
+
+    .toc-sub {
+      padding-left: 32px;
+      font-weight: 400;
+    }
+
+    .toc-sub-sub {
+      padding-left: 48px;
+      font-size: 0.75rem;
+    }
+
+    .toc-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 199;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .toc-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--ink-2);
+      z-index: 100;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 60px;
+      border-top: 1px solid var(--border);
+      color: var(--ink-2);
+      font-size: 0.8rem;
+    }
+  
+    /* Substack markup mapped onto the reader theme */
+    .reader-content .callout-block {
+      background: color-mix(in srgb, var(--accent) 7%, transparent);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin: 22px 0;
+    }
+    .reader-content .callout-block p { margin: 0.4em 0; }
+    .reader-content .callout-block p:first-child { margin-top: 0; }
+    .reader-content .callout-block p:last-child { margin-bottom: 0; }
+    .reader-content [data-type='quote'] {
+      border-left: 3px solid var(--border);
+      padding-left: 16px;
+      color: var(--ink-2);
+    }
+    .reader-content .image-link { text-decoration: none; }
+    .reader-content hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+    .reader-content .available-content > p > u { text-decoration: none; }
+    .reader-content sup a, .reader-content sub a { text-decoration: none; }
+    .chapter-nav a { color: var(--accent); text-decoration: none; }
+    .chapter-nav a:hover { text-decoration: underline; }
+
+  </style>
+<link rel="stylesheet" href="../../assets/site.css?v=18">
+<link rel="stylesheet" href="../../assets/article-toc.css?v=1">
+<link rel="stylesheet" href="../../assets/course-theme.css?v=3">
+</head>
+<body>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="toc-overlay" id="tocOverlay" onclick="toggleTOC()"></div>
+
+  <div class="toc-panel" id="tocPanel">
+    <div class="toc-header">
+      <h3>Table of Contents</h3>
+      <button class="toc-close" onclick="toggleTOC()">✕</button>
+    </div>
+    <nav class="toc-nav">
+<div class="toc-chapter-wrap" data-chapter="0">
+<a href="chapter01_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter01_reader.html')"><span>Integrating AI Evals Into Your AI App</span><span class="toc-arrow" id="arrow-0" onclick="toggleChapter(event, 0)">&#9654;</span></a>
+<div class="toc-subs" id="subs-0" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">Opik: Open-Source Observability for Your Multimodal AI Agents (Sponsored )</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">The Holistic View of AI Evals</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Using Evals for Optimization</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Using Evals for Regression</a>
+<a class="toc-heading toc-sub" href="#rr-h-5">Using Evals for Production Monitoring</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Looking at Common Misconceptions</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-7">Guardrails vs. Evaluators</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-8">App Evaluators vs. LLM Evaluators</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-9">Evaluator vs. Classic Software Tests</a>
+<a class="toc-heading toc-sub" href="#rr-h-10">So What Is the Tech Stack?</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-12">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-13">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-14">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="1">
+<a href="chapter02_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter02_reader.html')"><span>Build an AI Evals Dataset from Scratch</span><span class="toc-arrow" id="arrow-1" onclick="toggleChapter(event, 1)">&#9654;</span></a>
+<div class="toc-subs" id="subs-1" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">Opik: Open-Source Observability for Your Multimodal AI Agents (Sponsored )</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Create the AI Evals Dataset</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Manually Label Your Dataset</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Manually Fix Errors</a>
+<a class="toc-heading toc-sub" href="#rr-h-5">Iteratively Build Your Evaluator</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Doing Error Analysis</a>
+<a class="toc-heading toc-sub" href="#rr-h-7">Create Specialized Evaluators</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">Demo</a>
+<a class="toc-heading toc-sub" href="#rr-h-9">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-12">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="2">
+<a href="chapter03_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter03_reader.html')"><span>Generate Synthetic Datasets for AI Evals</span><span class="toc-arrow" id="arrow-2" onclick="toggleChapter(event, 2)">&#9654;</span></a>
+<div class="toc-subs" id="subs-2" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">Opik: Automated Agent Optimization Using Your Evals Data (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">When Do We Need Synthetic Data?</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Understanding the Core Principles</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Seeing Your Inputs as Dimensions</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-5">How much data do you need?</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-6">Does this actually work?</a>
+<a class="toc-heading toc-sub" href="#rr-h-7">When Having Some Production Data</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">When Building Agents</a>
+<a class="toc-heading toc-sub" href="#rr-h-9">When Doing RAG</a>
+<a class="toc-heading toc-sub" href="#rr-h-10">For Deterministic Testing</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-12">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-13">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-14">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="3">
+<a href="chapter04_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter04_reader.html')"><span>How to Design Evaluators</span><span class="toc-arrow" id="arrow-3" onclick="toggleChapter(event, 3)">&#9654;</span></a>
+<div class="toc-subs" id="subs-3" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">How to Design Evaluators</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Opik: Open-Source LLMOps Platform (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Understanding the Evaluation Harness</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Dataset and Metric Types: Three Ways to Grade</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-5">1. Direct Scoring (Pointwise Evaluation)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-6">2. Pairwise Comparison</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-7">3. Reference-Based Evaluation</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">Model Evaluation vs. App Evaluation (Why Benchmarks Lie)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-9">Model Evaluation (Benchmarks)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">App Evaluation (What You Actually Need)</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">Components of an Evaluator</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-12">1. Reference Examples (Few-Shot Prompts)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-13">2. Metrics</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-14">3. Rubrics</a>
+<a class="toc-heading toc-sub" href="#rr-h-15">Code-Based Evaluators: Fast, Cheap, Objective</a>
+<a class="toc-heading toc-sub" href="#rr-h-16">LLM Judges: Flexible, Scalable, Nuanced</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-17">Strengths of LLM Judges</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-18">Weaknesses of LLM Judges</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-19">Making LLM Judges More Stable</a>
+<a class="toc-heading toc-sub" href="#rr-h-20">Common Mistakes (And How to Avoid Them)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-21">Mistake 1: Not Providing Critiques</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-22">Mistake 2: Overly Terse Critiques</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-23">Mistake 3: Missing Context</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-24">Mistake 4: Not Providing Diverse Examples</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-25">Mistake 5: Using Ready-Made Metrics Without Validation</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-26">Mistake 6: Using 1-5 Scales Instead of Binary Pass/Fail</a>
+<a class="toc-heading toc-sub" href="#rr-h-27">When Should I Use Similarity Metrics (BERTScore, ROUGE, etc.)?</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-28">When They Work</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-29">When They Fail</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-30">The Rule</a>
+<a class="toc-heading toc-sub" href="#rr-h-31">Advanced Metric Designs</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-32">Evaluating Multi-Turn Conversation Traces</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-33">Evaluating Complex Multi-Step Workflows</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-34">Evaluating Agentic Workflows</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-35">Phase 1: End-to-End Task Success</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-36">Phase 2: Step-Level Diagnostics</a>
+<a class="toc-heading toc-sub" href="#rr-h-37">Bringing It All Together</a>
+<a class="toc-heading toc-sub" href="#rr-h-38">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-39">Most AI newsletters give you news. The AI Engineer gives you understanding.</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-40">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-41">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-42">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="4">
+<a href="chapter05_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter05_reader.html')"><span>How to Evaluate the Evaluator</span><span class="toc-arrow" id="arrow-4" onclick="toggleChapter(event, 4)">&#9654;</span></a>
+<div class="toc-subs" id="subs-4" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">How to Evaluate the Evaluator</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Opik: Automated Agent Optimization Using Your Data (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Structuring Your Data for Validation</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Measuring Alignment With Human Judgment</a>
+<a class="toc-heading toc-sub" href="#rr-h-5">When High Scores Hide Real Failures</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Closing the Gap Between Judge and Expert</a>
+<a class="toc-heading toc-sub" href="#rr-h-7">Dealing With Non-Determinism</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">Demo</a>
+<a class="toc-heading toc-sub" href="#rr-h-9">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-12">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="5">
+<a href="chapter06_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter06_reader.html')"><span>RAG Evaluation: The Only 6 Metrics You Need</span><span class="toc-arrow" id="arrow-5" onclick="toggleChapter(event, 5)">&#9654;</span></a>
+<div class="toc-subs" id="subs-5" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">RAG Evaluation: The Only 6 Metrics You Need</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Opik: Open-Source LLMOps Platform (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">The Only 6 RAG Evaluation Metrics That Can Exist</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Tier 1: If Retrieval Is Broken, Nothing Else Matters</a>
+<a class="toc-heading toc-sub" href="#rr-h-5">Tier 2: The Three RAG Metrics You Always Need</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Tier 3: When the Core Metrics Can’t Explain the Failure</a>
+<a class="toc-heading toc-sub" href="#rr-h-7">Matching Frequency and Strictness to Your Domain</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">Building the RAG Evaluation Harness</a>
+<a class="toc-heading toc-sub" href="#rr-h-9">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-12">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="6">
+<a href="chapter07_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter07_reader.html')"><span>Lessons from 6 Months of Evals on a Production AI Companion</span><span class="toc-arrow" id="arrow-6" onclick="toggleChapter(event, 6)">&#9654;</span></a>
+<div class="toc-subs" id="subs-6" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">Opik: Open-Source LLMOps Platform (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Problems With AI Observability</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-3">Falling for Classic Metrics or Trying to Define What’s “Good” or “Bad”</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-4">Not Going Through Manual Annotations</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-5">Not Treating Your AI Agents as a Data Product</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Implementing AI Observability</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-7">Opik Overview</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-8">Opik MCP Server</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-9">Figuring Out Evaluation Criteria</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">Refining Evaluation Criteria</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-11">Running Annotation Sessions</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-12">Making Sense of Annotated Feedback</a>
+<a class="toc-heading toc-sub" href="#rr-h-13">Backstory of This Framework</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-14">Do you want more articles like this from Alejandro?</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-15">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-16">Images</a>
+</div>
+</div>
+</nav>
+  </div>
+
+  <nav class="top-bar">
+    <button onclick="toggleTOC()" title="Table of Contents">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <span class="top-bar-title">AI Evals Foundations: From Vibe Checking to Measurable AI</span>
+    <button onclick="toggleTheme()" title="Toggle theme">
+      <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    </button>
+  </nav>
+
+  <main class="reader-content">
+<div class="chapter-title">
+<h1 id="rr-h-0">How to Design Evaluators</h1>
+<p style="color:var(--ink-2);font-size:.9rem">Chapter 4 of 7 &middot; Paul Iusztin, <a href="https://www.decodingai.com/p/how-to-design-ai-evaluators-that-catch-failures" target="_blank" rel="noopener">read the original post</a></p>
+</div>
+<div class="body markup" dir="auto"><p><em><span>Welcome to the </span><strong><a href="https://www.decodingai.com/t/ai-evals-foundations">AI Evals Foundations series</a></strong><span>: A 7-part journey from shipping AI apps to systematically improving them. Made by busy people. For busy people.</span></em></p><p>🧐 Everyone says you need AI evals. Few explain how to actually build them and answer questions such as…</p><p>How do we avoid creating evals that waste our time and resources? How do we build datasets and design evaluators that matter? How do we adapt them for RAG? ...and most importantly, how do we stop “vibe checking” and leverage evals to actually track and optimize our app?</p><p><em>This 7-article series breaks it all down from first principles:</em></p><ol><li><p><a href="https://www.decodingai.com/p/integrating-ai-evals-into-your-ai-app">Integrating AI Evals Into Your AI App</a><strong> </strong></p></li><li><p><a href="https://www.decodingai.com/p/build-an-ai-evals-dataset-with-error-analysis">Build an AI Evals Dataset from Scratch</a><span> </span></p></li><li><p><a href="https://www.decodingai.com/p/generate-synthetic-datasets-for-ai-evals">Generate Synthetic Datasets for AI Evals </a></p></li><li><p><strong>How to Design Evaluators</strong><span> ← </span><em>You are here</em></p></li><li><p><a href="https://www.decodingai.com/p/how-to-evaluate-the-evaluator-validate-llm-judge">How to Evaluate the Evaluator </a></p></li><li><p><a href="https://www.decodingai.com/p/rag-evaluation-6-metrics-framework">RAG Evaluation: The Only 6 Metrics You Need</a></p></li><li><p><a href="https://www.decodingai.com/p/behind-the-scenes-of-ai-observability">Lessons from 6 Months of Evals on a Production AI Companion</a></p></li></ol><p>By the end, you’ll know how to integrate AI evals that actually track and improve the performance of your AI product. No vibe checking required!</p><p><strong>Let’s get started.</strong></p><div><hr/></div><h2 class="header-anchor-post" id="rr-h-1">How to Design Evaluators</h2><p>You have a dataset. You’ve manually labeled examples. You’ve fixed the obvious bugs. Now you need evaluators that can run automatically and catch problems before users do.</p><p>But here’s what trips up most teams: they build evaluators that check for things nobody cares about, or they use off-the-shelf metrics that sound impressive but don’t match their actual use case.</p><p>Three months ago, I spent a weekend building what I thought was a comprehensive evaluation suite for an AI agent that drafted replies to customer support tickets. I had ROUGE scores, BLEU scores, semantic similarity metrics, the works. Everything from the NLP textbook.</p><p>Then I ran it on production traces. The evaluators gave perfect scores to replies that were factually wrong, missed the customer’s actual question, and used the wrong tone for frustrated users. Meanwhile, they penalized perfectly good replies for using “different words than the reference answer.”</p><p>That’s when I realized: generic metrics optimize for academic benchmarks, not business outcomes. (And no, I’m not saying academic metrics are useless. They’re just solving a different problem than “did this agent do what my users needed?”)</p><p>The solution is to design evaluators that match your specific success criteria. Not what worked for someone else’s summarization task. Not what scored well on SQuAD. What actually matters for your users in your use case.</p><p><strong>In this article, we will cover:</strong></p><ul><li><p>The evaluation harness: infrastructure that runs evals end-to-end</p></li><li><p>Dataset and metric types: direct scoring vs. pairwise vs. reference-based</p></li><li><p>Model evaluation vs. app evaluation (and why benchmarks lie)</p></li><li><p>Components of an evaluator: reference examples, metrics, rubrics</p></li><li><p>When to use code-based checks vs. LLM judges</p></li><li><p>Common mistakes (and how to avoid them)</p></li><li><p>Advanced metric designs for multi-turn conversations and agentic workflows</p></li></ul><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!a1uV!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2ad91d7a-490d-4b4e-ac91-0f48e10bccc7_1456x1048.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!a1uV!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2ad91d7a-490d-4b4e-ac91-0f48e10bccc7_1456x1048.png 424w, https://substackcdn.com/image/fetch/$s_!a1uV!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2ad91d7a-490d-4b4e-ac91-0f48e10bccc7_1456x1048.png 848w, https://substackcdn.com/image/fetch/$s_!a1uV!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2ad91d7a-490d-4b4e-ac91-0f48e10bccc7_1456x1048.png 1272w, https://substackcdn.com/image/fetch/$s_!a1uV!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2ad91d7a-490d-4b4e-ac91-0f48e10bccc7_1456x1048.png 1456w" type="image/webp"/><img alt="Designing evaluators for AI applications: from code-based checks to LLM judges." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/2ad91d7a-490d-4b4e-ac91-0f48e10bccc7_1456x1048.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":1048,"width":1456,"resizeWidth":null,"bytes":null,"alt":"Designing evaluators for AI applications: from code-based checks to LLM judges.","title":"Designing evaluators for AI applications: from code-based checks to LLM judges.","type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="1048" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!a1uV!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2ad91d7a-490d-4b4e-ac91-0f48e10bccc7_1456x1048.png" srcset="https://substackcdn.com/image/fetch/$s_!a1uV!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2ad91d7a-490d-4b4e-ac91-0f48e10bccc7_1456x1048.png 424w, https://substackcdn.com/image/fetch/$s_!a1uV!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2ad91d7a-490d-4b4e-ac91-0f48e10bccc7_1456x1048.png 848w, https://substackcdn.com/image/fetch/$s_!a1uV!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2ad91d7a-490d-4b4e-ac91-0f48e10bccc7_1456x1048.png 1272w, https://substackcdn.com/image/fetch/$s_!a1uV!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2ad91d7a-490d-4b4e-ac91-0f48e10bccc7_1456x1048.png 1456w" title="Designing evaluators for AI applications: from code-based checks to LLM judges." width="1456"/></picture></div></a><figcaption class="image-caption"><em>Image 1: Designing evaluators for AI applications: from code-based checks to LLM judges.</em></figcaption></figure></div><p><em>Before digging into the article, a quick word from our sponsor, Opik.</em><span> ↓</span></p><div><hr/></div><h2 class="header-anchor-post" id="rr-h-2"><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik: Open-Source LLMOps Platform (Sponsored)</a></h2><p><span>This </span><strong>AI Evals &amp; Observability</strong><span> series is brought to you by </span><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik</a><span>, the LLMOps open-source platform used by Uber, Etsy, Netflix, and more. </span></p><p>We use Opik daily across our courses and AI products. Not just for observability, but to design and run the exact evaluators this article teaches: custom LLM judges, code-based checks, and experiments. All from the same platform.</p><div class="captioned-image-container"><figure><div class="image-link image2 can-restack" data-component-name="Image2ToDOM"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!oSDm!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 424w, https://substackcdn.com/image/fetch/$s_!oSDm!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 848w, https://substackcdn.com/image/fetch/$s_!oSDm!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 1272w, https://substackcdn.com/image/fetch/$s_!oSDm!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 1456w" type="image/webp"/><img alt="Opik Banner" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":364,"width":1456,"resizeWidth":null,"bytes":null,"alt":"Opik Banner","title":"Opik Banner","type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="364" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!oSDm!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png" srcset="https://substackcdn.com/image/fetch/$s_!oSDm!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 424w, https://substackcdn.com/image/fetch/$s_!oSDm!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 848w, https://substackcdn.com/image/fetch/$s_!oSDm!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 1272w, https://substackcdn.com/image/fetch/$s_!oSDm!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 1456w" title="Opik Banner" width="1456"/></picture></div></div><figcaption class="image-caption"><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Try Opik for free here</a><span> (25k spans/month free)</span></figcaption></figure></div><p>This article shows you how to design evaluators. Opik gives you the harness to run them at scale. Here is how we use it:</p><ul><li><p><strong>Custom LLM judges with rubrics</strong><span> — Build the evaluators this article describes: define your criteria, add few-shot examples, and run them across hundreds of traces automatically.</span></p></li><li><p><strong>Run experiments, compare results</strong><span> — Test different prompts, models, or configurations side by side. Opik scores each variant with your evaluators and shows you which one wins.</span></p></li><li><p><strong>Plug evaluators into production</strong><span> — The same LLM judges you design for testing run on live traces too. Set up alarms when scores drop below your threshold so you catch regressions before users do.</span></p></li></ul><p><strong><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik</a></strong><span> is fully </span><strong>open-source</strong><span> and works with custom code or most AI frameworks. You can also use the managed version for free (with 25K spans/month on their generous free tier):</span></p><div><hr/></div><p><em>↓</em><span> </span><em>Now, let’s move back to the article.</em></p><h2 class="header-anchor-post" id="rr-h-3">Understanding the Evaluation Harness</h2><p>You can’t manually run 500 test cases. You need automation.</p><p><span>The infrastructure that runs evals end-to-end is called an </span><strong>evaluation harness (1)</strong><span>. It loads your dataset, executes your agent on each test case, captures all the outputs and traces, runs your graders, and aggregates the scores into something you can actually use.</span></p><p>Think of it like pytest for AI apps. Except instead of checking if a function returns the right type, you’re checking if an LLM generated text that accomplishes a business goal.</p><p>Here’s what a harness does:</p><ol><li><p><strong>Loads tasks</strong><span> from your evaluation dataset</span></p></li><li><p><strong>Provides instructions and tools</strong><span> to the agent (system prompts, available functions, etc.)</span></p></li><li><p><strong>Runs tasks</strong><span> (often in parallel across multiple trials because LLM outputs vary)</span></p></li><li><p><strong>Records everything</strong><span>: inputs, outputs, tool calls, reasoning traces, intermediate states</span></p></li><li><p><strong>Runs graders</strong><span> on the results (your evaluators)</span></p></li><li><p><strong>Aggregates scores</strong><span> across trials and tasks</span></p></li></ol><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!tu0r!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F1ce14a1c-8162-406e-a728-fd596c93af89_1200x630.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!tu0r!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F1ce14a1c-8162-406e-a728-fd596c93af89_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!tu0r!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F1ce14a1c-8162-406e-a728-fd596c93af89_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!tu0r!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F1ce14a1c-8162-406e-a728-fd596c93af89_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!tu0r!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F1ce14a1c-8162-406e-a728-fd596c93af89_1200x630.png 1456w" type="image/webp"/><img alt="The evaluation harness pipeline: loading tasks, running agents, scoring results, and aggregating metrics." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/1ce14a1c-8162-406e-a728-fd596c93af89_1200x630.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":630,"width":1200,"resizeWidth":null,"bytes":null,"alt":"The evaluation harness pipeline: loading tasks, running agents, scoring results, and aggregating metrics.","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="630" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!tu0r!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F1ce14a1c-8162-406e-a728-fd596c93af89_1200x630.png" srcset="https://substackcdn.com/image/fetch/$s_!tu0r!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F1ce14a1c-8162-406e-a728-fd596c93af89_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!tu0r!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F1ce14a1c-8162-406e-a728-fd596c93af89_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!tu0r!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F1ce14a1c-8162-406e-a728-fd596c93af89_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!tu0r!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F1ce14a1c-8162-406e-a728-fd596c93af89_1200x630.png 1456w" title="The evaluation harness pipeline: loading tasks, running agents, scoring results, and aggregating metrics." width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 2: The evaluation harness pipeline: loading tasks, running agents, scoring results, and aggregating metrics.</em></figcaption></figure></div><p>Without a harness, you’re manually running your agent on test cases and eyeballing the output. With a harness, you run 500 test cases overnight and wake up to a report showing exactly which failure categories spiked [1].</p><p>The harness is separate from your evaluators. The evaluators decide what “good” means. The harness handles the boring work of running everything at scale and collecting results.</p><p><span>Popular harness options include </span><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik</a><span> (what we use), Braintrust, LangSmith, and open-source frameworks like Promptfoo. But honestly, you can build a minimal harness in ~100 lines of Python if you need custom logic [1]. The hard part isn’t the infrastructure - it’s assembling the right context (system prompts, conversation history, retrieved docs, tools) for each task. The key is having one. Don’t manually run evals.</span></p><p>Now let’s talk about what those evaluators actually check.</p><h2 class="header-anchor-post" id="rr-h-4">Dataset and Metric Types: Three Ways to Grade</h2><p>When designing an evaluator, you need to pick a grading strategy. There are three main approaches, each suited for different situations.</p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!2d8b!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F748f635b-6849-48a1-88fe-e67c64a46b50_1200x630.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!2d8b!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F748f635b-6849-48a1-88fe-e67c64a46b50_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!2d8b!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F748f635b-6849-48a1-88fe-e67c64a46b50_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!2d8b!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F748f635b-6849-48a1-88fe-e67c64a46b50_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!2d8b!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F748f635b-6849-48a1-88fe-e67c64a46b50_1200x630.png 1456w" type="image/webp"/><img alt="Three grading strategies: direct scoring, pairwise comparison, and reference-based evaluation." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/748f635b-6849-48a1-88fe-e67c64a46b50_1200x630.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":630,"width":1200,"resizeWidth":null,"bytes":null,"alt":"Three grading strategies: direct scoring, pairwise comparison, and reference-based evaluation.","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="630" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!2d8b!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F748f635b-6849-48a1-88fe-e67c64a46b50_1200x630.png" srcset="https://substackcdn.com/image/fetch/$s_!2d8b!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F748f635b-6849-48a1-88fe-e67c64a46b50_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!2d8b!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F748f635b-6849-48a1-88fe-e67c64a46b50_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!2d8b!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F748f635b-6849-48a1-88fe-e67c64a46b50_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!2d8b!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F748f635b-6849-48a1-88fe-e67c64a46b50_1200x630.png 1456w" title="Three grading strategies: direct scoring, pairwise comparison, and reference-based evaluation." width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 3: Three grading strategies: direct scoring, pairwise comparison, and reference-based evaluation.</em></figcaption></figure></div><h3 class="header-anchor-post" id="rr-h-5">1. Direct Scoring (Pointwise Evaluation)</h3><p>The evaluator looks at a single output and scores it in isolation. No comparison to anything else.</p><p><strong>Example:</strong></p><ul><li><p>Input: “Refund my order #12345”</p></li><li><p>Output: “I’ve processed your refund for order #12345. You’ll see the credit in 3-5 business days.”</p></li><li><p>Score: Pass (correctly identified the task, provided timeline, professional tone)</p></li></ul><p><strong>When to use:</strong></p><ul><li><p>You have clear, absolute quality criteria (was it helpful? was it safe? did it call the right tool?)</p></li><li><p>You want to track performance over time on the same dataset</p></li><li><p>Your baseline is “good enough” not “better than X”</p></li></ul><p><strong>Metrics:</strong></p><ul><li><p>Binary pass/fail</p></li><li><p>0-1 scores (where 1 = perfect)</p></li><li><p>Classification labels (Helpful/Neutral/Harmful)</p></li></ul><h3 class="header-anchor-post" id="rr-h-6">2. Pairwise Comparison</h3><p>The evaluator compares two outputs and picks which one is better.</p><p><strong>Example:</strong></p><ul><li><p>Input: “Refund my order #12345”</p></li><li><p>Output A: “Refund processed.”</p></li><li><p>Output B: “I’ve processed your refund for order #12345. You’ll see the credit in 3-5 business days.”</p></li><li><p>Winner: Output B (more informative, sets expectations)</p></li></ul><p><strong>When to use:</strong></p><ul><li><p>Comparing two model versions (baseline vs. candidate)</p></li><li><p>A/B testing different prompts</p></li><li><p>LLMs are better at ranking than absolute scoring</p></li></ul><p><strong>Watch out for biases (2):</strong></p><ul><li><p><strong>Position bias</strong><span>: LLMs favor the first or last response shown</span></p></li><li><p><strong>Verbosity bias</strong><span>: LLMs prefer longer answers even when they’re not better</span></p></li><li><p><strong>Self-enhancement bias</strong><span>: LLMs favor outputs from themselves over other models</span></p></li></ul><p>You can mitigate these by randomizing response order and using multiple trials.</p><h3 class="header-anchor-post" id="rr-h-7">3. Reference-Based Evaluation</h3><p>The evaluator compares the output to a known “gold standard” answer.</p><p><strong>Example:</strong></p><ul><li><p>Input: “What’s the capital of France?”</p></li><li><p>Output: “Paris”</p></li><li><p>Reference: “Paris”</p></li><li><p>Score: Exact match (Pass)</p></li></ul><p><strong>Example 2 (Semantic equivalence):</strong></p><ul><li><p>Input: “Summarize the refund policy”</p></li><li><p>Output: “Customers can return items within 30 days for a full refund if unused.”</p></li><li><p>Reference: “Full refunds are available for unused products returned within 30 days of purchase.”</p></li><li><p>Score: Pass (different wording, same meaning)</p></li></ul><p><strong>When to use:</strong></p><ul><li><p>You have ground truth answers (FAQs, knowledge bases, structured tasks)</p></li><li><p>Task has a single correct answer or small set of acceptable answers</p></li><li><p>You’re testing retrieval accuracy or factual correctness</p></li></ul><p><strong>How to measure: </strong></p><ul><li><p><strong>Exact match</strong><span>: For structured outputs (dates, product IDs, categorical values)</span></p></li><li><p><strong>Semantic similarity / LLM judges:</strong><span> For natural language, where multiple phrasings are valid (summaries, explanations, instructions)</span></p></li></ul><p><strong>Common metrics (3):</strong></p><ul><li><p>Exact match</p></li><li><p>ROUGE (recall-oriented, good for summarization)</p></li><li><p>BLEU (precision-oriented, originally for translation)</p></li><li><p>BERTScore (semantic similarity using embeddings)</p></li><li><p>LLM judges (for nuanced semantic equivalence)</p></li></ul><p><strong>The trap:</strong><span> Exact match metrics penalize valid variations. If your reference says “The meeting is on Friday” and your agent says “The meeting is scheduled for this Friday,” exact match fails. This is where semantic similarity metrics (BERTScore) or LLM judges become powerful - they can recognize that different phrasings convey the same outcome.</span></p><h2 class="header-anchor-post" id="rr-h-8">Model Evaluation vs. App Evaluation (Why Benchmarks Lie)</h2><p>Here’s a distinction that matters more than people realize:</p><p><strong>Model evaluation</strong><span> measures the LLM itself, in isolation, on generic tasks. This is what benchmarks like MMLU, HumanEval, and Chatbot Arena do.</span></p><p><strong>App evaluation</strong><span> measures your entire application (LLM + prompts + tools + retrieval + business logic) on your specific use case.</span></p><p>High MMLU score doesn’t mean it handles your refund policy correctly. Benchmarks test general capability. You need to test your specific use case.</p><h3 class="header-anchor-post" id="rr-h-9">Model Evaluation (Benchmarks)</h3><p>Tests: “Can this LLM answer random trivia, write code snippets, or score high on standardized tests?”</p><p><strong>Useful for:</strong></p><ul><li><p>Comparing foundation models across the board</p></li><li><p>Understanding general capabilities</p></li><li><p>Academic research</p></li></ul><p><strong>Useless for:</strong></p><ul><li><p>Predicting whether it will handle your refund policy correctly</p></li><li><p>Knowing if it will escalate frustrated customers at the right time</p></li><li><p>Determining if it respects your company’s tone of voice</p></li></ul><h3 class="header-anchor-post" id="rr-h-10">App Evaluation (What You Actually Need)</h3><p>Tests: “Does my customer support agent correctly process refunds, handle escalations, and follow our policies?”</p><p><strong>This is what matters</strong><span> because your users don’t care if GPT-5 scored 95% on MMLU. They care if it solved their problem.</span></p><p>Your evaluators must be grounded in your business use case, not generic academic benchmarks. This means:</p><ul><li><p>Testing against your actual policies, not Wikipedia facts</p></li><li><p>Using your real user queries, not synthetic textbook questions</p></li><li><p>Measuring outcomes that impact revenue, retention, or safety</p></li></ul><p>Benchmarks tell you which LLM is “generally smarter.” App evals tell you which version of your system works better for your users.</p><p>Don’t mistake one for the other.</p><h2 class="header-anchor-post" id="rr-h-11">Components of an Evaluator</h2><p>Now that you know the types, let’s build one. Every evaluator has three components:</p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!b_Ph!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fabad08fa-fbdb-45b7-9f1d-00ef87d12897_1200x630.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!b_Ph!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fabad08fa-fbdb-45b7-9f1d-00ef87d12897_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!b_Ph!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fabad08fa-fbdb-45b7-9f1d-00ef87d12897_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!b_Ph!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fabad08fa-fbdb-45b7-9f1d-00ef87d12897_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!b_Ph!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fabad08fa-fbdb-45b7-9f1d-00ef87d12897_1200x630.png 1456w" type="image/webp"/><img alt="The three components of every evaluator: reference examples, metrics, and rubrics." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/abad08fa-fbdb-45b7-9f1d-00ef87d12897_1200x630.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":630,"width":1200,"resizeWidth":null,"bytes":null,"alt":"The three components of every evaluator: reference examples, metrics, and rubrics.","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="630" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!b_Ph!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fabad08fa-fbdb-45b7-9f1d-00ef87d12897_1200x630.png" srcset="https://substackcdn.com/image/fetch/$s_!b_Ph!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fabad08fa-fbdb-45b7-9f1d-00ef87d12897_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!b_Ph!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fabad08fa-fbdb-45b7-9f1d-00ef87d12897_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!b_Ph!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fabad08fa-fbdb-45b7-9f1d-00ef87d12897_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!b_Ph!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fabad08fa-fbdb-45b7-9f1d-00ef87d12897_1200x630.png 1456w" title="The three components of every evaluator: reference examples, metrics, and rubrics." width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 4: The three components of every evaluator: reference examples, metrics, and rubrics.</em></figcaption></figure></div><h3 class="header-anchor-post" id="rr-h-12">1. Reference Examples (Few-Shot Prompts)</h3><p>These are the labeled examples from your dataset. They show the evaluator what “good” and “bad” look like for your specific task.</p><p>Remember from Article 2: the real power isn’t in the system prompt, it’s in these few-shot examples. They encode your domain expert’s judgment.</p><p><strong>Example:</strong></p><p><strong>Example 1 - PASS</strong></p><p><strong>Example 2 - FAIL</strong></p><h3 class="header-anchor-post" id="rr-h-13">2. Metrics</h3><p>The quantifiable measurement of quality. This can be:</p><ul><li><p><strong>Objective</strong><span>: Did it call the right tool? Is the JSON valid? Is the response under 200 words?</span></p></li><li><p><strong>Subjective</strong><span>: Was it helpful? Was the tone appropriate? Did it follow the conversation flow?</span></p></li></ul><p>For objective metrics, use code-based checks (fast, cheap, deterministic).</p><p>For subjective metrics, use LLM judges or human evaluation.</p><h3 class="header-anchor-post" id="rr-h-14">3. Rubrics</h3><p>For subjective metrics, you need a rubric: explicit criteria that define what you’re measuring.</p><p><strong>Bad rubric:</strong><br/><em>“Was the response helpful?”</em></p><p>(Too vague. Helpful how? To whom? Compared to what?)</p><p><strong>Good rubric:</strong><br/><em>“Did the response: (1) correctly identify the user’s request, (2) provide a specific action or next step, (3) include a timeline or expectation, and (4) maintain professional tone?”</em></p><p>Rubrics force precision. They make subjective judgments repeatable. These criteria become part of your LLM judge’s system prompt.</p><h2 class="header-anchor-post" id="rr-h-15">Code-Based Evaluators: Fast, Cheap, Objective</h2><p><span>Some checks are deterministic. Did the agent call </span><code>refund_order()</code><span>? Is the output valid JSON? Does it include a required disclaimer?</span></p><p>Use code for these. It’s faster, cheaper, and never gives you a different answer on the same input.</p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!-byG!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F31a1e6f1-d168-44f4-928c-1a7969ac85f3_1200x630.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!-byG!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F31a1e6f1-d168-44f4-928c-1a7969ac85f3_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!-byG!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F31a1e6f1-d168-44f4-928c-1a7969ac85f3_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!-byG!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F31a1e6f1-d168-44f4-928c-1a7969ac85f3_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!-byG!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F31a1e6f1-d168-44f4-928c-1a7969ac85f3_1200x630.png 1456w" type="image/webp"/><img alt="Code-based evaluators check deterministic criteria: tool calls, format, required elements, and prohibited content." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/31a1e6f1-d168-44f4-928c-1a7969ac85f3_1200x630.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":630,"width":1200,"resizeWidth":null,"bytes":null,"alt":"Code-based evaluators check deterministic criteria: tool calls, format, required elements, and prohibited content.","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="630" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!-byG!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F31a1e6f1-d168-44f4-928c-1a7969ac85f3_1200x630.png" srcset="https://substackcdn.com/image/fetch/$s_!-byG!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F31a1e6f1-d168-44f4-928c-1a7969ac85f3_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!-byG!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F31a1e6f1-d168-44f4-928c-1a7969ac85f3_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!-byG!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F31a1e6f1-d168-44f4-928c-1a7969ac85f3_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!-byG!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F31a1e6f1-d168-44f4-928c-1a7969ac85f3_1200x630.png 1456w" title="Code-based evaluators check deterministic criteria: tool calls, format, required elements, and prohibited content." width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 5: Code-based evaluators check deterministic criteria: tool calls, format, required elements, and prohibited content.</em></figcaption></figure></div><p><strong>Use code-based evaluators for:</strong></p><ul><li><p><strong>Tool calls</strong><span>: Did it call </span><code>refund_order()</code><span> with the right parameters?</span></p></li><li><p><strong>Format checks</strong><span>: Is the output valid JSON? Is it under the character limit?</span></p></li><li><p><strong>Required elements</strong><span>: Does it include a disclaimer? Does it have a timestamp?</span></p></li><li><p><strong>Prohibited content</strong><span>: Does it contain banned phrases or leaked data?</span></p></li></ul><p><strong>Example (pseudocode):</strong></p><p>Code-based evaluators are:</p><ul><li><p><strong>Fast</strong><span>: Milliseconds per check</span></p></li><li><p><strong>Cheap</strong><span>: No API costs</span></p></li><li><p><strong>Reproducible</strong><span>: Same input always gives same result</span></p></li><li><p><strong>Easy to debug</strong><span>: When they fail, you know exactly what broke</span></p></li></ul><p>But they can’t handle nuance. They can’t judge tone, helpfulness, or conversational flow. For that, you need LLM judges.</p><p>These code-based evaluators work exactly like classic unit tests you’re already familiar with. They’re deterministic, fast, and easy to debug. That’s why you should always try to implement code-based checks first before reaching for LLM judges. If you can check it with code, do that. Only use LLM judges when code can’t capture what you need to measure.</p><h2 class="header-anchor-post" id="rr-h-16">LLM Judges: Flexible, Scalable, Nuanced</h2><p><span>An </span><strong>LLM judge</strong><span> is an LLM that grades another LLM’s output. You give it the task, the output, and the evaluation criteria, and it returns a score with reasoning</span></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!L6EX!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe0c0a5b9-99aa-427e-899f-a2e463267ec7_1200x630.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!L6EX!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe0c0a5b9-99aa-427e-899f-a2e463267ec7_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!L6EX!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe0c0a5b9-99aa-427e-899f-a2e463267ec7_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!L6EX!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe0c0a5b9-99aa-427e-899f-a2e463267ec7_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!L6EX!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe0c0a5b9-99aa-427e-899f-a2e463267ec7_1200x630.png 1456w" type="image/webp"/><img alt="LLM judge flow: input context and criteria produce a score with reasoning." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/e0c0a5b9-99aa-427e-899f-a2e463267ec7_1200x630.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":630,"width":1200,"resizeWidth":null,"bytes":null,"alt":"LLM judge flow: input context and criteria produce a score with reasoning.","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="630" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!L6EX!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe0c0a5b9-99aa-427e-899f-a2e463267ec7_1200x630.png" srcset="https://substackcdn.com/image/fetch/$s_!L6EX!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe0c0a5b9-99aa-427e-899f-a2e463267ec7_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!L6EX!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe0c0a5b9-99aa-427e-899f-a2e463267ec7_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!L6EX!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe0c0a5b9-99aa-427e-899f-a2e463267ec7_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!L6EX!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe0c0a5b9-99aa-427e-899f-a2e463267ec7_1200x630.png 1456w" title="LLM judge flow: input context and criteria produce a score with reasoning." width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 6: LLM judge flow: input context and criteria produce a score with reasoning.</em></figcaption></figure></div><p>LLM judges work in two modes: evaluating outputs against absolute criteria (is it helpful? professional? accurate?) or comparing outputs to reference answers when you have ground truth but need semantic understanding rather than exact string matching.</p><p><strong>Use LLM judges for:</strong></p><ul><li><p><strong>Tone</strong><span>: Was it empathetic? Professional? Not condescending?</span></p></li><li><p><strong>Helpfulness</strong><span>: Did it actually answer the question or deflect?</span></p></li><li><p><strong>Conversation flow</strong><span>: Did it maintain context across turns?</span></p></li><li><p><strong>Reasoning quality</strong><span>: Did the agent’s plan make sense?</span></p></li></ul><p><strong>How it works:</strong></p><ol><li><p>You provide:</p><ul><li><p>The input (user query)</p></li><li><p>The output (agent’s response)</p></li><li><p>The context (system prompt, retrieved docs, conversation history)</p></li><li><p>Evaluation criteria (what you’re checking for)</p></li><li><p>Few-shot examples (labeled passes and fails)</p></li></ul></li><li><p>The LLM judge outputs:</p><ul><li><p>A score (pass/fail or 0-1 scale)</p></li><li><p>A critique explaining why</p></li></ul></li></ol><p><strong>Example prompt (simplified):</strong></p><p>The judge generates: </p><h3 class="header-anchor-post" id="rr-h-17">Strengths of LLM Judges</h3><ul><li><p><strong>Flexible</strong><span>: Handle open-ended tasks where code can’t</span></p></li><li><p><strong>Scalable</strong><span>: Grade thousands of traces automatically</span></p></li><li><p><strong>Explainable</strong><span>: Critiques show reasoning, helping debug failures</span></p></li></ul><h3 class="header-anchor-post" id="rr-h-18">Weaknesses of LLM Judges</h3><ul><li><p><strong>Non-deterministic</strong><span>: Same input might get different scores across runs</span></p></li><li><p><strong>Expensive</strong><span>: Every evaluation is an API call</span></p></li><li><p><strong>Needs calibration</strong><span>: Must align with human judgment (we cover this in Article 5)</span></p></li></ul><h3 class="header-anchor-post" id="rr-h-19">Making LLM Judges More Stable</h3><ol><li><p><strong>Use the most capable model</strong><span> (e.g., Claude Opus, GPT-4o) + footnotes (4)</span></p></li><li><p><strong>Add chain-of-thought reasoning</strong><span> before scoring (”Let’s think step-by-step...”)</span></p></li><li><p><strong>Control for verbosity bias</strong><span> (normalize response lengths)</span></p></li><li><p><strong>Run multiple trials</strong><span> and average scores for critical evals</span></p></li><li><p><strong>Increase dataset size</strong><span> to at least 50-100 samples (reduces noise)</span></p></li></ol><h2 class="header-anchor-post" id="rr-h-20">Common Mistakes (And How to Avoid Them)</h2><h3 class="header-anchor-post" id="rr-h-21">Mistake 1: Not Providing Critiques</h3><p><strong>Wrong:</strong><br/><span>Score: 1</span></p><p><strong>Right:</strong><br/><span>Score: 1</span></p><p><span>Critique: </span><em>“Response correctly identified the refund request but didn’t provide a timeline. Customer left without expectations.”</em></p><p>Critiques are not optional. They’re how you debug failures and train better evaluators.</p><h3 class="header-anchor-post" id="rr-h-22">Mistake 2: Overly Terse Critiques</h3><p><strong>Wrong:</strong><br/><span>“Bad tone”</span></p><p><strong>Right:</strong><br/><em>“Response used dismissive language (’just wait’) when customer expressed frustration about a delayed order. Should have acknowledged frustration and provided specific next steps.”</em></p><p>The critique should be detailed enough to serve as a few-shot example later.</p><h3 class="header-anchor-post" id="rr-h-23">Mistake 3: Missing Context</h3><p>Don’t evaluate the output in isolation. Give the evaluator everything a human would see:</p><ul><li><p>The full conversation history (for multi-turn tasks)</p></li><li><p>Retrieved documents (for RAG)</p></li><li><p>System prompts (for understanding constraints)</p></li><li><p>Tool call results (for agentic workflows)</p></li></ul><p>If a human needs it to judge quality, the evaluator needs it too.</p><h3 class="header-anchor-post" id="rr-h-24">Mistake 4: Not Providing Diverse Examples</h3><p>If all your few-shot examples are “customer angry, agent apologizes,” the judge won’t know how to handle “customer confused, needs technical explanation.”</p><p>Cover the failure modes you actually see in production.</p><h3 class="header-anchor-post" id="rr-h-25">Mistake 5: Using Ready-Made Metrics Without Validation</h3><p>ROUGE, BLEU, BERTScore, etc. sound professional, but they might not correlate with your actual goal.</p><p>Before using any metric, validate it against human judgment on your specific task. If high ROUGE doesn’t mean “users are happy,” don’t optimize for ROUGE.</p><h3 class="header-anchor-post" id="rr-h-26"><span>Mistake 6: </span><strong>Using 1-5 Scales Instead of Binary Pass/Fail</strong></h3><p><span>Wrong:</span><br/><span>Score: 3.2 out of 5</span></p><p><span>Right:</span><br/><span>Score: 0 (Fail)</span><br/><span>Critique: </span><em>“Response didn’t provide a timeline or next steps.”</em></p><p>Why it matters: A score of 3.2 is ambiguous. Is that good enough to ship? Should you fix it? Binary forces clarity. Either it passes your quality bar or it doesn’t. Scoring on a float scale (0.0-1.0) has the same problem - it leaves room for interpretation instead of forcing a clear decision.</p><h2 class="header-anchor-post" id="rr-h-27">When Should I Use Similarity Metrics (BERTScore, ROUGE, etc.)?</h2><p><span>Short answer: </span><strong>Only for specific, narrow tasks where semantic overlap actually matters.</strong></p><h3 class="header-anchor-post" id="rr-h-28">When They Work</h3><p><strong>Summarization:</strong><span> ROUGE measures how much of the source content appears in the summary. If your task is “don’t miss key facts,” ROUGE helps.</span></p><p><strong>Translation:</strong><span> BLEU checks n-gram overlap with reference translations. Works when there’s a narrow acceptable output space.</span></p><p><strong>Retrieval accuracy:</strong><span> BERTScore compares semantic similarity between retrieved chunks and expected documents.</span></p><h3 class="header-anchor-post" id="rr-h-29">When They Fail</h3><p><strong>Open-ended generation:</strong><span> Your AI agent says “I’ve refunded order #12345. You’ll see the credit in 3-5 days.” Reference says “Refund processed for order #12345, expect 3-5 business days.” Different words, same meaning. ROUGE fails.</span></p><p><strong>Tone and helpfulness:</strong><span> Similarity metrics don’t measure if the tone was appropriate or if it actually helped the user.</span></p><p><strong>Business outcomes:</strong><span> High similarity doesn’t mean the customer is satisfied, the sale closed, or the task completed.</span></p><h3 class="header-anchor-post" id="rr-h-30">The Rule</h3><p>If your success criterion is “output should be semantically similar to the reference answer,” use similarity metrics.</p><p><span>If your success criteria are </span><em>“user achieved their goal,”</em><span> use app-level evaluators grounded in outcomes.</span></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!Ovy3!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdbd045ca-c3dc-46b7-a942-0ceec8fe523c_1200x630.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!Ovy3!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdbd045ca-c3dc-46b7-a942-0ceec8fe523c_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!Ovy3!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdbd045ca-c3dc-46b7-a942-0ceec8fe523c_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!Ovy3!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdbd045ca-c3dc-46b7-a942-0ceec8fe523c_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!Ovy3!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdbd045ca-c3dc-46b7-a942-0ceec8fe523c_1200x630.png 1456w" type="image/webp"/><img alt="Decision tree for choosing the right evaluator type." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/dbd045ca-c3dc-46b7-a942-0ceec8fe523c_1200x630.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":630,"width":1200,"resizeWidth":null,"bytes":null,"alt":"Decision tree for choosing the right evaluator type.","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="630" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!Ovy3!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdbd045ca-c3dc-46b7-a942-0ceec8fe523c_1200x630.png" srcset="https://substackcdn.com/image/fetch/$s_!Ovy3!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdbd045ca-c3dc-46b7-a942-0ceec8fe523c_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!Ovy3!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdbd045ca-c3dc-46b7-a942-0ceec8fe523c_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!Ovy3!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdbd045ca-c3dc-46b7-a942-0ceec8fe523c_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!Ovy3!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdbd045ca-c3dc-46b7-a942-0ceec8fe523c_1200x630.png 1456w" title="Decision tree for choosing the right evaluator type." width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 7: Decision tree for choosing the right evaluator type.</em></figcaption></figure></div><h2 class="header-anchor-post" id="rr-h-31">Advanced Metric Designs</h2><p>Now let’s handle the hard cases: multi-turn conversations, complex workflows, and agentic systems.</p><h3 class="header-anchor-post" id="rr-h-32">Evaluating Multi-Turn Conversation Traces</h3><p>A single-turn eval checks one input and one output. Multi-turn evals check entire conversations.</p><p><strong>Challenges:</strong></p><ul><li><p>Context must carry across turns</p></li><li><p>Errors compound (one bad response derails the rest)</p></li><li><p><span>You need to catch the </span><strong>first upstream failure</strong><span>, not downstream symptoms</span></p></li></ul><p><strong>Strategy:</strong></p><ol><li><p><strong>End-to-end task success</strong><span>: Did the agent accomplish the user’s goal by the end?</span></p></li><li><p><strong>Turn-by-turn checks</strong><span>: Evaluate each exchange individually</span></p><ul><li><p>Did turn 3 maintain context from turn 1?</p></li><li><p>Did turn 5 escalate when the user got frustrated?</p></li></ul></li><li><p><strong>Failure attribution</strong><span>: When something breaks, find the first turn where it went wrong</span></p></li></ol><p><strong>Example (customer support conversation):</strong></p><p><strong>Turn 1:</strong></p><p><span>User: </span><em>“I need to return order #12345”</em></p><p><span>Agent: </span><em>“Sure, I can help with that. What’s the reason for the return?”</em></p><p>Eval: Pass (acknowledged request, asked clarifying question)</p><p><strong>Turn 2:</strong></p><p><span>User: </span><em>“It arrived damaged”</em></p><p><span>Agent: </span><em>“I’ll process a refund. Expect 3-5 business days.”</em></p><p>Eval: FAIL (Skipped required step: didn’t offer replacement or ask for photos of damage)</p><p><strong>Turn 3:</strong></p><p><span>User: </span><em>“Do I need to ship it back?”</em></p><p><span>Agent: </span><em>“No, keep it.”</em></p><p><strong>Eval:</strong><span> Pass (but only because Turn 2 already failed the workflow)</span></p><p><span>The </span><strong>first upstream failure</strong><span> is Turn 2. Everything after is a consequence.</span></p><p><strong>Important</strong><span>: When evaluating any turn, provide all previous turns as context. Evaluating Turn 2? Include Turn 1. Evaluating Turn 3? Include Turns 1 and 2. The evaluator needs the full conversation history to judge whether context was properly maintained.</span></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!F9xg!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fec05adaa-5103-4052-aadb-2df1e3cc201e_1200x630.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!F9xg!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fec05adaa-5103-4052-aadb-2df1e3cc201e_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!F9xg!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fec05adaa-5103-4052-aadb-2df1e3cc201e_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!F9xg!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fec05adaa-5103-4052-aadb-2df1e3cc201e_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!F9xg!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fec05adaa-5103-4052-aadb-2df1e3cc201e_1200x630.png 1456w" type="image/webp"/><img alt="Multi-turn conversation evaluation with first upstream failure attribution." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/ec05adaa-5103-4052-aadb-2df1e3cc201e_1200x630.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":630,"width":1200,"resizeWidth":null,"bytes":null,"alt":"Multi-turn conversation evaluation with first upstream failure attribution.","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="630" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!F9xg!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fec05adaa-5103-4052-aadb-2df1e3cc201e_1200x630.png" srcset="https://substackcdn.com/image/fetch/$s_!F9xg!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fec05adaa-5103-4052-aadb-2df1e3cc201e_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!F9xg!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fec05adaa-5103-4052-aadb-2df1e3cc201e_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!F9xg!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fec05adaa-5103-4052-aadb-2df1e3cc201e_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!F9xg!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fec05adaa-5103-4052-aadb-2df1e3cc201e_1200x630.png 1456w" title="Multi-turn conversation evaluation with first upstream failure attribution." width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 8: Multi-turn conversation evaluation with first upstream failure attribution.</em></figcaption></figure></div><h3 class="header-anchor-post" id="rr-h-33">Evaluating Complex Multi-Step Workflows</h3><p>Workflows have dependencies. Step 3 can’t succeed if Step 1 failed. Your evaluator needs to know this.</p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!xiHl!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6bd8fc68-b010-4c85-bdef-89708a22c188_1200x630.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!xiHl!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6bd8fc68-b010-4c85-bdef-89708a22c188_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!xiHl!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6bd8fc68-b010-4c85-bdef-89708a22c188_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!xiHl!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6bd8fc68-b010-4c85-bdef-89708a22c188_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!xiHl!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6bd8fc68-b010-4c85-bdef-89708a22c188_1200x630.png 1456w" type="image/webp"/><img alt="Evaluating complex multi-step workflows with dependency-aware sequencing." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/6bd8fc68-b010-4c85-bdef-89708a22c188_1200x630.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":630,"width":1200,"resizeWidth":null,"bytes":null,"alt":"Evaluating complex multi-step workflows with dependency-aware sequencing.","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="630" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!xiHl!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6bd8fc68-b010-4c85-bdef-89708a22c188_1200x630.png" srcset="https://substackcdn.com/image/fetch/$s_!xiHl!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6bd8fc68-b010-4c85-bdef-89708a22c188_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!xiHl!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6bd8fc68-b010-4c85-bdef-89708a22c188_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!xiHl!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6bd8fc68-b010-4c85-bdef-89708a22c188_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!xiHl!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6bd8fc68-b010-4c85-bdef-89708a22c188_1200x630.png 1456w" title="Evaluating complex multi-step workflows with dependency-aware sequencing." width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 9: Evaluating complex multi-step workflows with dependency-aware sequencing.</em></figcaption></figure></div><p><strong>Example (flight booking agent):</strong></p><p>Required sequence:</p><ol><li><p>Search flights</p></li><li><p>Validate availability</p></li><li><p>Confirm payment</p></li><li><p>Book reservation</p></li></ol><p><strong>Bad eval:</strong><span> Check if all steps ran (yes/no)</span></p><p><strong>Good eval:</strong><span> Check if steps ran in the right order, with correct dependencies</span></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!2pwF!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc968b3ad-0e3f-4b47-928b-4578eb3a155b_2969x1587.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!2pwF!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc968b3ad-0e3f-4b47-928b-4578eb3a155b_2969x1587.png 424w, https://substackcdn.com/image/fetch/$s_!2pwF!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc968b3ad-0e3f-4b47-928b-4578eb3a155b_2969x1587.png 848w, https://substackcdn.com/image/fetch/$s_!2pwF!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc968b3ad-0e3f-4b47-928b-4578eb3a155b_2969x1587.png 1272w, https://substackcdn.com/image/fetch/$s_!2pwF!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc968b3ad-0e3f-4b47-928b-4578eb3a155b_2969x1587.png 1456w" type="image/webp"/><img alt="code" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/c968b3ad-0e3f-4b47-928b-4578eb3a155b_2969x1587.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":778,"width":1456,"resizeWidth":null,"bytes":null,"alt":"code","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="778" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!2pwF!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc968b3ad-0e3f-4b47-928b-4578eb3a155b_2969x1587.png" srcset="https://substackcdn.com/image/fetch/$s_!2pwF!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc968b3ad-0e3f-4b47-928b-4578eb3a155b_2969x1587.png 424w, https://substackcdn.com/image/fetch/$s_!2pwF!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc968b3ad-0e3f-4b47-928b-4578eb3a155b_2969x1587.png 848w, https://substackcdn.com/image/fetch/$s_!2pwF!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc968b3ad-0e3f-4b47-928b-4578eb3a155b_2969x1587.png 1272w, https://substackcdn.com/image/fetch/$s_!2pwF!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc968b3ad-0e3f-4b47-928b-4578eb3a155b_2969x1587.png 1456w" title="code" width="1456"/></picture></div></a></figure></div><h3 class="header-anchor-post" id="rr-h-34">Evaluating Agentic Workflows</h3><p>Agents don’t follow fixed scripts. They plan, reason, and adapt. This makes evaluation harder.</p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!TV0w!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F92400711-7db8-4161-b306-6fad56d41a5a_1200x630.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!TV0w!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F92400711-7db8-4161-b306-6fad56d41a5a_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!TV0w!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F92400711-7db8-4161-b306-6fad56d41a5a_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!TV0w!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F92400711-7db8-4161-b306-6fad56d41a5a_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!TV0w!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F92400711-7db8-4161-b306-6fad56d41a5a_1200x630.png 1456w" type="image/webp"/><img alt="Two-phase agentic workflow evaluation: end-to-end success followed by step-level diagnostics." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/92400711-7db8-4161-b306-6fad56d41a5a_1200x630.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":630,"width":1200,"resizeWidth":null,"bytes":null,"alt":"Two-phase agentic workflow evaluation: end-to-end success followed by step-level diagnostics.","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="630" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!TV0w!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F92400711-7db8-4161-b306-6fad56d41a5a_1200x630.png" srcset="https://substackcdn.com/image/fetch/$s_!TV0w!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F92400711-7db8-4161-b306-6fad56d41a5a_1200x630.png 424w, https://substackcdn.com/image/fetch/$s_!TV0w!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F92400711-7db8-4161-b306-6fad56d41a5a_1200x630.png 848w, https://substackcdn.com/image/fetch/$s_!TV0w!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F92400711-7db8-4161-b306-6fad56d41a5a_1200x630.png 1272w, https://substackcdn.com/image/fetch/$s_!TV0w!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F92400711-7db8-4161-b306-6fad56d41a5a_1200x630.png 1456w" title="Two-phase agentic workflow evaluation: end-to-end success followed by step-level diagnostics." width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 10: Two-phase agentic workflow evaluation: end-to-end success followed by step-level diagnostics.</em></figcaption></figure></div><p><strong>Two-phase approach</strong><span> (from Hamel Husain) (5):</span></p><h3 class="header-anchor-post" id="rr-h-35">Phase 1: End-to-End Task Success</h3><p>Treat the agent as a black box. Did it meet the user’s goal?</p><p><strong>Define precise success rules per task:</strong></p><ul><li><p>Exact answer match (for factual tasks)</p></li><li><p>Correct side-effect (database updated, email sent, file created)</p></li><li><p>User satisfaction (thumbs up, complaint rate, retry rate)</p></li></ul><p><span>Use human judges or well-aligned LLM judges. </span><strong>Focus on first upstream failures</strong><span> during error analysis.</span></p><h3 class="header-anchor-post" id="rr-h-36">Phase 2: Step-Level Diagnostics</h3><p>Once you know which workflows fail, diagnose why.</p><p>Assuming you’ve instrumented your system to log tool calls and responses, score:</p><ol><li><p><strong>Tool choice</strong><span>: Was the selected tool appropriate?</span></p></li><li><p><strong>Parameter extraction</strong><span>: Were inputs complete and well-formed?</span></p></li><li><p><strong>Error handling</strong><span>: Did it recover from empty results or API failures?</span></p></li><li><p><strong>Context retention</strong><span>: Did it preserve earlier constraints?</span></p></li><li><p><strong>Plan quality</strong><span>: Does the agent’s plan match the task requirements?</span></p></li></ol><p><strong>Transition matrix analysis</strong><span> (Bryan Bischof’s approach):</span></p><p>Track which state transitions cause failures.</p><p>Example (text-to-SQL agent):</p><ul><li><p>GenSQL → ExecSQL: 12 failures</p></li><li><p>DecideTool → PlanCal: 2 failures</p></li></ul><p>This data-driven view shows where to focus debugging.</p><p><strong>Session-level metrics:</strong></p><ul><li><p>Task completion rate</p></li><li><p>Step completion (did it finish the required steps?)</p></li><li><p>Trajectory quality (did it avoid loops?)</p></li><li><p>Self-aware failures (did it acknowledge limitations?)</p></li></ul><p><strong>Node-level metrics (per tool call):</strong></p><ul><li><p>Tool correctness (right tool with right parameters?)</p></li><li><p>Tool call accuracy (did the tool run without errors?)</p></li><li><p>Output correctness (did the tool return valid results?)</p></li></ul><p><strong>System efficiency metrics:</strong></p><ul><li><p>Latency (time to complete task)</p></li><li><p>Token usage (cost per task)</p></li><li><p>Tool calls per task (efficiency of plan)</p></li></ul><p>These metrics layer on top of each other[6]. System efficiency ensures scalability. Session-level metrics validate goal achievement. Node-level metrics pinpoint root causes.</p><h2 class="header-anchor-post" id="rr-h-37">Bringing It All Together</h2><p>Pick evaluators based on what you’re actually trying to measure, not what sounds impressive. Here’s how to decide which evaluator to use:</p><p><strong>Can you check it with code?</strong></p><p>Yes → Use code-based evaluators (tool calls, format checks, required elements)</p><p>No → Move to next question</p><p><strong>Is there a single correct answer or narrow acceptable range?</strong></p><p>Yes → Use reference-based evaluation (exact match, ROUGE, BLEU)</p><p>No → Move to next question</p><p><strong>Are you comparing two versions?</strong></p><p>Yes → Use pairwise comparison</p><p>No → Use direct scoring</p><p><strong>Is the task subjective (tone, helpfulness, flow)?</strong></p><p>Yes → Use LLM judges with rubrics and few-shot examples</p><p>No → Rethink your criteria (you might have missed a code-based check)</p><p><strong>Is it a multi-turn or agentic workflow?</strong></p><p>Yes → Use two-phase approach (end-to-end task success + step-level diagnostics)</p><p>No → Single-turn direct scoring</p><p><span>And remember: </span><strong>your evaluators are only as good as your dataset and few-shot examples</strong><span>. The system prompt matters less than you think. The examples matter more than you think.</span></p><h2 class="header-anchor-post" id="rr-h-38">Next Steps</h2><p>You now know how to design evaluators that match your use case. You know when to use code, when to use LLMs, and when to combine both.</p><p><span>But here’s the critical question we haven’t answered: </span><strong>How do you know if your evaluator is actually working?</strong></p><p>An evaluator who says everything is great when it’s not is worse than no evaluator at all. You need to validate that your automated judges align with human judgment before you trust them.</p><p><span>That’s what we’ll cover in </span><a href="https://www.decodingai.com/how-to-evaluate-the-evaluator-validate-llm-judge">Article 5: How to Evaluate the Effectiveness of the Evaluator</a><span>.</span></p><p><span>Also, remember that this article is part of a </span><strong><a href="https://www.decodingai.com/t/ai-evals-and-observability">7-piece series on AI Evals &amp; Observability</a></strong><span>. </span><strong>Here’s what’s ahead:</strong></p><ol><li><p><a href="https://www.decodingai.com/p/integrating-ai-evals-into-your-ai-app">Integrating AI Evals Into Your AI App</a><span> </span></p></li><li><p><a href="https://www.decodingai.com/p/build-an-ai-evals-dataset-with-error-analysis">Build an AI Evals Dataset from Scratch</a><span> </span></p></li><li><p><a href="https://www.decodingai.com/p/generate-synthetic-datasets-for-ai-evals">Generate Synthetic Datasets for AI Evals</a><span> </span></p></li><li><p><strong>How to Design Evaluators</strong><span> ← </span><em>You just finished this one</em></p></li><li><p><a href="https://www.decodingai.com/p/how-to-evaluate-the-evaluator-validate-llm-judge">How to Evaluate the Evaluator</a></p></li><li><p><a href="https://www.decodingai.com/p/rag-evaluation-6-metrics-framework">RAG Evaluation: The Only 6 Metrics You Need</a></p></li><li><p><a href="https://www.decodingai.com/p/behind-the-scenes-of-ai-observability">Lessons from 6 Months of Evals on a Production AI Companion</a></p></li></ol><p>See you next Tuesday.</p><p><a href="https://substack.com/@paoloap">Paolo Perrone</a></p><div><hr/></div><p><em>What’s your opinion? Do you agree, disagree, or is there something I missed?</em></p><div><hr/></div><h3 class="header-anchor-post" id="rr-h-39">Most AI newsletters give you news. The AI Engineer gives you understanding.</h3><p>One concept per week, explained from first principles: when to fine-tune vs. prompt vs. RAG, which vector database fits your workload, and how companies like DoorDash ship AI at scale.</p><p><em>Written for senior engineers and tech leads who build with AI, not just read about it.</em></p><div class="embedded-publication-wrap" data-attrs='{"id":6800638,"embedding_publication_id":null,"name":"The AI Engineer","logo_url":"https://substackcdn.com/image/fetch/$s_!sXyF!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F598ebb57-14dc-4faa-9dd1-08d4f2499564_512x512.png","base_url":"https://theaiengineer.substack.com","hero_text":"Where software engineers become dangerously good AI engineers.\n\n","author_name":"Paolo Perrone","show_subscribe":true,"logo_bg_color":"#ffffff","language":"en"}' data-component-name="EmbeddedPublicationToDOMWithSubscribe"><div class="embedded-publication show-subscribe"><a class="embedded-publication-link-part" href="https://theaiengineer.substack.com?utm_source=substack&amp;utm_campaign=publication_embed&amp;utm_medium=web" native="true"><img class="embedded-publication-logo" height="56" src="https://substackcdn.com/image/fetch/$s_!sXyF!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F598ebb57-14dc-4faa-9dd1-08d4f2499564_512x512.png" style="background-color:rgb(255, 255, 255)" width="56"/><span class="embedded-publication-name">The AI Engineer</span><div class="embedded-publication-hero-text">Where software engineers become dangerously good AI engineers.
+
+</div><div class="embedded-publication-author-name">By Paolo Perrone</div></a></div></div><div><hr/></div><div class="callout-block" data-callout="true"><h4 id="rr-h-40">Whenever you’re ready, here is how I can help you</h4><p><em>Go from agent user to agent builder.</em><span> Master the foundations of AI agents and turn fragile demo code into reliable, production-ready systems with my course, </span><strong><a href="https://academy.towardsai.net/courses/agent-engineering?ref=b3ab31&amp;utm_source=decodingai&amp;utm_medium=partner&amp;utm_campaign=agent_engineering">Agent Engineering: Building Multi-Agent Systems</a></strong><span> (made with Towards AI).</span></p><p>35 lessons. Pure foundations from scratch. 4 mini-projects. 2 production systems. A certificate and direct access to me &amp; industry experts in our Discord.</p><p><span>Built for software and data professionals transitioning into AI engineering. </span><em>Rated 5/5 with 300+ students. The first 7 lessons are free:</em></p><p><em>Not ready to commit?</em><span> Start with our </span><strong><a href="https://email-course.towardsai.net/?ref=b3ab31&amp;utm_source=decodingai&amp;utm_medium=partner&amp;utm_campaign=agent_engineering">free Agent AI Engineering Guide</a></strong><span>, a 6-day email course on the mistakes that silently break AI agents in production.</span></p></div><div><hr/></div><p><em><span>Thanks again to </span><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik</a><span> for sponsoring the series and keeping it free!</span></em></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!yeD8!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png 424w, https://substackcdn.com/image/fetch/$s_!yeD8!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png 848w, https://substackcdn.com/image/fetch/$s_!yeD8!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png 1272w, https://substackcdn.com/image/fetch/$s_!yeD8!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png 1456w" type="image/webp"/><img alt="Opik Banner" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/deaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":400,"width":1200,"resizeWidth":null,"bytes":null,"alt":"Opik Banner","title":"Opik Banner","type":null,"href":"https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul","belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="400" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!yeD8!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png" srcset="https://substackcdn.com/image/fetch/$s_!yeD8!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png 424w, https://substackcdn.com/image/fetch/$s_!yeD8!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png 848w, https://substackcdn.com/image/fetch/$s_!yeD8!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png 1272w, https://substackcdn.com/image/fetch/$s_!yeD8!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png 1456w" title="Opik Banner" width="1200"/></picture></div></a><figcaption class="image-caption"><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Try Opik for free here</a><span> (25k spans/month free)</span></figcaption></figure></div><p><strong>If you want to monitor, evaluate and optimize your AI workflows and agents:</strong></p><div><hr/></div><h2 class="header-anchor-post" id="rr-h-41">References</h2><ol><li><p><span>Anthropic. (n.d.). Demystifying evals for AI agents. </span><a href="http://Not ready to commit? We also prepared a free 6-day email course to reveal the 6 critical mistakes that silently destroy agentic   systems. Get the free email course.">https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents</a></p></li><li><p><span>Evidentlyai. (n.d.). LLM-as-a-judge: a complete guide. </span><a href="http://Not ready to commit? We also prepared a free 6-day email course to reveal the 6 critical mistakes that silently destroy agentic   systems. Get the free email course.">https://www.evidentlyai.com/llm-guide/llm-as-a-judge</a></p></li><li><p><span>Evidentlyai. (n.d.). LLM evaluation metrics and methods. </span><a href="http://Not ready to commit? We also prepared a free 6-day email course to reveal the 6 critical mistakes that silently destroy agentic   systems. Get the free email course.">https://www.evidentlyai.com/llm-guide/llm-evaluation-metrics</a></p></li><li><p><span>OpenAI. (n.d.). Evaluation best practices. </span><a href="http://Not ready to commit? We also prepared a free 6-day email course to reveal the 6 critical mistakes that silently destroy agentic   systems. Get the free email course.">https://developers.openai.com/api/docs/guides/evaluation-best-practices</a></p></li><li><p><span>Husain, H. (n.d.). How do I evaluate agentic workflows? </span><a href="http://Not ready to commit? We also prepared a free 6-day email course to reveal the 6 critical mistakes that silently destroy agentic   systems. Get the free email course.">https://hamelhusain.substack.com/p/how-do-i-evaluate-agentic-workflows</a></p></li><li><p><span>Maxim. (n.d.). Evaluating agentic workflows: The essential metrics that matter. </span><a href="https://www.getmaxim.ai/articles/evaluating-agentic-workflows-the-essential-metrics-that-matter">https://www.getmaxim.ai/articles/evaluating-agentic-workflows-the-essential-metrics-that-matter</a></p></li><li><p><span>Confident AI. (n.d.). LLM evaluation metrics: Everything you need for LLM evaluation. </span><a href="https://www.confident-ai.com/blog/llm-evaluation-metrics-everything-you-need-for-llm-evaluation">https://www.confident-ai.com/blog/llm-evaluation-metrics-everything-you-need-for-llm-evaluation</a></p></li></ol><div><hr/></div><h2 class="header-anchor-post" id="rr-h-42">Images</h2><p>If not otherwise stated, all images are created by the author.</p></div>
+<div class="chapter-nav" style="margin-top:56px;padding-top:20px;border-top:1px solid var(--border);display:flex;gap:18px;font-family:system-ui,sans-serif;font-size:.9rem"><a href="chapter03_reader.html">&larr; Previous</a><a href="../../index.html">Index</a><a href="chapter05_reader.html">Next &rarr;</a></div>
+  </main>
+
+  <footer class="bottom-bar">
+    <span id="pageInfo">Chapter 4 of 7</span>
+    <span id="progressPercent">0%</span>
+  </footer>
+
+  <footer class="footer">
+    Compiled from the Decoding AI Magazine series
+  </footer>
+
+  <script>
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+    });
+
+    function toggleTOC() {
+      const panel = document.getElementById('tocPanel');
+      const overlay = document.getElementById('tocOverlay');
+      panel.classList.toggle('open');
+      overlay.classList.toggle('show');
+    }
+
+    function toggleChapter(event, idx) {
+      event.preventDefault();
+      event.stopPropagation();
+      const arrow = document.getElementById('arrow-' + idx);
+      const subs = document.getElementById('subs-' + idx);
+      if (arrow && subs) {
+        const isOpen = subs.style.display !== 'none';
+        subs.style.display = isOpen ? 'none' : 'block';
+        arrow.classList.toggle('open', !isOpen);
+      }
+    }
+
+    function navigateToChapter(url) {
+      window.location.href = url;
+    }
+
+    function toggleTheme() {
+      const root = document.documentElement;
+      const isDark = root.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        root.removeAttribute('data-theme');
+        document.getElementById('theme-icon').innerHTML = '<circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+      } else {
+        root.setAttribute('data-theme', 'dark');
+        document.getElementById('theme-icon').innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+      }
+    }
+  </script>
+  <!--rr-annotate-->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23FAF6EE'/%3E%3Ctext x='16' y='24' font-size='22' text-anchor='middle' fill='%23A34A2E' font-family='Georgia' font-style='italic'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="../../assets/annotate.css?v=18">
+<script type="application/json" id="rr-notes">{}</script>
+<script data-rr-palette="apple" src="../../assets/annotate.js?v=18" data-rr-book="ai-evals-foundations" data-rr-page="chapter04_reader.html" data-rr-prefix="../../"></script>
+<script src="../../assets/chapter-toc.js?v=18"></script>
+<script src="../../assets/code-copy.js?v=18"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<script src="../../assets/article-toc.js?v=1"></script>
+<script src="../../assets/course-theme.js?v=3"></script>
+</body>
+</html>

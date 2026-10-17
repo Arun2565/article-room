@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lessons from 6 Months of Evals on a Production AI Companion — AI Evals Foundations: From Vibe Checking to Measurable AI</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css');
+
+    :root {
+      --bg: #FAF6EE;
+      --surface: #FFFFFF;
+      --ink: #2D2522;
+      --ink-2: #6E625B;
+      --accent: #A34A2E;
+      --border: rgba(163,74,46,0.1);
+      --font-reader: 'Newsreader', 'EB Garamond', 'Baskerville', 'Garamond', Georgia, serif;
+      --toc-width: 280px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #1a1a1a;
+      --surface: #2d2d2d;
+      --ink: #e0e0e0;
+      --ink-2: #a0a0a0;
+      --accent: #E28C68;
+      --border: rgba(243,239,233,0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-reader);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+
+    .top-bar button {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .top-bar button:hover {
+      background: rgba(163,74,46,0.08);
+    }
+
+    .top-bar button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .top-bar-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--ink-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60%;
+    }
+
+    .reader-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 60px 80px;
+    }
+
+    .reader-content h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      line-height: 1.3;
+    }
+
+    .reader-content h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 32px 0 16px;
+    }
+
+    .reader-content h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 24px 0 12px;
+      color: var(--ink-2);
+    }
+
+    .reader-content p {
+      font-size: 1.15rem;
+      line-height: 1.85;
+      margin-bottom: 1.2em;
+      text-align: left;
+    }
+
+    .reader-content blockquote {
+      margin: 20px 0;
+      padding: 16px 20px;
+      border-left: 3px solid var(--accent);
+      background: rgba(163,74,46,0.04);
+      font-style: italic;
+    }
+
+    .reader-content dl {
+      margin: 20px 0;
+    }
+
+    .reader-content dt {
+      font-weight: 600;
+      margin: 16px 0 8px;
+      font-style: italic;
+    }
+
+    .reader-content dd {
+      margin-left: 20px;
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .reader-content table {
+      display: table;
+      width: 100%;
+      margin: 24px 0;
+      border-collapse: collapse;
+      font-size: 1rem;
+      border: 1px solid #c3c3c3;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .reader-content th {
+      display: table-cell;
+      background: #f0f4f8;
+      border-bottom: 2px solid #9d9d9d;
+      padding: 14px 16px;
+      font-weight: 600;
+      text-align: left;
+      font-size: 0.95rem;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td {
+      display: table-cell;
+      padding: 14px 16px;
+      border-bottom: 1px solid #ddd;
+      border-right: 1px solid #eee;
+      vertical-align: top;
+      font-size: 1rem;
+      line-height: 1.7;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td:last-child {
+      border-right: none;
+    }
+
+    .reader-content tr:nth-of-type(even) {
+      background-color: #fafbfd;
+    }
+
+    .reader-content figure,
+    .reader-content .figure {
+      margin: 24px auto;
+      text-align: center;
+    }
+
+    .reader-content img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .reader-content figcaption,
+    .reader-content figure h6,
+    .reader-content .figure h6 {
+      font-size: 0.9rem;
+      font-style: italic;
+      color: var(--ink-2);
+      margin-top: 8px;
+    }
+
+    .reader-content .note,
+    .reader-content [data-type="note"] {
+      margin: 20px 0;
+      padding: 16px 20px;
+      background: #f8f4e8;
+      border: 1px solid #e6d48a;
+      border-radius: 6px;
+    }
+
+    .ann-hl { border-radius: 2px; }
+    .ann-note { border-radius: 2px; }
+
+    pre.code, pre[data-lang], .code {
+      background: #1e1e1e !important;
+      border-radius: 8px !important;
+      padding: 16px 20px !important;
+      margin: 20px 0 !important;
+      overflow-x: auto !important;
+      position: relative !important;
+      border: 1px solid #333 !important;
+    }
+
+    pre.code[data-lang]::before, pre[data-lang]::before {
+      content: attr(data-lang);
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      font-size: 0.7rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace;
+    }
+
+    pre.code code, pre[data-lang] code, .code code {
+      color: #e0e0e0 !important;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace !important;
+      font-size: 0.9rem !important;
+      line-height: 1.6 !important;
+      background: none !important;
+      padding: 0 !important;
+      border: none !important;
+      white-space: pre !important;
+    }
+
+    p code, li code, td code {
+      background: rgba(0,0,0,0.06) !important;
+      padding: 2px 6px !important;
+      border-radius: 4px !important;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace !important;
+      font-size: 0.85em !important;
+    }
+
+    .line-numbers-rows { border-right: 1px solid #444 !important; }
+
+    .progress-bar {
+      position: fixed;
+      top: 52px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 99;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .ann-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent);
+      color: white;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .chapter-title {
+      text-align: center;
+      padding: 40px 20px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chapter-title h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .toc-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--toc-width);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      z-index: 200;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+    }
+
+    .toc-panel.open {
+      transform: translateX(0);
+    }
+
+    .toc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      height: 52px;
+    }
+
+    .toc-header h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .toc-close {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+    }
+
+    .toc-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+
+    .toc-chapter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .toc-chapter:hover {
+      background: rgba(163,74,46,0.06);
+      border-left-color: var(--accent);
+    }
+
+    .toc-ann-count {
+      background: var(--accent);
+      color: white;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      min-width: 22px;
+      text-align: center;
+    }
+
+    .toc-arrow {
+      font-size: 0.6rem;
+      color: var(--ink-2);
+      transition: transform 0.2s ease;
+      margin-left: auto;
+    }
+
+    .toc-arrow.open {
+      transform: rotate(90deg);
+    }
+
+    .toc-subs {
+      padding: 4px 0;
+      border-left: 2px solid var(--border);
+      margin-left: 20px;
+    }
+
+    .toc-sub {
+      padding-left: 32px;
+      font-weight: 400;
+    }
+
+    .toc-sub-sub {
+      padding-left: 48px;
+      font-size: 0.75rem;
+    }
+
+    .toc-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 199;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .toc-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--ink-2);
+      z-index: 100;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 60px;
+      border-top: 1px solid var(--border);
+      color: var(--ink-2);
+      font-size: 0.8rem;
+    }
+  
+    /* Substack markup mapped onto the reader theme */
+    .reader-content .callout-block {
+      background: color-mix(in srgb, var(--accent) 7%, transparent);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin: 22px 0;
+    }
+    .reader-content .callout-block p { margin: 0.4em 0; }
+    .reader-content .callout-block p:first-child { margin-top: 0; }
+    .reader-content .callout-block p:last-child { margin-bottom: 0; }
+    .reader-content [data-type='quote'] {
+      border-left: 3px solid var(--border);
+      padding-left: 16px;
+      color: var(--ink-2);
+    }
+    .reader-content .image-link { text-decoration: none; }
+    .reader-content hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+    .reader-content .available-content > p > u { text-decoration: none; }
+    .reader-content sup a, .reader-content sub a { text-decoration: none; }
+    .chapter-nav a { color: var(--accent); text-decoration: none; }
+    .chapter-nav a:hover { text-decoration: underline; }
+
+  </style>
+<link rel="stylesheet" href="../../assets/site.css?v=18">
+<link rel="stylesheet" href="../../assets/article-toc.css?v=1">
+<link rel="stylesheet" href="../../assets/course-theme.css?v=3">
+</head>
+<body>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="toc-overlay" id="tocOverlay" onclick="toggleTOC()"></div>
+
+  <div class="toc-panel" id="tocPanel">
+    <div class="toc-header">
+      <h3>Table of Contents</h3>
+      <button class="toc-close" onclick="toggleTOC()">✕</button>
+    </div>
+    <nav class="toc-nav">
+<div class="toc-chapter-wrap" data-chapter="0">
+<a href="chapter01_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter01_reader.html')"><span>Integrating AI Evals Into Your AI App</span><span class="toc-arrow" id="arrow-0" onclick="toggleChapter(event, 0)">&#9654;</span></a>
+<div class="toc-subs" id="subs-0" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">Opik: Open-Source Observability for Your Multimodal AI Agents (Sponsored )</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">The Holistic View of AI Evals</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Using Evals for Optimization</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Using Evals for Regression</a>
+<a class="toc-heading toc-sub" href="#rr-h-5">Using Evals for Production Monitoring</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Looking at Common Misconceptions</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-7">Guardrails vs. Evaluators</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-8">App Evaluators vs. LLM Evaluators</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-9">Evaluator vs. Classic Software Tests</a>
+<a class="toc-heading toc-sub" href="#rr-h-10">So What Is the Tech Stack?</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-12">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-13">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-14">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="1">
+<a href="chapter02_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter02_reader.html')"><span>Build an AI Evals Dataset from Scratch</span><span class="toc-arrow" id="arrow-1" onclick="toggleChapter(event, 1)">&#9654;</span></a>
+<div class="toc-subs" id="subs-1" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">Opik: Open-Source Observability for Your Multimodal AI Agents (Sponsored )</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Create the AI Evals Dataset</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Manually Label Your Dataset</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Manually Fix Errors</a>
+<a class="toc-heading toc-sub" href="#rr-h-5">Iteratively Build Your Evaluator</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Doing Error Analysis</a>
+<a class="toc-heading toc-sub" href="#rr-h-7">Create Specialized Evaluators</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">Demo</a>
+<a class="toc-heading toc-sub" href="#rr-h-9">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-12">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="2">
+<a href="chapter03_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter03_reader.html')"><span>Generate Synthetic Datasets for AI Evals</span><span class="toc-arrow" id="arrow-2" onclick="toggleChapter(event, 2)">&#9654;</span></a>
+<div class="toc-subs" id="subs-2" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">Opik: Automated Agent Optimization Using Your Evals Data (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">When Do We Need Synthetic Data?</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Understanding the Core Principles</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Seeing Your Inputs as Dimensions</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-5">How much data do you need?</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-6">Does this actually work?</a>
+<a class="toc-heading toc-sub" href="#rr-h-7">When Having Some Production Data</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">When Building Agents</a>
+<a class="toc-heading toc-sub" href="#rr-h-9">When Doing RAG</a>
+<a class="toc-heading toc-sub" href="#rr-h-10">For Deterministic Testing</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-12">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-13">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-14">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="3">
+<a href="chapter04_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter04_reader.html')"><span>How to Design Evaluators</span><span class="toc-arrow" id="arrow-3" onclick="toggleChapter(event, 3)">&#9654;</span></a>
+<div class="toc-subs" id="subs-3" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">How to Design Evaluators</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Opik: Open-Source LLMOps Platform (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Understanding the Evaluation Harness</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Dataset and Metric Types: Three Ways to Grade</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-5">1. Direct Scoring (Pointwise Evaluation)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-6">2. Pairwise Comparison</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-7">3. Reference-Based Evaluation</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">Model Evaluation vs. App Evaluation (Why Benchmarks Lie)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-9">Model Evaluation (Benchmarks)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">App Evaluation (What You Actually Need)</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">Components of an Evaluator</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-12">1. Reference Examples (Few-Shot Prompts)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-13">2. Metrics</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-14">3. Rubrics</a>
+<a class="toc-heading toc-sub" href="#rr-h-15">Code-Based Evaluators: Fast, Cheap, Objective</a>
+<a class="toc-heading toc-sub" href="#rr-h-16">LLM Judges: Flexible, Scalable, Nuanced</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-17">Strengths of LLM Judges</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-18">Weaknesses of LLM Judges</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-19">Making LLM Judges More Stable</a>
+<a class="toc-heading toc-sub" href="#rr-h-20">Common Mistakes (And How to Avoid Them)</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-21">Mistake 1: Not Providing Critiques</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-22">Mistake 2: Overly Terse Critiques</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-23">Mistake 3: Missing Context</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-24">Mistake 4: Not Providing Diverse Examples</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-25">Mistake 5: Using Ready-Made Metrics Without Validation</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-26">Mistake 6: Using 1-5 Scales Instead of Binary Pass/Fail</a>
+<a class="toc-heading toc-sub" href="#rr-h-27">When Should I Use Similarity Metrics (BERTScore, ROUGE, etc.)?</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-28">When They Work</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-29">When They Fail</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-30">The Rule</a>
+<a class="toc-heading toc-sub" href="#rr-h-31">Advanced Metric Designs</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-32">Evaluating Multi-Turn Conversation Traces</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-33">Evaluating Complex Multi-Step Workflows</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-34">Evaluating Agentic Workflows</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-35">Phase 1: End-to-End Task Success</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-36">Phase 2: Step-Level Diagnostics</a>
+<a class="toc-heading toc-sub" href="#rr-h-37">Bringing It All Together</a>
+<a class="toc-heading toc-sub" href="#rr-h-38">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-39">Most AI newsletters give you news. The AI Engineer gives you understanding.</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-40">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-41">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-42">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="4">
+<a href="chapter05_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter05_reader.html')"><span>How to Evaluate the Evaluator</span><span class="toc-arrow" id="arrow-4" onclick="toggleChapter(event, 4)">&#9654;</span></a>
+<div class="toc-subs" id="subs-4" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">How to Evaluate the Evaluator</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Opik: Automated Agent Optimization Using Your Data (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Structuring Your Data for Validation</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Measuring Alignment With Human Judgment</a>
+<a class="toc-heading toc-sub" href="#rr-h-5">When High Scores Hide Real Failures</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Closing the Gap Between Judge and Expert</a>
+<a class="toc-heading toc-sub" href="#rr-h-7">Dealing With Non-Determinism</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">Demo</a>
+<a class="toc-heading toc-sub" href="#rr-h-9">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-12">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="5">
+<a href="chapter06_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter06_reader.html')"><span>RAG Evaluation: The Only 6 Metrics You Need</span><span class="toc-arrow" id="arrow-5" onclick="toggleChapter(event, 5)">&#9654;</span></a>
+<div class="toc-subs" id="subs-5" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">RAG Evaluation: The Only 6 Metrics You Need</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Opik: Open-Source LLMOps Platform (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">The Only 6 RAG Evaluation Metrics That Can Exist</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Tier 1: If Retrieval Is Broken, Nothing Else Matters</a>
+<a class="toc-heading toc-sub" href="#rr-h-5">Tier 2: The Three RAG Metrics You Always Need</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Tier 3: When the Core Metrics Can’t Explain the Failure</a>
+<a class="toc-heading toc-sub" href="#rr-h-7">Matching Frequency and Strictness to Your Domain</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">Building the RAG Evaluation Harness</a>
+<a class="toc-heading toc-sub" href="#rr-h-9">Next Steps</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">References</a>
+<a class="toc-heading toc-sub" href="#rr-h-12">Images</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="6">
+<a href="chapter07_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter07_reader.html')"><span>Lessons from 6 Months of Evals on a Production AI Companion</span><span class="toc-arrow" id="arrow-6" onclick="toggleChapter(event, 6)">&#9654;</span></a>
+<div class="toc-subs" id="subs-6" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">Opik: Open-Source LLMOps Platform (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">Problems With AI Observability</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-3">Falling for Classic Metrics or Trying to Define What’s “Good” or “Bad”</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-4">Not Going Through Manual Annotations</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-5">Not Treating Your AI Agents as a Data Product</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Implementing AI Observability</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-7">Opik Overview</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-8">Opik MCP Server</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-9">Figuring Out Evaluation Criteria</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-10">Refining Evaluation Criteria</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-11">Running Annotation Sessions</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-12">Making Sense of Annotated Feedback</a>
+<a class="toc-heading toc-sub" href="#rr-h-13">Backstory of This Framework</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-14">Do you want more articles like this from Alejandro?</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-15">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-16">Images</a>
+</div>
+</div>
+</nav>
+  </div>
+
+  <nav class="top-bar">
+    <button onclick="toggleTOC()" title="Table of Contents">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <span class="top-bar-title">AI Evals Foundations: From Vibe Checking to Measurable AI</span>
+    <button onclick="toggleTheme()" title="Toggle theme">
+      <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    </button>
+  </nav>
+
+  <main class="reader-content">
+<div class="chapter-title">
+<h1 id="rr-h-0">Lessons from 6 Months of Evals on a Production AI Companion</h1>
+<p style="color:var(--ink-2);font-size:.9rem">Chapter 7 of 7 &middot; Paul Iusztin, <a href="https://www.decodingai.com/p/behind-the-scenes-of-ai-observability" target="_blank" rel="noopener">read the original post</a></p>
+</div>
+<div class="body markup" dir="auto"><p><em><span>Welcome to the </span><strong><a href="https://www.decodingai.com/t/ai-evals-foundations">AI Evals Foundations series</a></strong><span>: A 7-part journey from shipping AI apps to systematically improving them. Made by busy people. For busy people.</span></em></p><p>🧐 Everyone says you need AI evals. Few explain how to actually build them and answer questions such as…</p><p>How do we avoid creating evals that waste our time and resources? How do we build datasets and design evaluators that matter? How do we adapt them for RAG? ...and most importantly, how do we stop “vibe checking” and leverage evals to actually track and optimize our app?</p><p><em>This 7-article series breaks it all down from first principles:</em></p><ol><li><p><a href="https://www.decodingai.com/p/integrating-ai-evals-into-your-ai-app">Integrating AI Evals Into Your AI App</a><strong> </strong></p></li><li><p><a href="https://www.decodingai.com/p/build-an-ai-evals-dataset-with-error-analysis">Build an AI Evals Dataset from Scratch  </a></p></li><li><p><a href="https://www.decodingai.com/p/generate-synthetic-datasets-for-ai-evals">Generate Synthetic Datasets for AI Evals</a></p></li><li><p><a href="https://www.decodingai.com/p/how-to-design-ai-evaluators-that-catch-failures">How to Design Evaluators</a></p></li><li><p><a href="https://www.decodingai.com/p/how-to-evaluate-the-evaluator-validate-llm-judge">How to Evaluate the Evaluator </a></p></li><li><p><a href="https://www.decodingai.com/p/rag-evaluation-6-metrics-framework">RAG Evaluation: The Only 6 Metrics You Need</a></p></li><li><p><strong>Lessons from 6 Months of Evals on a Production AI Companion</strong><span> ← </span><em>You are here</em></p></li></ol><p>By the end, you’ll know how to integrate AI evals that actually track and improve the performance of your AI product. No vibe checking required!</p><p><strong>Let’s get started.</strong></p><div><hr/></div><h1 class="header-anchor-post">Lessons from 6 Months of Evals on a Production AI Companion</h1><p><strong>Paul:</strong><span> Today, the stage belongs to </span><a href="https://substack.com/profile/22949723-alejandro-aboy?utm_source=global-search">Alejandro Aboy</a><span>, Senior Data Engineer at Workpath. Alejandro owns the entire data stack and is the architect behind the </span><em>Workpath AI Companion</em><span>.</span></p><p><span>When he isn’t shipping, he’s sharing engineering deep-dives at his publication, </span><a href="https://thepipeandtheline.substack.com/?utm_campaign=profile_chips">The Pipe &amp; The Line</a><span>.</span></p><p><em>Enough chitchat. Let’s get into it </em><span>👀 ↓</span></p><div><hr/></div><p><strong>Alejandro:</strong><span> Over the last year, I’ve been working on different agent projects, but one took most of the attention.</span></p><p>We are talking about the main AI feature of the company SaaS, the companion that guides you through everything you can do and can also do it for you.</p><p>It can call around 50 different tools, do RAG searches based on documentation and also save workflows in memory so you don’t have to start from scratch. It can even get contextual messages from the frontend to know what you see when you see it on the platform.</p><p>As you can imagine, there’s a lot it can happen when you give too much power to Agents. These are some of the things I noticed:</p><ul><li><p>Agent complies with formatting but hallucinates documentation links after fake searching the docs</p></li><li><p>Agent infers the wrong user information and makes the wrong tool calls or argues no information can be found</p></li><li><p>Agent suggests follow up with actions that are outside scope, like running tool calls that don’t exist</p></li></ul><p>There are lots of Agent demos out there, and 2026 won’t stop the hype probably, but we barely discuss these nuances and how to address them in production environments to keep improving our Agents with awareness of what’s happening after we do a prompt change or add a new tool.</p><p><em><strong>To address that, here is what we will learn in this article:</strong></em></p><blockquote><ul><li><p><strong>Problems with AI Observability</strong></p><ul><li><p>Falling For Classic Metrics Or Trying To Define What’s “Good” or “Bad”</p></li><li><p>Not Going Through Manual Annotations</p></li><li><p>Not Treating Your AI Agents As A Data Product</p></li></ul></li><li><p><strong>Implementing AI Observability</strong></p><ul><li><p>Opik Overview</p></li><li><p>Opik MCP Server</p></li><li><p>Figuring Out Evaluation Criteria</p></li><li><p>Refining Evaluation Criteria</p></li><li><p>Running Annotation Sessions</p></li><li><p>Making Sense Of Annotated Feedback</p></li></ul></li><li><p><strong>Backstory Of This Framework</strong></p></li></ul></blockquote><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!7ae_!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbe933f21-cabc-42a3-8663-a5e83cd57c86_3680x4468.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!7ae_!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbe933f21-cabc-42a3-8663-a5e83cd57c86_3680x4468.png 424w, https://substackcdn.com/image/fetch/$s_!7ae_!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbe933f21-cabc-42a3-8663-a5e83cd57c86_3680x4468.png 848w, https://substackcdn.com/image/fetch/$s_!7ae_!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbe933f21-cabc-42a3-8663-a5e83cd57c86_3680x4468.png 1272w, https://substackcdn.com/image/fetch/$s_!7ae_!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbe933f21-cabc-42a3-8663-a5e83cd57c86_3680x4468.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/be933f21-cabc-42a3-8663-a5e83cd57c86_3680x4468.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":1768,"width":1456,"resizeWidth":null,"bytes":null,"alt":null,"title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="1768" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!7ae_!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbe933f21-cabc-42a3-8663-a5e83cd57c86_3680x4468.png" srcset="https://substackcdn.com/image/fetch/$s_!7ae_!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbe933f21-cabc-42a3-8663-a5e83cd57c86_3680x4468.png 424w, https://substackcdn.com/image/fetch/$s_!7ae_!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbe933f21-cabc-42a3-8663-a5e83cd57c86_3680x4468.png 848w, https://substackcdn.com/image/fetch/$s_!7ae_!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbe933f21-cabc-42a3-8663-a5e83cd57c86_3680x4468.png 1272w, https://substackcdn.com/image/fetch/$s_!7ae_!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbe933f21-cabc-42a3-8663-a5e83cd57c86_3680x4468.png 1456w" width="1456"/></picture></div></a></figure></div><p><em>But first, a quick word from our sponsor, Opik</em><span> ↓</span></p><div><hr/></div><h2 class="header-anchor-post" id="rr-h-1"><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik: Open-Source LLMOps Platform (Sponsored)</a></h2><p><span>This </span><strong>AI Evals &amp; Observability</strong><span> series is brought to you by </span><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik</a><span>, the LLMOps open-source platform used by Uber, Etsy, Netflix, and more. </span></p><p><span>But most importantly, we are incredibly grateful to be supported by a tool that we personally love and keep returning to for all our open-source courses and real-world AI products. </span><em>Why?</em><span> Because it makes escaping the PoC purgatory possible!</span></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!yeD8!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png 424w, https://substackcdn.com/image/fetch/$s_!yeD8!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png 848w, https://substackcdn.com/image/fetch/$s_!yeD8!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png 1272w, https://substackcdn.com/image/fetch/$s_!yeD8!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png 1456w" type="image/webp"/><img alt="Opik Banner" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/deaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":400,"width":1200,"resizeWidth":null,"bytes":null,"alt":"Opik Banner","title":"Opik Banner","type":null,"href":"https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul","belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="400" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!yeD8!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png" srcset="https://substackcdn.com/image/fetch/$s_!yeD8!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png 424w, https://substackcdn.com/image/fetch/$s_!yeD8!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png 848w, https://substackcdn.com/image/fetch/$s_!yeD8!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png 1272w, https://substackcdn.com/image/fetch/$s_!yeD8!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdeaa636a-b1a6-429b-83d8-080bc218e596_1200x400.png 1456w" title="Opik Banner" width="1200"/></picture></div></a><figcaption class="image-caption"><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Try Opik for free here</a><span> (25k spans/month free)</span></figcaption></figure></div><p>Here is how Opik helps us ship AI workflows and agents to production:</p><ul><li><p><em>We see everything</em><span> - Visualize complete traces of LLM calls, including costs and latency breakdowns at each reasoning step.</span></p></li><li><p><em>Easily optimize our system</em><span> - Measure our performance using custom LLM judges, run experiments, compare results and pick the best configuration.</span></p></li><li><p><em>Catch issues quickly - Plug in the LLM Judge metrics into production traces and receive</em><span> on-demand alarms.</span></p></li><li><p><em>Stop manual prompt engineering</em><span> - Their prompt versioning and optimization features allow us to track and improve our system automatically. The future of AutoAI.</span></p></li></ul><p><em><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik</a><span> is fully open-source and works with custom code or most AI frameworks. You can also use the managed version for free (w/ 25K spans/month on their generous free tier).</span></em></p><p><em>↓</em><span> </span><em>Now, let’s move back to the article.</em></p><div><hr/></div><h2 class="header-anchor-post" id="rr-h-2">Problems With AI Observability</h2><p>As mentioned, there are many things you don’t see on how you Agent is working, and depending on usage and scale, you are likely to miss most of them.</p><blockquote><p><em>The problem won’t be gone by reviewing everything manually or finding the perfect sample to evaluate.</em></p></blockquote><p>There are some problems I learned about while implementing it at work. These have been mentioned by great experts on the topic, but I summarised how I experienced them like this:</p><h3 class="header-anchor-post" id="rr-h-3">Falling for Classic Metrics or Trying to Define What’s “Good” or “Bad”</h3><p><span>Tools like Opik or Langfuse come by usual metrics out of the box Usual metrics cover </span><em>Hallucination</em><span>, </span><em>AnswerRelevance</em><span>, </span><em>ContextPrecision</em><span> and </span><em>ContextRecall</em><span>.</span></p><p>You can configure them and start evaluating right away, but we you get that the hallucination score is 1, then what?</p><p>You need to find what to evaluate to improve your use case, otherwise you can’t really improve it.</p><p>By this point, if you used LLMs for anything, you might have learn about determinism and its nuances. You can run the same thing over and over and get different outputs.</p><p>Same with evaluations; you need to find a standard way of evaluating without struggling with ambiguity every single time.</p><p>That’s why trying to evaluate nuances and all flavours of a metric might cause confusion.</p><p>You need to keep it lean, the best test is asking different people what they think and if they answer the same, you got a good metric.</p><blockquote><p><em>For example, I wanted to evaluate if the agent was hallucinating documentation links. My evaluation task was: Check if </em><code>search_knowledge</code><em> tool was called and verify if the URL in the output matches the tool output the agent used. That’s binary and can’t be misinterpreted even if you run the LLM As Judge multiple times.</em></p></blockquote><h3 class="header-anchor-post" id="rr-h-4">Not Going Through Manual Annotations</h3><p>Unfortunately you can’t get away with murder without reviewing Agent responses manually.</p><p>If you automate 100% of those reviews with LLM as Judge you are likely to miss the substance because LLMs might hide interesting finding behind isolated prompts that could be phrased badly.</p><blockquote><p><em>For example, all my metric scores were doing mostly fine, but when I started seeing some conversations manually I noticed the agent suggesting things it can do at all, or answering things outside scope. That surface more evaluation opportunities, but also more things to add to the backlog that we could not see otherwise.</em></p></blockquote><p><span>With all the MCP servers out there, you can easily cluster all the manual feedback you collected and prepare documents for further analysis, so there’s no excuse for </span><em>“who will review all these manual comments later”?</em></p><h3 class="header-anchor-post" id="rr-h-5">Not Treating Your AI Agents as a Data Product</h3><p>The worst mistake someone can do is just evaluating an AI Agent and not take anything out of it besides good or bad metric scores.</p><p>Each conversation its writing an invisible roadmap you need to materialise.</p><p>Whether if its a JIRA ticket to address a bug, or a new feature development plan for a brand new Agent capability.</p><p>I personally developed a lot of Product Analytics use cases to cover for internal analytics done by CS teams, which allowed a lot of reverse engineering to discover new use cases.</p><p>If you just create synthetic data to evaluate a prompt and leave observability at that point, you are missing out on real production data that can scream improvements right to your face.</p><p>So shift your mindset and own the process to define the success of each one of your AI Agent projects ;)</p><p><strong>Recommended</strong><span>:</span></p><ul><li><p><a href="https://www.decodingai.com/p/the-5-star-lie-you-are-doing-ai-evals">Decoding AI Magazine - The 5-Star Lie: You Are Doing AI Evals Wrong</a></p></li><li><p><a href="https://www.decodingai.com/p/the-mirage-of-generic-ai-metrics">Decoding AI Magazine - The Mirage of Generic AI Metrics</a></p></li></ul><div><hr/></div><h2 class="header-anchor-post" id="rr-h-6">Implementing AI Observability</h2><p><span>In the upcoming sections of this article, we will talk about </span><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik</a><span>, but these fundamentals are relevant for any other observability tool.</span></p><p>It’s quite common in Software Engineering to use tools such as Sentry for error logging.</p><h3 class="header-anchor-post" id="rr-h-7">Opik Overview</h3><p><span>Tools like Opik follow the same principles: </span><strong>traces &amp; spans.</strong></p><p><span>You trace every single LLM interaction (</span><strong>trace</strong><span>), whether is an AI Agent or just a simple LLM call you want to audit.</span></p><p><span>You can break it down to see every thing that got used along the way (</span><strong>span</strong><span>), which translate into agent tools, such as retrieving documents with RAG.</span></p><p><span>All traces are grouped into </span><strong>threads</strong><span>, which equal to a chat or conversation putting messages together. When reviewing LLMs, it’s relevant to look at the thread level to get a grasp of how it worked considering the full context.</span></p><p>Beyond the trace &lt;&gt; span pair we talked about, with Opik you can:</p><ul><li><p><span>Do </span><strong><a href="https://www.comet.com/docs/opik/prompt_engineering/prompt_management?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">prompt versioning</a></strong><span>, which comes in handy to associate metric scores evolving after a particular prompt version.</span></p></li><li><p><span>Connect your </span><strong><a href="https://www.comet.com/docs/opik/configuration/ai_providers?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">AI provider</a></strong><span> (OpenAI, Anthropic, Azure, etc) in order to run </span><strong><a href="https://www.comet.com/docs/opik/production/rules?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Online Evaluations</a></strong><span> every time a new trace comes in, so you get fresh metrics on how your Agent is working on production.</span></p></li><li><p><span>Use its </span><strong><a href="https://www.comet.com/docs/opik/contributing/guides/python-sdk?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">SDK</a></strong><a href="https://www.comet.com/docs/opik/contributing/guides/python-sdk"> &amp; </a><strong><a href="https://www.comet.com/docs/opik/contributing/guides/python-sdk?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">REST API</a></strong><span> to scale any of its processes, from trace processing to running on demand evaluations using LLMs.</span></p></li></ul><p>I am just scratching the surface here, you can do a lot more and I encourage you to take a look!</p><p><strong>Recommended</strong><span>:</span></p><ul><li><p><a href="https://www.decodingai.com/p/observability-for-rag-agents">Decoding AI Magazine - Observability for RAG Agents</a></p></li></ul><h3 class="header-anchor-post" id="rr-h-8">Opik MCP Server</h3><p>Using the MCP Server is optional as any other MCP, but I found it super powerful to do things that would have take me weeks or even months.</p><p>I found ways of leveraging to coming up with metric ideas based on my prompts and traces data, also picking up comments to quickly write documentation to review for potential product roadmaps.</p><p>You can get creative pretty easily and I invite you to try it.</p><p><span>Take a look on </span><a href="https://github.com/comet-ml/opik-mcp">Github - opik-mcp</a><span> to get started.</span></p><p>For the upcoming sections we will be using some slash commands that wrap some workflows to enhance the annotation process to make it more streamlined and enriched.</p><p><span>You can find them here: </span><a href="https://thoracic-hellebore-9a3.notion.site/WIP-Opik-MCP-Commands-2d880c67261e803cb314c9d8185300e7?pvs=74">Opik MCP Commands</a></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!KExG!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdbd6b74d-dd35-45a1-8531-810c28168e3b_869x794.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!KExG!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdbd6b74d-dd35-45a1-8531-810c28168e3b_869x794.png 424w, https://substackcdn.com/image/fetch/$s_!KExG!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdbd6b74d-dd35-45a1-8531-810c28168e3b_869x794.png 848w, https://substackcdn.com/image/fetch/$s_!KExG!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdbd6b74d-dd35-45a1-8531-810c28168e3b_869x794.png 1272w, https://substackcdn.com/image/fetch/$s_!KExG!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdbd6b74d-dd35-45a1-8531-810c28168e3b_869x794.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/dbd6b74d-dd35-45a1-8531-810c28168e3b_869x794.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":794,"width":869,"resizeWidth":724,"bytes":114522,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://thepipeandtheline.substack.com/i/182844040?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdbd6b74d-dd35-45a1-8531-810c28168e3b_869x794.png","isProcessing":false,"align":null,"offset":false}' height="661.5143843498274" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!KExG!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdbd6b74d-dd35-45a1-8531-810c28168e3b_869x794.png" srcset="https://substackcdn.com/image/fetch/$s_!KExG!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdbd6b74d-dd35-45a1-8531-810c28168e3b_869x794.png 424w, https://substackcdn.com/image/fetch/$s_!KExG!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdbd6b74d-dd35-45a1-8531-810c28168e3b_869x794.png 848w, https://substackcdn.com/image/fetch/$s_!KExG!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdbd6b74d-dd35-45a1-8531-810c28168e3b_869x794.png 1272w, https://substackcdn.com/image/fetch/$s_!KExG!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdbd6b74d-dd35-45a1-8531-810c28168e3b_869x794.png 1456w" title="" width="724"/></picture></div></a></figure></div><blockquote><p><em><span>⚠️ </span><strong>Disclaimer</strong><span>: Opik MCP tools return a bunch of data. You are likely to see this message “⚠ Large MCP response (~10.6k tokens), this can fill up context quickly”.</span></em></p><p><em>The </em><code>CLAUDE.md</code><em> instructions are meant to tell the LLM how to use tool calling to sample data gradually to avoid filling up the context quite quickly. The ideal workflow is too sample some threads and keep going as needed and saving checkpoints of the analysis to .md files for future reference.</em></p></blockquote><h3 class="header-anchor-post" id="rr-h-9">Figuring Out Evaluation Criteria</h3><p>On Opik, you can run evaluations on the trace or thread levels, this means you can evaluate the single turn (user message &gt; agent message) or multi turn interactions.</p><p>But first we need to understand what our Agent is actually doing.</p><p>If we don’t know the use cases its covering, its really hard to know how to evaluate it accordingly.</p><blockquote><p><em>Note: All these commands are useful with real production traces, not synthetic data. You want to know what the agent is being used for, not what you want it to be used for.</em></p></blockquote><p>To achieve this, you need a prompt created on Opik so you can use Claude Code or Cursor to reverse engineer it to figure what are the best evaluation criteria principles to cluster.</p><p><span>When you run </span><code>opik-eval you get something like this</code><span>:</span></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!0pKO!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa6ea9e7d-8f97-45ec-b767-391bab951a08_3680x4016.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!0pKO!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa6ea9e7d-8f97-45ec-b767-391bab951a08_3680x4016.png 424w, https://substackcdn.com/image/fetch/$s_!0pKO!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa6ea9e7d-8f97-45ec-b767-391bab951a08_3680x4016.png 848w, https://substackcdn.com/image/fetch/$s_!0pKO!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa6ea9e7d-8f97-45ec-b767-391bab951a08_3680x4016.png 1272w, https://substackcdn.com/image/fetch/$s_!0pKO!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa6ea9e7d-8f97-45ec-b767-391bab951a08_3680x4016.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/a6ea9e7d-8f97-45ec-b767-391bab951a08_3680x4016.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":1589,"width":1456,"resizeWidth":null,"bytes":5060204,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://thepipeandtheline.substack.com/i/182844040?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa6ea9e7d-8f97-45ec-b767-391bab951a08_3680x4016.png","isProcessing":false,"align":null,"offset":false}' height="1589" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!0pKO!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa6ea9e7d-8f97-45ec-b767-391bab951a08_3680x4016.png" srcset="https://substackcdn.com/image/fetch/$s_!0pKO!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa6ea9e7d-8f97-45ec-b767-391bab951a08_3680x4016.png 424w, https://substackcdn.com/image/fetch/$s_!0pKO!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa6ea9e7d-8f97-45ec-b767-391bab951a08_3680x4016.png 848w, https://substackcdn.com/image/fetch/$s_!0pKO!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa6ea9e7d-8f97-45ec-b767-391bab951a08_3680x4016.png 1272w, https://substackcdn.com/image/fetch/$s_!0pKO!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa6ea9e7d-8f97-45ec-b767-391bab951a08_3680x4016.png 1456w" title="" width="1456"/></picture></div></a></figure></div><p>Now that you have your prompt fully analysed, you will proceed to break it down on how to evaluate it based on usage.</p><p>Then it will propose metrics for Trace and Thread levels, looking like this:</p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!1rBT!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc3c28960-9138-4c01-b2e1-6bc1c42cf0c8_3372x3748.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!1rBT!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc3c28960-9138-4c01-b2e1-6bc1c42cf0c8_3372x3748.png 424w, https://substackcdn.com/image/fetch/$s_!1rBT!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc3c28960-9138-4c01-b2e1-6bc1c42cf0c8_3372x3748.png 848w, https://substackcdn.com/image/fetch/$s_!1rBT!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc3c28960-9138-4c01-b2e1-6bc1c42cf0c8_3372x3748.png 1272w, https://substackcdn.com/image/fetch/$s_!1rBT!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc3c28960-9138-4c01-b2e1-6bc1c42cf0c8_3372x3748.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/c3c28960-9138-4c01-b2e1-6bc1c42cf0c8_3372x3748.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":1618,"width":1456,"resizeWidth":null,"bytes":4535996,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://thepipeandtheline.substack.com/i/182844040?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc3c28960-9138-4c01-b2e1-6bc1c42cf0c8_3372x3748.png","isProcessing":false,"align":null,"offset":false}' height="1618" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!1rBT!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc3c28960-9138-4c01-b2e1-6bc1c42cf0c8_3372x3748.png" srcset="https://substackcdn.com/image/fetch/$s_!1rBT!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc3c28960-9138-4c01-b2e1-6bc1c42cf0c8_3372x3748.png 424w, https://substackcdn.com/image/fetch/$s_!1rBT!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc3c28960-9138-4c01-b2e1-6bc1c42cf0c8_3372x3748.png 848w, https://substackcdn.com/image/fetch/$s_!1rBT!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc3c28960-9138-4c01-b2e1-6bc1c42cf0c8_3372x3748.png 1272w, https://substackcdn.com/image/fetch/$s_!1rBT!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc3c28960-9138-4c01-b2e1-6bc1c42cf0c8_3372x3748.png 1456w" title="" width="1456"/></picture></div></a></figure></div><p>The commands are expected to propose around 5 metrics for trace evaluation, but you can optimise it to your sweet spot depending on how many evaluation metrics you want to handle simultaneously.</p><blockquote><p><em>Also, automating evaluation on the thread level can be tricky, since its hard to evaluate without too much ambiguity. Based on my experience, I will only evaluate threads manually since it’s where most of the subjective value lives.</em></p></blockquote><p><span>You can iterate and use the template as much as you can to come up with the most suitable evaluation angles for your project. When you are ready, you can go to configure your </span><a href="https://www.comet.com/docs/opik/production/rules?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Online Evaluations</a><span>. This means deciding on:</span></p><ul><li><p><em><strong>scope</strong></em><span>: Trace or thread.</span></p></li><li><p><em><strong>model</strong></em><span>: What you configured in your </span><a href="https://www.comet.com/docs/opik/configuration/ai_providers?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">AI provider</a><span>.</span></p></li><li><p><strong>prompt type</strong><span>: In here you will paste the proposed output of the Claude Commands, but you can use other default ones Opik provides, such as Hallucination or Answer Relevance.</span></p></li></ul><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!zsQa!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F77a062cc-9e7d-4ca9-97eb-1d0d2dddff3a_772x598.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!zsQa!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F77a062cc-9e7d-4ca9-97eb-1d0d2dddff3a_772x598.png 424w, https://substackcdn.com/image/fetch/$s_!zsQa!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F77a062cc-9e7d-4ca9-97eb-1d0d2dddff3a_772x598.png 848w, https://substackcdn.com/image/fetch/$s_!zsQa!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F77a062cc-9e7d-4ca9-97eb-1d0d2dddff3a_772x598.png 1272w, https://substackcdn.com/image/fetch/$s_!zsQa!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F77a062cc-9e7d-4ca9-97eb-1d0d2dddff3a_772x598.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/77a062cc-9e7d-4ca9-97eb-1d0d2dddff3a_772x598.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":598,"width":772,"resizeWidth":728,"bytes":57819,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://thepipeandtheline.substack.com/i/182844040?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F77a062cc-9e7d-4ca9-97eb-1d0d2dddff3a_772x598.png","isProcessing":false,"align":null,"offset":false}' height="563.9170984455959" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!zsQa!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F77a062cc-9e7d-4ca9-97eb-1d0d2dddff3a_772x598.png" srcset="https://substackcdn.com/image/fetch/$s_!zsQa!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F77a062cc-9e7d-4ca9-97eb-1d0d2dddff3a_772x598.png 424w, https://substackcdn.com/image/fetch/$s_!zsQa!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F77a062cc-9e7d-4ca9-97eb-1d0d2dddff3a_772x598.png 848w, https://substackcdn.com/image/fetch/$s_!zsQa!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F77a062cc-9e7d-4ca9-97eb-1d0d2dddff3a_772x598.png 1272w, https://substackcdn.com/image/fetch/$s_!zsQa!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F77a062cc-9e7d-4ca9-97eb-1d0d2dddff3a_772x598.png 1456w" title="" width="728"/></picture></div></a></figure></div><p><span>You can add new variables, such as </span><code>context</code><span> (seen in the example output) by writing {{context}} in the prompt.</span></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!21KD!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F842f9a64-64d4-4f8c-a44c-fb2599100ef4_770x369.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!21KD!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F842f9a64-64d4-4f8c-a44c-fb2599100ef4_770x369.png 424w, https://substackcdn.com/image/fetch/$s_!21KD!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F842f9a64-64d4-4f8c-a44c-fb2599100ef4_770x369.png 848w, https://substackcdn.com/image/fetch/$s_!21KD!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F842f9a64-64d4-4f8c-a44c-fb2599100ef4_770x369.png 1272w, https://substackcdn.com/image/fetch/$s_!21KD!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F842f9a64-64d4-4f8c-a44c-fb2599100ef4_770x369.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/842f9a64-64d4-4f8c-a44c-fb2599100ef4_770x369.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":369,"width":770,"resizeWidth":724,"bytes":41266,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://thepipeandtheline.substack.com/i/182844040?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F842f9a64-64d4-4f8c-a44c-fb2599100ef4_770x369.png","isProcessing":false,"align":null,"offset":false}' height="346.95584415584415" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!21KD!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F842f9a64-64d4-4f8c-a44c-fb2599100ef4_770x369.png" srcset="https://substackcdn.com/image/fetch/$s_!21KD!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F842f9a64-64d4-4f8c-a44c-fb2599100ef4_770x369.png 424w, https://substackcdn.com/image/fetch/$s_!21KD!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F842f9a64-64d4-4f8c-a44c-fb2599100ef4_770x369.png 848w, https://substackcdn.com/image/fetch/$s_!21KD!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F842f9a64-64d4-4f8c-a44c-fb2599100ef4_770x369.png 1272w, https://substackcdn.com/image/fetch/$s_!21KD!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F842f9a64-64d4-4f8c-a44c-fb2599100ef4_770x369.png 1456w" title="" width="724"/></picture></div></a></figure></div><p>When you click on “Select a key from recent trace”, it will display, based on your tracked traces, all the possibilities depending on your framework, since the keys listed will depend on what you use, since Langchain will differ from OpenAI SDK or other frameworks.</p><div class="captioned-image-container"><figure><div class="image-link image2 can-restack" data-component-name="Image2ToDOM"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!AedY!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb5167d40-3089-4e29-83ef-159332bda4ac_763x251.png 424w, https://substackcdn.com/image/fetch/$s_!AedY!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb5167d40-3089-4e29-83ef-159332bda4ac_763x251.png 848w, https://substackcdn.com/image/fetch/$s_!AedY!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb5167d40-3089-4e29-83ef-159332bda4ac_763x251.png 1272w, https://substackcdn.com/image/fetch/$s_!AedY!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb5167d40-3089-4e29-83ef-159332bda4ac_763x251.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/b5167d40-3089-4e29-83ef-159332bda4ac_763x251.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":251,"width":763,"resizeWidth":728,"bytes":44289,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://thepipeandtheline.substack.com/i/182844040?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb5167d40-3089-4e29-83ef-159332bda4ac_763x251.png","isProcessing":false,"align":null,"offset":false}' height="239.4862385321101" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!AedY!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb5167d40-3089-4e29-83ef-159332bda4ac_763x251.png" srcset="https://substackcdn.com/image/fetch/$s_!AedY!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb5167d40-3089-4e29-83ef-159332bda4ac_763x251.png 424w, https://substackcdn.com/image/fetch/$s_!AedY!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb5167d40-3089-4e29-83ef-159332bda4ac_763x251.png 848w, https://substackcdn.com/image/fetch/$s_!AedY!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb5167d40-3089-4e29-83ef-159332bda4ac_763x251.png 1272w, https://substackcdn.com/image/fetch/$s_!AedY!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb5167d40-3089-4e29-83ef-159332bda4ac_763x251.png 1456w" title="" width="728"/></picture></div></div></figure></div><p>Later on, you will define the score definition with a name, a short description on what the score is about and its metric type (boolean or categorical).</p><div class="captioned-image-container"><figure><div class="image-link image2 can-restack" data-component-name="Image2ToDOM"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!ROET!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F613a04db-1ee9-492f-9128-01cf1f1391a2_774x199.png 424w, https://substackcdn.com/image/fetch/$s_!ROET!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F613a04db-1ee9-492f-9128-01cf1f1391a2_774x199.png 848w, https://substackcdn.com/image/fetch/$s_!ROET!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F613a04db-1ee9-492f-9128-01cf1f1391a2_774x199.png 1272w, https://substackcdn.com/image/fetch/$s_!ROET!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F613a04db-1ee9-492f-9128-01cf1f1391a2_774x199.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/613a04db-1ee9-492f-9128-01cf1f1391a2_774x199.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":199,"width":774,"resizeWidth":728,"bytes":23253,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://thepipeandtheline.substack.com/i/182844040?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F925dcaa3-ed45-41b4-823e-b697f4e8c077_774x566.png","isProcessing":false,"align":null,"offset":false}' height="187.17312661498707" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!ROET!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F613a04db-1ee9-492f-9128-01cf1f1391a2_774x199.png" srcset="https://substackcdn.com/image/fetch/$s_!ROET!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F613a04db-1ee9-492f-9128-01cf1f1391a2_774x199.png 424w, https://substackcdn.com/image/fetch/$s_!ROET!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F613a04db-1ee9-492f-9128-01cf1f1391a2_774x199.png 848w, https://substackcdn.com/image/fetch/$s_!ROET!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F613a04db-1ee9-492f-9128-01cf1f1391a2_774x199.png 1272w, https://substackcdn.com/image/fetch/$s_!ROET!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F613a04db-1ee9-492f-9128-01cf1f1391a2_774x199.png 1456w" title="" width="728"/></picture></div></div></figure></div><p>Lastly, you can configure how many traces you want to evaluate, since you might want to sample a representative amount instead of just evaluating everything. Filters on different trace dimensions are allowed, which can help you clean up and avoid evaluation pollution.</p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!r6Ep!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Faef0691b-411d-4213-b5e7-d52a9391ecb3_767x356.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!r6Ep!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Faef0691b-411d-4213-b5e7-d52a9391ecb3_767x356.png 424w, https://substackcdn.com/image/fetch/$s_!r6Ep!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Faef0691b-411d-4213-b5e7-d52a9391ecb3_767x356.png 848w, https://substackcdn.com/image/fetch/$s_!r6Ep!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Faef0691b-411d-4213-b5e7-d52a9391ecb3_767x356.png 1272w, https://substackcdn.com/image/fetch/$s_!r6Ep!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Faef0691b-411d-4213-b5e7-d52a9391ecb3_767x356.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/aef0691b-411d-4213-b5e7-d52a9391ecb3_767x356.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":356,"width":767,"resizeWidth":713,"bytes":37492,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://thepipeandtheline.substack.com/i/182844040?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Faef0691b-411d-4213-b5e7-d52a9391ecb3_767x356.png","isProcessing":false,"align":null,"offset":false}' height="330.9361147327249" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!r6Ep!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Faef0691b-411d-4213-b5e7-d52a9391ecb3_767x356.png" srcset="https://substackcdn.com/image/fetch/$s_!r6Ep!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Faef0691b-411d-4213-b5e7-d52a9391ecb3_767x356.png 424w, https://substackcdn.com/image/fetch/$s_!r6Ep!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Faef0691b-411d-4213-b5e7-d52a9391ecb3_767x356.png 848w, https://substackcdn.com/image/fetch/$s_!r6Ep!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Faef0691b-411d-4213-b5e7-d52a9391ecb3_767x356.png 1272w, https://substackcdn.com/image/fetch/$s_!r6Ep!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Faef0691b-411d-4213-b5e7-d52a9391ecb3_767x356.png 1456w" title="" width="713"/></picture></div></a></figure></div><blockquote><p><em>Based on all my experiments, the ideal evaluation metric focus about ONE thing in the prompt and ONE score definition. Metric type can be flexible as long as you avoid subjective outcomes.</em></p></blockquote><p>Going back to the Claude Command output, you will get a summary of what cannot be evaluated based on the trace information it has found, this is helpful for extra brainstorming on what to actually evaluate:</p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!6QNn!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F95b087da-bdd3-422a-b5e1-71ca94e3aa44_3680x2848.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!6QNn!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F95b087da-bdd3-422a-b5e1-71ca94e3aa44_3680x2848.png 424w, https://substackcdn.com/image/fetch/$s_!6QNn!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F95b087da-bdd3-422a-b5e1-71ca94e3aa44_3680x2848.png 848w, https://substackcdn.com/image/fetch/$s_!6QNn!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F95b087da-bdd3-422a-b5e1-71ca94e3aa44_3680x2848.png 1272w, https://substackcdn.com/image/fetch/$s_!6QNn!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F95b087da-bdd3-422a-b5e1-71ca94e3aa44_3680x2848.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/95b087da-bdd3-422a-b5e1-71ca94e3aa44_3680x2848.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":1127,"width":1456,"resizeWidth":null,"bytes":4059620,"alt":"","title":"","type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://thepipeandtheline.substack.com/i/182844040?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F95b087da-bdd3-422a-b5e1-71ca94e3aa44_3680x2848.png","isProcessing":false,"align":null,"offset":false}' height="1127" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!6QNn!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F95b087da-bdd3-422a-b5e1-71ca94e3aa44_3680x2848.png" srcset="https://substackcdn.com/image/fetch/$s_!6QNn!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F95b087da-bdd3-422a-b5e1-71ca94e3aa44_3680x2848.png 424w, https://substackcdn.com/image/fetch/$s_!6QNn!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F95b087da-bdd3-422a-b5e1-71ca94e3aa44_3680x2848.png 848w, https://substackcdn.com/image/fetch/$s_!6QNn!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F95b087da-bdd3-422a-b5e1-71ca94e3aa44_3680x2848.png 1272w, https://substackcdn.com/image/fetch/$s_!6QNn!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F95b087da-bdd3-422a-b5e1-71ca94e3aa44_3680x2848.png 1456w" title="" width="1456"/></picture></div></a></figure></div><h3 class="header-anchor-post" id="rr-h-10">Refining Evaluation Criteria</h3><p>Now that you have your online evaluations defined and active, your traces will start getting some evaluated outputs.</p><p>Versioning Online Evaluations is not possible, so you need to document somewhere that you did that change.</p><p><span>For example, my “</span><em>Response Format Compliance</em><span>” evaluates if the agent is following the prompt formatting standards properly.</span></p><p>When I saw this pattern, I check 10-15 traces randomly and realised the condition for scoring 1 was “to match at least 2 of 5 formatting standards”, so I refined it to be “to match ALL”.</p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!yATe!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4bb0af29-7344-4bb5-b97d-661683f26876_755x368.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!yATe!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4bb0af29-7344-4bb5-b97d-661683f26876_755x368.png 424w, https://substackcdn.com/image/fetch/$s_!yATe!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4bb0af29-7344-4bb5-b97d-661683f26876_755x368.png 848w, https://substackcdn.com/image/fetch/$s_!yATe!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4bb0af29-7344-4bb5-b97d-661683f26876_755x368.png 1272w, https://substackcdn.com/image/fetch/$s_!yATe!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4bb0af29-7344-4bb5-b97d-661683f26876_755x368.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/4bb0af29-7344-4bb5-b97d-661683f26876_755x368.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":368,"width":755,"resizeWidth":null,"bytes":39711,"alt":"","title":"","type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://thepipeandtheline.substack.com/i/182844040?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4bb0af29-7344-4bb5-b97d-661683f26876_755x368.png","isProcessing":false,"align":null,"offset":false}' height="368" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!yATe!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4bb0af29-7344-4bb5-b97d-661683f26876_755x368.png" srcset="https://substackcdn.com/image/fetch/$s_!yATe!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4bb0af29-7344-4bb5-b97d-661683f26876_755x368.png 424w, https://substackcdn.com/image/fetch/$s_!yATe!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4bb0af29-7344-4bb5-b97d-661683f26876_755x368.png 848w, https://substackcdn.com/image/fetch/$s_!yATe!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4bb0af29-7344-4bb5-b97d-661683f26876_755x368.png 1272w, https://substackcdn.com/image/fetch/$s_!yATe!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4bb0af29-7344-4bb5-b97d-661683f26876_755x368.png 1456w" title="" width="755"/></picture></div></a></figure></div><p>If after some days the score is fixed to 1 and after further review the score makes sense, I would conclude this metric its either saturated or not relevant if its always going to be ok.</p><p>I like to go through this manually since Opik dashboards are quite quick to scan through and know where to deep dive, but you can iterate through this within a conversation with your AI IDE.</p><blockquote><p><em>Once you have the rationale for these changes, I recommend leaving some notes on Google Docs, Notion or Confluence pages to track some sort of version control over time.</em></p></blockquote><h3 class="header-anchor-post" id="rr-h-11">Running Annotation Sessions</h3><p>Annotation Sessions can be painful and boring.</p><p>After manually reviewing 500 conversations, I decided to come up with a slash command to setup a mindset on how the last days would look like before I even jumped to review.</p><p>This helped me a lot because I was always to walk through the UI and filter some patterns to better conduct my reviews.</p><blockquote><p><em><span>Note that you need to have </span><a href="https://www.comet.com/docs/opik/configuration/configuration/feedback_definitions?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Feedback Definitions</a><span> in place, which are different from Online Evaluations</span><br/><br/><span>While Online Evaluations are triggered as traces or threads arrive, Feedback Definitions are used when running manual annotation to give feedback on how the Agents are performing.</span></em></p></blockquote><p><span>Running </span><code>opik-weekly gets you an output like this one</code><span>:</span></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!syEd!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff5c340ca-8411-4b04-b65e-44dda471f4dd_3332x5096.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!syEd!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff5c340ca-8411-4b04-b65e-44dda471f4dd_3332x5096.png 424w, https://substackcdn.com/image/fetch/$s_!syEd!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff5c340ca-8411-4b04-b65e-44dda471f4dd_3332x5096.png 848w, https://substackcdn.com/image/fetch/$s_!syEd!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff5c340ca-8411-4b04-b65e-44dda471f4dd_3332x5096.png 1272w, https://substackcdn.com/image/fetch/$s_!syEd!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff5c340ca-8411-4b04-b65e-44dda471f4dd_3332x5096.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/f5c340ca-8411-4b04-b65e-44dda471f4dd_3332x5096.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":2227,"width":1456,"resizeWidth":null,"bytes":5204817,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://thepipeandtheline.substack.com/i/182844040?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff5c340ca-8411-4b04-b65e-44dda471f4dd_3332x5096.png","isProcessing":false,"align":null,"offset":false}' height="2227" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!syEd!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff5c340ca-8411-4b04-b65e-44dda471f4dd_3332x5096.png" srcset="https://substackcdn.com/image/fetch/$s_!syEd!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff5c340ca-8411-4b04-b65e-44dda471f4dd_3332x5096.png 424w, https://substackcdn.com/image/fetch/$s_!syEd!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff5c340ca-8411-4b04-b65e-44dda471f4dd_3332x5096.png 848w, https://substackcdn.com/image/fetch/$s_!syEd!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff5c340ca-8411-4b04-b65e-44dda471f4dd_3332x5096.png 1272w, https://substackcdn.com/image/fetch/$s_!syEd!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff5c340ca-8411-4b04-b65e-44dda471f4dd_3332x5096.png 1456w" title="" width="1456"/></picture></div></a></figure></div><p>You have a first glance on the feedback score overview, any latency outliers and token usage to further deep dive.</p><p>Then you get some anomaly analysis on thread level with some WoW (Week Over Week) comparisons:</p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!7ae_!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbe933f21-cabc-42a3-8663-a5e83cd57c86_3680x4468.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!7ae_!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbe933f21-cabc-42a3-8663-a5e83cd57c86_3680x4468.png 424w, https://substackcdn.com/image/fetch/$s_!7ae_!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbe933f21-cabc-42a3-8663-a5e83cd57c86_3680x4468.png 848w, https://substackcdn.com/image/fetch/$s_!7ae_!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbe933f21-cabc-42a3-8663-a5e83cd57c86_3680x4468.png 1272w, https://substackcdn.com/image/fetch/$s_!7ae_!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbe933f21-cabc-42a3-8663-a5e83cd57c86_3680x4468.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/be933f21-cabc-42a3-8663-a5e83cd57c86_3680x4468.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":1768,"width":1456,"resizeWidth":null,"bytes":5309919,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://thepipeandtheline.substack.com/i/182844040?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbe933f21-cabc-42a3-8663-a5e83cd57c86_3680x4468.png","isProcessing":false,"align":null,"offset":false}' height="1768" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!7ae_!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbe933f21-cabc-42a3-8663-a5e83cd57c86_3680x4468.png" srcset="https://substackcdn.com/image/fetch/$s_!7ae_!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbe933f21-cabc-42a3-8663-a5e83cd57c86_3680x4468.png 424w, https://substackcdn.com/image/fetch/$s_!7ae_!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbe933f21-cabc-42a3-8663-a5e83cd57c86_3680x4468.png 848w, https://substackcdn.com/image/fetch/$s_!7ae_!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbe933f21-cabc-42a3-8663-a5e83cd57c86_3680x4468.png 1272w, https://substackcdn.com/image/fetch/$s_!7ae_!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbe933f21-cabc-42a3-8663-a5e83cd57c86_3680x4468.png 1456w" title="" width="1456"/></picture></div></a></figure></div><p>With the truncated messages you can go to Opik Threads or Trace views and filter by message so its quite quick to analyse some anomalies or outliers you found interesting.</p><h3 class="header-anchor-post" id="rr-h-12">Making Sense of Annotated Feedback</h3><p>You can get a quick start before jumping into annotations.</p><p>Running opik-annotation-review gets you an output like this one:</p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!zt-V!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fcf425b11-41a0-4ca9-94da-eaa6b1a109fe_3680x6716.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!zt-V!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fcf425b11-41a0-4ca9-94da-eaa6b1a109fe_3680x6716.png 424w, https://substackcdn.com/image/fetch/$s_!zt-V!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fcf425b11-41a0-4ca9-94da-eaa6b1a109fe_3680x6716.png 848w, https://substackcdn.com/image/fetch/$s_!zt-V!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fcf425b11-41a0-4ca9-94da-eaa6b1a109fe_3680x6716.png 1272w, https://substackcdn.com/image/fetch/$s_!zt-V!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fcf425b11-41a0-4ca9-94da-eaa6b1a109fe_3680x6716.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/cf425b11-41a0-4ca9-94da-eaa6b1a109fe_3680x6716.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":2657,"width":1456,"resizeWidth":null,"bytes":7145311,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://thepipeandtheline.substack.com/i/182844040?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fcf425b11-41a0-4ca9-94da-eaa6b1a109fe_3680x6716.png","isProcessing":false,"align":null,"offset":false}' height="2657" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!zt-V!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fcf425b11-41a0-4ca9-94da-eaa6b1a109fe_3680x6716.png" srcset="https://substackcdn.com/image/fetch/$s_!zt-V!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fcf425b11-41a0-4ca9-94da-eaa6b1a109fe_3680x6716.png 424w, https://substackcdn.com/image/fetch/$s_!zt-V!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fcf425b11-41a0-4ca9-94da-eaa6b1a109fe_3680x6716.png 848w, https://substackcdn.com/image/fetch/$s_!zt-V!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fcf425b11-41a0-4ca9-94da-eaa6b1a109fe_3680x6716.png 1272w, https://substackcdn.com/image/fetch/$s_!zt-V!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fcf425b11-41a0-4ca9-94da-eaa6b1a109fe_3680x6716.png 1456w" title="" width="1456"/></picture></div></a></figure></div><p>This can give you an overview of what’s been commented last time, also useful to connect with another MCP such as Atlassian and create tickets on JIRA or update documents on Confluence.</p><p>It’s also helpful to quickly check backlogs to validate if the most concerning highlights are considered for further developments.</p><h2 class="header-anchor-post" id="rr-h-13">Backstory of This Framework</h2><p>It’s been almost a year since I implemented the first agent projects at work.</p><p>I am using PostgreSQL for memory and session tracking for conversation history, so it's quite easy to run some wrapped SQL queries in order to get an idea of usage for Product Analytics use cases.</p><p>I did that… for around 6 months.</p><blockquote><p><em>But just saying that we have 100 messages a day or 20 new users every week, I wasn’t getting any input on how to improve the agents.</em></p></blockquote><p>Motivated by frustration, I started researching and experimenting with AI Observability.</p><p>Read a lot, followed a lot of projects implementing tools like Opik or Langfuse.</p><p>Saw perfect evaluation scores on top of synthetic datasets, tried sample projects with really nice constructed conversation threads.</p><p>And then I started hitting walls:</p><ul><li><p>I built scripts (meant to run locally) to run LLM As Judge evaluations at scale.</p></li><li><p>I did Prompt Versioning manually, copy pasting my changed prompt.</p></li><li><p>Wondered how to create golden datasets while I had a bunch of real data to actually reverse engineer the process.</p></li><li><p>Guessing what to evaluate, without actually looking at how my prompts were reacting to user messages.</p></li><li><p>Now knowing what threads to actually annotate because I had no system in place, I ended up annotating everything.</p></li></ul><p>I got super frustrated because I was getting value out of it, but at the cost of being exhausted from a lot of manual back n forth.</p><blockquote><p><em>All those tutorials out there were showing 1% of running AI Observability as an iterative process, when its a cyclic process that continuously evolves.</em></p></blockquote><p>Then I discovered Online Evaluations, started experimented with Claude Code and Opik MCP and everything clicked.</p><p>At some point, I was lucky to go through all the manual process because I got a lot of input that helped figuring out evaluation criteria faster, but today I would approach completely different leveraging the right tools and saving a lot of time.</p><p><em><span>All these pains led me to come up with these </span><a href="https://thoracic-hellebore-9a3.notion.site/WIP-Opik-MCP-Commands-2d880c67261e803cb314c9d8185300e7">Opik MCP Commands in Notion</a><span> to:</span></em></p><ul><li><p>Make a data driven, reverse engineering process of the prompt you want to evaluate to come up with solid evaluation criteria.</p></li><li><p>Have an annotation agenda before sitting down to review manually, so the process is streamlined and not easily sidetracked by distractions.</p></li><li><p>Know more about what your agent does, without having to be everywhere, and getting time back to draw your roadmap treating it as a product and not just another thing you have to maintain.</p></li></ul><blockquote><p><em>Nothing about this framework is written in stone, and its meant to be super flexible. Before getting it to the Notion page I changed a bunch of times and it will keep evolving as the AI landscape gets more powerful.</em></p></blockquote><p><span>Also, remember that this article is part of a </span><strong><a href="https://www.decodingai.com/t/ai-evals-and-observability">7-piece series on AI Evals &amp; Observability</a></strong><span>. </span><strong>Here is the full series:</strong></p><ol><li><p><a href="https://www.decodingai.com/p/integrating-ai-evals-into-your-ai-app">Integrating AI Evals Into Your AI App</a><strong> </strong></p></li><li><p><a href="https://www.decodingai.com/p/build-an-ai-evals-dataset-with-error-analysis">Build an AI Evals Dataset from Scratch  </a></p></li><li><p><a href="https://www.decodingai.com/p/generate-synthetic-datasets-for-ai-evals">Generate Synthetic Datasets for AI Evals</a></p></li><li><p><a href="https://www.decodingai.com/p/how-to-design-ai-evaluators-that-catch-failures">How to Design Evaluators</a></p></li><li><p><a href="https://www.decodingai.com/p/how-to-evaluate-the-evaluator-validate-llm-judge">How to Evaluate the Evaluator </a></p></li><li><p><a href="https://www.decodingai.com/p/rag-evaluation-6-metrics-framework">RAG Evaluation: The Only 6 Metrics You Need</a></p></li><li><p><strong>Lessons from 6 Months of Evals on a Production AI Companion</strong><span> ← </span><em>You just finished this one</em></p></li></ol><p>‘Till next time</p><p><a href="https://substack.com/@alejandroaboy?utm_source=global-search">Alejandro Aboy</a></p><div><hr/></div><h3 class="header-anchor-post" id="rr-h-14">Do you want more articles like this from Alejandro?</h3><p>If yes, consider subscribing to his amazing Substack, where he talks about data and AI from his real-world experience ↓ </p><div class="embedded-publication-wrap" data-attrs='{"id":1196229,"embedding_publication_id":null,"name":"The Pipe &amp; The Line","logo_url":"https://substackcdn.com/image/fetch/$s_!vmrQ!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4d5b2131-da28-4621-ad6f-9574cbc41a1e_500x500.png","base_url":"https://thepipeandtheline.substack.com","hero_text":"Hands-on guides, tools, and experiments to sharpen your Data &amp; AI Engineering skills from someone who learned it all in the wild.","author_name":"Alejandro Aboy","show_subscribe":true,"logo_bg_color":"#131826","language":"en"}' data-component-name="EmbeddedPublicationToDOMWithSubscribe"><div class="embedded-publication show-subscribe"><a class="embedded-publication-link-part" href="https://thepipeandtheline.substack.com?utm_source=substack&amp;utm_campaign=publication_embed&amp;utm_medium=web" native="true"><img class="embedded-publication-logo" height="56" src="https://substackcdn.com/image/fetch/$s_!vmrQ!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4d5b2131-da28-4621-ad6f-9574cbc41a1e_500x500.png" style="background-color:rgb(19, 24, 38)" width="56"/><span class="embedded-publication-name">The Pipe &amp; The Line</span><div class="embedded-publication-hero-text">Hands-on guides, tools, and experiments to sharpen your Data &amp; AI Engineering skills from someone who learned it all in the wild.</div><div class="embedded-publication-author-name">By Alejandro Aboy</div></a></div></div><div><hr/></div><p><em>What’s your opinion? Do you agree, disagree, or is there something I missed?</em></p><div><hr/></div><p><em>Enjoyed the article? The most sincere compliment is to share our work.</em></p><div><hr/></div><div class="callout-block" data-callout="true"><h4 id="rr-h-15">Whenever you’re ready, here is how I can help you</h4><p><em>Go from agent user to agent builder.</em><span> Master the foundations of AI agents and turn fragile demo code into reliable, production-ready systems with my course, </span><strong><a href="https://academy.towardsai.net/courses/agent-engineering?ref=b3ab31&amp;utm_source=decodingai&amp;utm_medium=partner&amp;utm_campaign=agent_engineering">Agent Engineering: Building Multi-Agent Systems</a></strong><span> (made with Towards AI).</span></p><p>35 lessons. Pure foundations from scratch. 4 mini-projects. 2 production systems. A certificate and direct access to me &amp; industry experts in our Discord.</p><p><span>Built for software and data professionals transitioning into AI engineering. </span><em>Rated 5/5 with 300+ students. The first 7 lessons are free:</em></p><p><em>Not ready to commit?</em><span> Start with our </span><strong><a href="https://email-course.towardsai.net/?ref=b3ab31&amp;utm_source=decodingai&amp;utm_medium=partner&amp;utm_campaign=agent_engineering">free Agent AI Engineering Guide</a></strong><span>, a 6-day email course on the mistakes that silently break AI agents in production.</span></p></div><div><hr/></div><p><em><span>Thanks again to </span><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Opik</a><span> for sponsoring the series and keeping it free!</span></em></p><div class="captioned-image-container"><figure><a class="image-link image2 can-restack" data-component-name="Image2ToDOM" href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!oSDm!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 424w, https://substackcdn.com/image/fetch/$s_!oSDm!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 848w, https://substackcdn.com/image/fetch/$s_!oSDm!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 1272w, https://substackcdn.com/image/fetch/$s_!oSDm!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 1456w" type="image/webp"/><img alt="Opik Banner" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":364,"width":1456,"resizeWidth":null,"bytes":null,"alt":"Opik Banner","title":"Opik Banner","type":null,"href":"https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul","belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="364" loading="lazy" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!oSDm!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png" srcset="https://substackcdn.com/image/fetch/$s_!oSDm!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 424w, https://substackcdn.com/image/fetch/$s_!oSDm!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 848w, https://substackcdn.com/image/fetch/$s_!oSDm!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 1272w, https://substackcdn.com/image/fetch/$s_!oSDm!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F26c21863-4ee6-4026-91c7-74650eb16dac_3168x792.png 1456w" title="Opik Banner" width="1456"/></picture></div></a><figcaption class="image-caption"><a href="https://www.comet.com/site/?utm_source=newsletter&amp;utm_medium=partner&amp;utm_campaign=paul">Try Opik for free here</a><span> (25k spans/month free)</span></figcaption></figure></div><p><strong>If you want to monitor, evaluate and optimize your AI workflows and agents:</strong></p><div><hr/></div><h2 class="header-anchor-post" id="rr-h-16">Images</h2><p>If not otherwise stated, all images are created by the author.</p></div>
+<div class="chapter-nav" style="margin-top:56px;padding-top:20px;border-top:1px solid var(--border);display:flex;gap:18px;font-family:system-ui,sans-serif;font-size:.9rem"><a href="chapter06_reader.html">&larr; Previous</a><a href="../../index.html">Index</a></div>
+  </main>
+
+  <footer class="bottom-bar">
+    <span id="pageInfo">Chapter 7 of 7</span>
+    <span id="progressPercent">0%</span>
+  </footer>
+
+  <footer class="footer">
+    Compiled from the Decoding AI Magazine series
+  </footer>
+
+  <script>
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+    });
+
+    function toggleTOC() {
+      const panel = document.getElementById('tocPanel');
+      const overlay = document.getElementById('tocOverlay');
+      panel.classList.toggle('open');
+      overlay.classList.toggle('show');
+    }
+
+    function toggleChapter(event, idx) {
+      event.preventDefault();
+      event.stopPropagation();
+      const arrow = document.getElementById('arrow-' + idx);
+      const subs = document.getElementById('subs-' + idx);
+      if (arrow && subs) {
+        const isOpen = subs.style.display !== 'none';
+        subs.style.display = isOpen ? 'none' : 'block';
+        arrow.classList.toggle('open', !isOpen);
+      }
+    }
+
+    function navigateToChapter(url) {
+      window.location.href = url;
+    }
+
+    function toggleTheme() {
+      const root = document.documentElement;
+      const isDark = root.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        root.removeAttribute('data-theme');
+        document.getElementById('theme-icon').innerHTML = '<circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+      } else {
+        root.setAttribute('data-theme', 'dark');
+        document.getElementById('theme-icon').innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+      }
+    }
+  </script>
+  <!--rr-annotate-->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23FAF6EE'/%3E%3Ctext x='16' y='24' font-size='22' text-anchor='middle' fill='%23A34A2E' font-family='Georgia' font-style='italic'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="../../assets/annotate.css?v=18">
+<script type="application/json" id="rr-notes">{}</script>
+<script data-rr-palette="apple" src="../../assets/annotate.js?v=18" data-rr-book="ai-evals-foundations" data-rr-page="chapter07_reader.html" data-rr-prefix="../../"></script>
+<script src="../../assets/chapter-toc.js?v=18"></script>
+<script src="../../assets/code-copy.js?v=18"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<script src="../../assets/article-toc.js?v=1"></script>
+<script src="../../assets/course-theme.js?v=3"></script>
+</body>
+</html>
