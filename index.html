@@ -30,14 +30,13 @@ line-height:1.05;max-width:18ch}
 .toc{margin-top:48px}
 .toc h2{font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ink2);
 margin-bottom:16px}
-.entry{display:grid;grid-template-columns:48px 1fr auto;gap:20px;align-items:baseline;
+.row{display:grid;grid-template-columns:48px 1fr auto;gap:20px;align-items:baseline;
 padding:20px 0;border-bottom:1px solid var(--line);text-decoration:none;color:inherit}
-.entry:hover .title{color:var(--accent)}
-.entry .idx{font-family:var(--serif);font-size:1.1rem;color:var(--muted)}
-.entry .title{font-family:var(--serif);font-size:1.5rem;font-weight:400;line-height:1.2}
-.entry .by{font-size:.85rem;color:var(--ink2);margin-top:4px}
-.entry .right{text-align:right;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
-.entry .right .marks{display:block;color:var(--accent);margin-top:2px}
+.row:hover .title{color:var(--accent)}
+.row .n{font-family:var(--serif);font-size:1.1rem;color:var(--muted)}
+.row .title{display:block;font-family:var(--serif);font-size:1.5rem;font-weight:400;line-height:1.2}
+.row .sub{display:block;font-size:.85rem;color:var(--ink2);margin-top:4px}
+.row .tag{text-align:right;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
 .foot{margin-top:80px;padding-top:24px;border-top:1px solid var(--line);
 display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;
 font-size:.78rem;letter-spacing:.06em;color:var(--ink2)}
@@ -53,7 +52,7 @@ color:var(--ink);font:inherit;font-size:1rem;padding:8px 0;outline:none}
 #rr-search-list a{display:block;color:var(--ink);text-decoration:none;padding:8px 0;
 border-bottom:1px solid var(--line)}
 #rr-search-list a:hover{color:var(--accent)}
-@media (max-width:640px){.wrap{padding:0 20px 80px}.entry{grid-template-columns:36px 1fr}.entry .right{display:none}.mast .name{font-size:2rem}}
+@media (max-width:640px){.wrap{padding:0 20px 80px}.row{grid-template-columns:36px 1fr}.row .tag{display:none}.mast .name{font-size:2rem}}
 </style>
 </head>
 <body>
