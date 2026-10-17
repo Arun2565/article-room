@@ -1,0 +1,89 @@
+/* Article Room - modern table of contents */
+.toc-panel{
+  --toc-w:296px;
+  width:var(--toc-w);
+  background:color-mix(in srgb,var(--surface) 88%,transparent);
+  -webkit-backdrop-filter:blur(18px) saturate(140%);
+  backdrop-filter:blur(18px) saturate(140%);
+  border-right:1px solid var(--border);
+  box-shadow:0 0 0 1px rgba(0,0,0,.02),24px 0 60px -30px rgba(0,0,0,.35);
+  transform:translateX(-101%);
+  transition:transform .34s cubic-bezier(.22,1,.36,1);
+}
+.toc-panel.open{transform:translateX(0)}
+.toc-header{
+  height:auto;min-height:56px;padding:18px 20px 14px;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:2;
+  background:inherit;
+}
+.toc-header h3{
+  font-size:.68rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink-2);margin:0;
+}
+.toc-close{
+  display:grid;place-items:center;width:28px;height:28px;border-radius:8px;
+  border:1px solid var(--border);font-size:13px;line-height:1;color:var(--ink-2);
+  transition:background .16s,color .16s,border-color .16s;
+}
+.toc-close:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+.toc-nav{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:10px 12px 28px}
+.toc-nav::-webkit-scrollbar{width:10px}
+.toc-nav::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--ink-2) 26%,transparent);
+  border:3px solid transparent;border-radius:99px;background-clip:content-box}
+.toc-nav::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb,var(--ink-2) 45%,transparent);
+  background-clip:content-box}
+.toc-chapter-wrap{border-radius:10px;margin-bottom:2px}
+.toc-chapter{
+  gap:10px;padding:9px 10px;border-left:0;border-radius:10px;
+  font-size:.9rem;font-weight:500;letter-spacing:-.005em;line-height:1.35;
+  color:var(--ink);
+}
+.toc-chapter:hover{background:color-mix(in srgb,var(--accent) 8%,transparent);
+  border-left:0;color:var(--accent)}
+.toc-chapter>span:first-child{flex:1;min-width:0}
+.toc-ann-count{
+  flex:none;font-size:.66rem;font-weight:600;letter-spacing:.02em;
+  min-width:20px;height:20px;padding:0 6px;border-radius:99px;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);
+}
+.toc-arrow{
+  flex:none;font-size:0;line-height:1;margin-left:0;color:var(--ink-2);
+  transition:transform .22s cubic-bezier(.22,1,.36,1);
+}
+.toc-arrow::after{
+  content:"";display:block;width:6px;height:6px;
+  border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;
+  transform:rotate(-45deg);transform-origin:center;margin-left:2px;
+}
+.toc-arrow.open{transform:rotate(90deg)}
+.toc-subs{
+  border-left:0;margin:2px 0 8px;padding:0 0 2px 0;
+  animation:tocIn .24s cubic-bezier(.22,1,.36,1);
+}
+@keyframes tocIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.toc-heading{display:block;border-radius:8px;color:var(--ink-2);transition:color .15s,background .15s}
+.toc-sub{padding:6px 10px 6px 22px;font-size:.83rem;font-weight:400;line-height:1.4}
+.toc-sub::before{
+  content:"";display:inline-block;width:4px;height:4px;border-radius:99px;
+  background:color-mix(in srgb,var(--ink-2) 45%,transparent);
+  margin:0 8px 2px 0;vertical-align:middle;
+}
+.toc-sub:hover{background:color-mix(in srgb,var(--ink-2) 7%,transparent);color:var(--ink)}
+.toc-sub:hover::before{background:var(--accent)}
+.toc-sub-sub{padding-left:34px;font-size:.78rem}
+.toc-overlay{background:color-mix(in srgb,var(--bg) 55%,transparent);
+  -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+#rr-toc-btn{
+  border:1px solid var(--border);border-radius:99px;padding:5px 12px;
+  font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  background:color-mix(in srgb,var(--surface) 70%,transparent);color:var(--ink-2);
+  transition:color .16s,border-color .16s,background .16s;
+}
+#rr-toc-btn:hover{color:var(--accent);border-color:var(--accent);
+  background:color-mix(in srgb,var(--accent) 8%,transparent)}
+@media (max-width:640px){
+  .toc-panel{--toc-w:min(86vw,320px)}
+  .toc-sub{font-size:.85rem}
+}
