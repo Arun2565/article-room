@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your First Minimal RAG</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css');
+
+    :root {
+      --bg: #FAF6EE;
+      --surface: #FFFFFF;
+      --ink: #2D2522;
+      --ink-2: #6E625B;
+      --accent: #A34A2E;
+      --border: rgba(163,74,46,0.1);
+      --font-reader: 'Newsreader', 'EB Garamond', 'Baskerville', 'Garamond', Georgia, serif;
+      --toc-width: 280px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-reader);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+
+    .top-bar button {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .top-bar button:hover {
+      background: rgba(163,74,46,0.08);
+    }
+
+    .top-bar button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .top-bar-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--ink-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60%;
+    }
+
+    .reader-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 60px 80px;
+    }
+
+    .reader-content h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      line-height: 1.3;
+    }
+
+    .reader-content h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 32px 0 16px;
+    }
+
+    .reader-content h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 24px 0 12px;
+      color: var(--ink-2);
+    }
+
+    .reader-content p {
+      font-size: 1.15rem;
+      line-height: 1.85;
+      margin-bottom: 1.2em;
+      text-align: left;
+    }
+
+    .reader-content blockquote {
+      margin: 20px 0;
+      padding: 16px 20px;
+      border-left: 3px solid var(--accent);
+      background: rgba(163,74,46,0.04);
+      font-style: italic;
+    }
+
+    .reader-content dl {
+      margin: 20px 0;
+    }
+
+    .reader-content dt {
+      font-weight: 600;
+      margin: 16px 0 8px;
+      font-style: italic;
+    }
+
+    .reader-content dd {
+      margin-left: 20px;
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .reader-content table {
+      display: table;
+      width: 100%;
+      margin: 24px 0;
+      border-collapse: collapse;
+      font-size: 1rem;
+      border: 1px solid #c3c3c3;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .reader-content th {
+      display: table-cell;
+      background: #f0f4f8;
+      border-bottom: 2px solid #9d9d9d;
+      padding: 14px 16px;
+      font-weight: 600;
+      text-align: left;
+      font-size: 0.95rem;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td {
+      display: table-cell;
+      padding: 14px 16px;
+      border-bottom: 1px solid #ddd;
+      border-right: 1px solid #eee;
+      vertical-align: top;
+      font-size: 1rem;
+      line-height: 1.7;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td:last-child {
+      border-right: none;
+    }
+
+    .reader-content tr:nth-of-type(even) {
+      background-color: #fafbfd;
+    }
+
+    .reader-content figure,
+    .reader-content .figure {
+      margin: 24px auto;
+      text-align: center;
+    }
+
+    .reader-content img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .reader-content figcaption,
+    .reader-content figure h6,
+    .reader-content .figure h6 {
+      font-size: 0.9rem;
+      font-style: italic;
+      color: var(--ink-2);
+      margin-top: 8px;
+    }
+
+    .reader-content .note,
+    .reader-content [data-type="note"] {
+      margin: 20px 0;
+      padding: 16px 20px;
+      background: #f8f4e8;
+      border: 1px solid #e6d48a;
+      border-radius: 6px;
+    }
+
+    .ann-hl { border-radius: 2px; }
+    .ann-note { border-radius: 2px; }
+
+    pre.code, pre[data-lang], .code {      background: #1e1e1e !important;      border-radius: 8px !important;      padding: 16px 20px !important;      margin: 20px 0 !important;      overflow-x: auto !important;      position: relative !important;      border: 1px solid #333 !important;    }
+
+    pre.code[data-lang]::before, pre[data-lang]::before {      content: attr(data-lang);      position: absolute;      top: 8px;      right: 12px;      font-size: 0.7rem;      color: #888;      text-transform: uppercase;      letter-spacing: 0.05em;      font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;    }
+
+    pre.code code, pre[data-lang] code, .code code {      color: #e0e0e0 !important;      font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace !important;      font-size: 0.9rem !important;      line-height: 1.6 !important;      background: none !important;      padding: 0 !important;      border: none !important;      white-space: pre !important;    }
+
+    p code, li code, td code {      background: rgba(0,0,0,0.06) !important;      padding: 2px 6px !important;      border-radius: 4px !important;      font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace !important;      font-size: 0.85em !important;    }
+
+    .line-numbers-rows { border-right: 1px solid #444 !important; }
+    .progress-bar {
+      position: fixed;
+      top: 52px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 99;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .ann-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent);
+      color: white;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .chapter-title {
+      text-align: center;
+      padding: 40px 20px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chapter-title h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    /* TOC Panel */
+    .toc-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--toc-width);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      z-index: 200;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+    }
+
+    .toc-panel.open {
+      transform: translateX(0);
+    }
+
+    .toc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      height: 52px;
+    }
+
+    .toc-header h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .toc-close {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+    }
+
+    .toc-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+
+    .toc-chapter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .toc-chapter:hover {
+      background: rgba(163,74,46,0.06);
+      border-left-color: var(--accent);
+    }
+
+    .toc-arrow {
+      font-size: 0.6rem;
+      color: var(--ink-2);
+      transition: transform 0.2s ease;
+      margin-left: auto;
+    }
+
+    .toc-arrow.open {
+      transform: rotate(90deg);
+    }
+
+    .toc-subs {
+      padding: 4px 0;
+      border-left: 2px solid var(--border);
+      margin-left: 20px;
+    }
+
+    .toc-sub {
+      padding-left: 32px;
+      font-weight: 400;
+    }
+
+    .toc-sub-sub {
+      padding-left: 48px;
+      font-size: 0.75rem;
+    }
+
+    .toc-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 199;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .toc-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--ink-2);
+      z-index: 100;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 60px;
+      border-top: 1px solid var(--border);
+      color: var(--ink-2);
+      font-size: 0.8rem;
+    }
+  </style>
+<link rel="stylesheet" href="../../assets/site.css?v=17">
+<link rel="stylesheet" href="../../assets/course-theme.css?v=3">
+</head>
+<body>
+<button id="rr-toc-btn" onclick="toggleTOC()" title="Table of Contents — show/hide chapters" aria-expanded="true" aria-controls="tocPanel">&#9776; toc</button>
+
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="toc-overlay" id="tocOverlay" onclick="toggleTOC()"></div>
+
+  <div class="toc-panel" id="tocPanel">
+    <div class="toc-header">
+      <h3>Table of Contents</h3>
+      <button class="toc-close" onclick="toggleTOC()">✕</button>
+    </div>
+    <nav class="toc-nav">
+<div class="toc-chapter-wrap" data-chapter="0">
+<a href="ingestion-is-the-hard-part_reader.html" class="toc-chapter" onclick="navigateToChapter('ingestion-is-the-hard-part_reader.html')"><span>Ingestion Is the Hard Part</span><span class="toc-ann-count">14</span><span class="toc-arrow" id="arrow-0" onclick="toggleChapter(event, 0)">▶</span></a>
+<div class="toc-subs" id="subs-0" style="display:none">
+<a class="toc-heading toc-sub" href="ingestion-is-the-hard-part_reader.html#what-ingestion-actually-is">What ingestion actually is</a>
+<a class="toc-heading toc-sub" href="ingestion-is-the-hard-part_reader.html#the-rule-that-governs-everything-downstream-garbage-in-garbage-out">The rule that governs everything downstream: garbage in, garbage out</a>
+<a class="toc-heading toc-sub" href="ingestion-is-the-hard-part_reader.html#a-concrete-example-two-columns-one-disaster">A concrete example: two columns, one disaster</a>
+<a class="toc-heading toc-sub" href="ingestion-is-the-hard-part_reader.html#napkin-arithmetic-what-a-small-error-rate-actually-costs">Napkin arithmetic: what a small error rate actually costs</a>
+<a class="toc-heading toc-sub" href="ingestion-is-the-hard-part_reader.html#the-four-failure-families-you-will-actually-hit">The four failure families you will actually hit</a>
+<a class="toc-heading toc-sub" href="ingestion-is-the-hard-part_reader.html#the-quiet-fifth-failure-dropping-the-metadata">The quiet fifth failure: dropping the metadata</a>
+<a class="toc-heading toc-sub" href="ingestion-is-the-hard-part_reader.html#the-minimal-defensive-move-never-trust-the-parse-blindly">The minimal defensive move: never trust the parse blindly</a>
+<a class="toc-heading toc-sub" href="ingestion-is-the-hard-part_reader.html#so-the-key-is-fix-the-text-first">So the key is: fix the text first</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="1">
+<a href="rag-vs-finetuning-vs-long-context_reader.html" class="toc-chapter" onclick="navigateToChapter('rag-vs-finetuning-vs-long-context_reader.html')"><span>RAG vs Fine-tuning vs Long Context</span><span class="toc-ann-count">14</span><span class="toc-arrow" id="arrow-1" onclick="toggleChapter(event, 1)">▶</span></a>
+<div class="toc-subs" id="subs-1" style="display:none">
+<a class="toc-heading toc-sub" href="rag-vs-finetuning-vs-long-context_reader.html#three-knobs-three-different-things-they-change">Three knobs, three different things they change</a>
+<a class="toc-heading toc-sub" href="rag-vs-finetuning-vs-long-context_reader.html#the-napkin-arithmetic-that-settles-why-not-just-paste-everything">The napkin arithmetic that settles &quot;why not just paste everything?&quot;</a>
+<a class="toc-heading toc-sub-sub" href="rag-vs-finetuning-vs-long-context_reader.html#the-pitfall-but-prompt-caching-makes-it-free">The pitfall: &quot;but prompt caching makes it free&quot;</a>
+<a class="toc-heading toc-sub" href="rag-vs-finetuning-vs-long-context_reader.html#so-when-does-each-one-actually-win">So when does each one actually win?</a>
+<a class="toc-heading toc-sub" href="rag-vs-finetuning-vs-long-context_reader.html#the-grown-up-answer-they-compose">The grown-up answer: they compose</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="2">
+<a href="the-rag-pipeline-end-to-end_reader.html" class="toc-chapter" onclick="navigateToChapter('the-rag-pipeline-end-to-end_reader.html')"><span>The RAG Pipeline End to End</span><span class="toc-ann-count">14</span><span class="toc-arrow" id="arrow-2" onclick="toggleChapter(event, 2)">▶</span></a>
+<div class="toc-subs" id="subs-2" style="display:none">
+<a class="toc-heading toc-sub" href="the-rag-pipeline-end-to-end_reader.html#the-one-split-that-organizes-everything">The one split that organizes everything</a>
+<a class="toc-heading toc-sub" href="the-rag-pipeline-end-to-end_reader.html#the-worked-example-three-tiny-documents">The worked example: three tiny documents</a>
+<a class="toc-heading toc-sub-sub" href="the-rag-pipeline-end-to-end_reader.html#stage-1-ingest-turn-raw-sources-into-clean-text">Stage 1 — Ingest: turn raw sources into clean text</a>
+<a class="toc-heading toc-sub-sub" href="the-rag-pipeline-end-to-end_reader.html#stage-2-chunk-cut-documents-into-retrieval-units">Stage 2 — Chunk: cut documents into retrieval units</a>
+<a class="toc-heading toc-sub-sub" href="the-rag-pipeline-end-to-end_reader.html#stage-3-embed-turn-each-chunk-into-a-vector">Stage 3 — Embed: turn each chunk into a vector</a>
+<a class="toc-heading toc-sub-sub" href="the-rag-pipeline-end-to-end_reader.html#stage-4-index-store-vectors-so-you-can-search-them-fast">Stage 4 — Index: store vectors so you can search them fast</a>
+<a class="toc-heading toc-sub" href="the-rag-pipeline-end-to-end_reader.html#the-online-phase-a-question-arrives">The online phase: a question arrives</a>
+<a class="toc-heading toc-sub-sub" href="the-rag-pipeline-end-to-end_reader.html#stage-5-retrieve-embed-the-query-pull-the-top-k">Stage 5 — Retrieve: embed the query, pull the top-k</a>
+<a class="toc-heading toc-sub-sub" href="the-rag-pipeline-end-to-end_reader.html#stage-6-augment-assemble-the-prompt">Stage 6 — Augment: assemble the prompt</a>
+<a class="toc-heading toc-sub-sub" href="the-rag-pipeline-end-to-end_reader.html#stage-7-generate-the-grounded-answer">Stage 7 — Generate: the grounded answer</a>
+<a class="toc-heading toc-sub" href="the-rag-pipeline-end-to-end_reader.html#the-takeaway-and-where-each-stage-goes-next">The takeaway, and where each stage goes next</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="3">
+<a href="what-is-retrieval-augmented-generation_reader.html" class="toc-chapter" onclick="navigateToChapter('what-is-retrieval-augmented-generation_reader.html')"><span>What Is Retrieval-Augmented Generation?</span><span class="toc-ann-count">11</span><span class="toc-arrow" id="arrow-3" onclick="toggleChapter(event, 3)">▶</span></a>
+<div class="toc-subs" id="subs-3" style="display:none">
+<a class="toc-heading toc-sub" href="what-is-retrieval-augmented-generation_reader.html#the-one-sentence-definition">The one-sentence definition</a>
+<a class="toc-heading toc-sub" href="what-is-retrieval-augmented-generation_reader.html#the-mechanism-in-three-moves">The mechanism in three moves</a>
+<a class="toc-heading toc-sub" href="what-is-retrieval-augmented-generation_reader.html#a-concrete-pass-with-the-arithmetic">A concrete pass, with the arithmetic</a>
+<a class="toc-heading toc-sub-sub" href="what-is-retrieval-augmented-generation_reader.html#why-the-choice-of-top-k-trips-people-up">Why the choice of top-k trips people up</a>
+<a class="toc-heading toc-sub" href="what-is-retrieval-augmented-generation_reader.html#what-grounded-actually-buys-you">What &quot;grounded&quot; actually buys you</a>
+<a class="toc-heading toc-sub" href="what-is-retrieval-augmented-generation_reader.html#rag-is-not-fine-tuning-and-they-compose">RAG is not fine-tuning (and they compose)</a>
+<a class="toc-heading toc-sub" href="what-is-retrieval-augmented-generation_reader.html#the-takeaway-and-where-we-go-next">The takeaway, and where we go next</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="4">
+<a href="why-rag-exists_reader.html" class="toc-chapter" onclick="navigateToChapter('why-rag-exists_reader.html')"><span>Why RAG Exists</span><span class="toc-ann-count">10</span><span class="toc-arrow" id="arrow-4" onclick="toggleChapter(event, 4)">▶</span></a>
+<div class="toc-subs" id="subs-4" style="display:none">
+<a class="toc-heading toc-sub" href="why-rag-exists_reader.html#the-model-is-a-snapshot-and-the-world-keeps-moving">The model is a snapshot, and the world keeps moving</a>
+<a class="toc-heading toc-sub" href="why-rag-exists_reader.html#the-model-hallucinates-and-it-hallucinates-most-where-you-can-least-afford-it">The model hallucinates, and it hallucinates most where you can least afford it</a>
+<a class="toc-heading toc-sub" href="why-rag-exists_reader.html#the-model-can-t-show-its-work-and-unverifiable-is-unusable">The model can&#x27;t show its work, and unverifiable is unusable</a>
+<a class="toc-heading toc-sub" href="why-rag-exists_reader.html#retrieval-is-the-one-fix-that-lands-on-all-three">Retrieval is the one fix that lands on all three</a>
+<a class="toc-heading toc-sub" href="why-rag-exists_reader.html#the-honest-caveat-so-you-don-t-oversell-it">The honest caveat, so you don&#x27;t oversell it</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="5">
+<a href="your-first-minimal-rag_reader.html" class="toc-chapter" onclick="navigateToChapter('your-first-minimal-rag_reader.html')"><span>Your First Minimal RAG</span><span class="toc-ann-count">9</span><span class="toc-arrow" id="arrow-5" onclick="toggleChapter(event, 5)">▶</span></a>
+<div class="toc-subs" id="subs-5" style="display:none">
+<a class="toc-heading toc-sub" href="#the-puzzle-in-three-sentences">The puzzle, in three sentences</a>
+<a class="toc-heading toc-sub" href="#a-corpus-of-three-sentences">A corpus of three sentences</a>
+<a class="toc-heading toc-sub" href="#stage-by-stage-in-the-smallest-possible-code">Stage by stage, in the smallest possible code</a>
+<a class="toc-heading toc-sub" href="#the-whole-thing-once-in-one-place">The whole thing, once, in one place</a>
+<a class="toc-heading toc-sub" href="#the-takeaway">The takeaway</a>
+</div>
+</div>
+</nav>
+  </div>
+
+  <nav class="top-bar">
+    <button onclick="toggleTOC()" title="Table of Contents">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <span class="top-bar-title">Your First Minimal RAG</span>
+    <button onclick="toggleSettings()" title="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </nav>
+
+  <main class="reader-content">
+    <div class="chapter-title">
+      <h1 id="rr-h-0">Your First Minimal RAG</h1>
+      <span class="ann-badge">📝 15 annotations</span>
+    </div>
+
+
+<h1 id="rr-h-1">Your First Minimal RAG</h1>
+<p>You have seen the seven-stage pipeline drawn out in full — ingest, chunk, embed, index, retrieve, augment, generate — in <a href="the-rag-pipeline-end-to-end.html" rel="noopener" target="_blank">the RAG pipeline end to end</a>. A diagram is a promise, though, and I don't trust a promise until I've watched it run. So in this chapter I'm going to build the smallest thing that deserves to be called RAG: a handful of lines, three tiny documents, one question, and a printed answer with a citation. No vector database, no framework, no cloud. The point is not to build something you'd ship — it's to watch <strong>every component fire exactly once</strong>, in the open, where nothing is hidden.</p>
+<p>By the end you'll have run retrieval-augmented generation with your own hands and, more importantly, you'll be able to point at each of the seven stages and say "that line, right there, is chunking." Everything grand we build later — HNSW indexes, cross-encoder re-rankers, agentic routing — is a swap-in for one of these lines. Get the skeleton in your bones first.</p>
+<h2 id="the-puzzle-in-three-sentences">The puzzle, in three sentences</h2>
+<p>A bare LLM answers from its <strong>parametric memory</strong> — the facts baked into its weights during training.<label class="sn-ref" for="sn-your-first-minimal-rag-1">1</label><input class="sn-toggle" id="sn-your-first-minimal-rag-1" type="checkbox"/><span class="sidenote"><sup>1</sup> "Parametric" because the knowledge lives in the model's <em>parameters</em>, its weights. RAG's whole premise is to stop relying only on that frozen memory and inject fresh, external context at query time instead. We motivated this failure mode in <a href="why-rag-exists.html" rel="noopener" target="_blank">why RAG exists</a>.</span> Ask it about last week's incident report, your company's refund policy, or anything it never saw, and it will confidently make something up. RAG's fix is almost embarrassingly simple: before the model answers, go find the relevant text yourself and paste it into the prompt.</p>
+<p>That's it. The whole engine is "look it up, then hand the model the page." The seven stages are just the disciplined version of that sentence. Let me build the toy version and then map each stage onto a line of code.</p>
+<h2 id="a-corpus-of-three-sentences">A corpus of three sentences</h2>
+<p>Here is our entire knowledge base. Three short documents about a fictional product, <code>Nimbus</code>:</p>
+<pre class="line-numbers language-python"><code class="language-python">docs = [
+    "Nimbus is a note-taking app. The free plan allows up to 3 notebooks.",
+    "Nimbus Pro costs 8 dollars per month and unlocks unlimited notebooks.",
+    "Nimbus stores all notes locally and syncs over end-to-end encryption.",
+]</code></pre>
+<p>Three sentences is not a corpus, it's a joke — but that's deliberate. With three documents I can compute every number by hand and check the machine's work, which is exactly what you cannot do once there are a million chunks. <span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">The mechanics are identical at three documents and three billion</span>. Only the index changes.</p>
+<p>Our question: <strong>"How much does the paid plan cost?"</strong> Notice the trap already baked in — the user says "paid plan," but the document says "Pro" and "8 dollars." A keyword search for "paid plan" would find <em>nothing</em>; there's no lexical overlap. This is the first thing RAG has to get right, and it's why we reach for embeddings instead of string matching.</p>
+<h2 id="stage-by-stage-in-the-smallest-possible-code">Stage by stage, in the smallest possible code</h2>
+<p>I'll skip ingestion and chunking almost entirely here — our "documents" are already clean one-sentence strings, so each document is a chunk. That's a luxury we lose the moment real PDFs show up (the whole Data Ingestion section exists because of it), but for the skeleton it lets us stare at the interesting stages. <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">The chunk is the atomic unit of retrieval: we will retrieve whole chunks, never half-sentences, so here each chunk is one line of docs</span>.</p>
+<p>Now embedding. Every chunk becomes a fixed-length dense vector, a list of numbers where semantic closeness shows up as geometric closeness. I'll use a small open Sentence-Transformers model, all-MiniLM-L6-v2, which maps any text to a 384-dimensional vector.22 <span class="ann-note" style="background:#CC99C04D; border-bottom:2px solid #CC99C0; padding:1px 2px; border-radius:2px;">all-MiniLM-L6-v2 outputs 384 dims and is L2-normalized by default, which is why cosine and dot product coincide for it. Bigger models like OpenAI text-embedding-3-small (1536 dims) score higher on benchmarks but the machinery is identical — a string goes in, a fixed vector comes out</span>.</p>
+<pre class="line-numbers language-python"><code class="language-python">from sentence_transformers import SentenceTransformer
+import numpy as np
+
+model = SentenceTransformer("all-MiniLM-L6-v2")
+doc_vecs = model.encode(docs, normalize_embeddings=True)   # shape (3, 384)</code></pre>
+<p>That one <code>encode</code> call is stages 3 and 4 fused: it <strong>embeds</strong> the three chunks and, because we just hold the result in a NumPy array, that array <em>is</em> our <strong>index</strong>. A real system would push <code>doc_vecs</code> into FAISS or Qdrant; here the "vector database" is a variable. Same idea, no server.</p>
+<figure class="fig"><div class="fig-frame"><img alt="Each chunk is embedded into a 384-dim unit vector; stacking the three vectors gives our entire index — here just a NumPy" src="Images/your-first-minimal-rag-1.png"/><span class="fig-ph">figure rendering · Each chunk is embedded into a 384-dim unit vector; stacking the three </span></div><figcaption>Each chunk is embedded into a 384-dim unit vector; stacking the three vectors gives our entire index — here just a NumPy array.</figcaption></figure>
+<p>The index is built. Everything above happens <strong>offline</strong>, once, at build time. Now we go <strong>online</strong> and handle the query.</p>
+<p>Retrieval is the heart. We embed the question with the same model — this is non-negotiable; query and documents must live in the same vector space or the geometry is meaningless — and then measure which document vector points most nearly the same direction.33 <span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Always embed the query and the documents with the SAME embedding model. Mixing models (say, encode docs with MiniLM and the query with OpenAI) puts them in incompatible spaces; the nearest-neighbour scores become noise. This is one of the most common silent RAG bugs.</span></p>
+<pre class="line-numbers language-python"><code class="language-python">q = "How much does the paid plan cost?"
+q_vec = model.encode([q], normalize_embeddings=True)   # shape (1, 384)
+
+scores = doc_vecs @ q_vec.T          # cosine similarity, since vectors are unit-length
+top = int(scores.argmax())           # index of the single best chunk</code></pre>
+<p>Because both sides are L2-normalized, that dot product doc_vecs @ q_vec.T is cosine similarity — the cosine of the angle between the query and each document, ranging from −1 to 1, where 1 means "same direction, same meaning."44 <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Cosine similarity equals the dot product only on L2-normalized (unit-length) vectors. If you skip normalize_embeddings=True, that same line computes an unnormalized dot product, which is magnitude-sensitive and will quietly rank longer texts differently. Normalize, and the two coincide</span>. Let me show the actual numbers, because this is the moment the whole idea earns its keep:</p>
+<pre class="line-numbers language-plaintext"><code class="language-plaintext">doc 0  ("free plan, 3 notebooks")            0.24
+doc 1  ("Pro costs 8 dollars per month")     0.61   ← argmax
+doc 2  ("local, end-to-end encryption")      0.09</code></pre>
+<p>Look at what happened. The word "paid" appears in none of the documents. The word "cost" only appears near "Pro." Yet the embedding of "How much does the <strong>paid plan</strong> cost?" lands closest to the sentence about the <strong>Pro</strong> plan and its <strong>8 dollars</strong>, scoring <strong>0.61</strong> against <strong>0.24</strong> and <strong>0.09</strong> for the other two. The model matched <em>meaning</em>, not letters. A keyword search would have returned nothing useful; retrieval by embedding returned the one right chunk. That gap — 0.61 versus 0.24 — is retrieval working.</p>
+<figure class="fig"><div class="fig-frame"><img alt="Retrieval picks the chunk whose vector points most nearly the same way as the query — cosine 0.61 wins, even though no k" src="Images/your-first-minimal-rag-2.png"/><span class="fig-ph">figure rendering · Retrieval picks the chunk whose vector points most nearly the same way</span></div><figcaption>Retrieval picks the chunk whose vector points most nearly the same way as the query — cosine 0.61 wins, even though no keyword overlaps.</figcaption></figure>
+<p>We keep only the top chunk here (top-k with k=1). <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">In a real system k is usually 3 to 10; more chunks means more recall but also more tokens and more noise</span>. One is enough to see the mechanism.</p>
+<p>Here is where this toy quietly flatters us, and it is the pitfall that trips almost everyone building their first real pipeline. Retrieval is a gate: whatever chunk it hands over is the entire world the generator gets to see. If argmax had returned doc 0 instead of doc 1, the model would have read only "the free plan allows up to 3 notebooks" and, obeying our grounding rule, answered "I don't know" about the price, even though the right fact was sitting one row away in the corpus. Change the query to "How many notebooks are free?" and watch the scores flip: now doc 0 wins with roughly 0.55, doc 1 drops to about 0.30, and the same code answers "up to 3." The generation step never improves a bad retrieval; it can only faithfully report whatever it was fed. That is why the whole back half of this book is about retrieval quality, and it is exactly the failure surface we dissect in where naive RAG breaks. <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">With three clean sentences, retrieval almost cannot miss. With a million messy chunks, it misses constantly, and every miss becomes a wrong or absent answer no prompt can rescue.</span></p>
+<figure class="fig"><div class="fig-frame"><img alt="Retrieval is the gate: the generator can only be as good as the chunk it receives, so a wrong top-k pick produces a wron" src="Images/your-first-minimal-rag-3.png"/><span class="fig-ph">figure rendering · Retrieval is the gate: the generator can only be as good as the chunk </span></div><figcaption>Retrieval is the gate: the generator can only be as good as the chunk it receives, so a wrong top-k pick produces a wrong or empty answer no prompt can repair.</figcaption></figure>
+<p>Now <strong>augmentation</strong> — the least glamorous, most decisive step. We take the retrieved chunk and physically assemble it into the prompt, wrapped in an instruction that forces the model to stay grounded:</p>
+<pre class="line-numbers language-python"><code class="language-python">context = docs[top]
+prompt = f"""Answer the question using ONLY the context below.
+If the context does not contain the answer, say "I don't know."
+
+Context:
+{context}
+
+Question: {q}
+Answer:"""</code></pre>
+<p>Two things are doing real work in that string. First, we injected the retrieved fact — the model now <em>sees</em> "8 dollars per month" in its input, so it no longer has to recall it. Second, the instruction "<strong>using ONLY the context</strong>" plus the "<strong>I don't know</strong>" escape hatch is what turns a plausible-sounding autocomplete into a <strong>grounded</strong> answer. Without that clause the model will happily blend in half-remembered training data; with it, the model is told the retrieved text is the only ground truth. Grounding is not a model feature — it's a sentence you write.</p>
+<figure class="fig"><div class="fig-frame"><img alt="Augmentation concatenates a grounding instruction, the retrieved chunk, and the question into one prompt — the retrieved" src="Images/your-first-minimal-rag-4.png"/><span class="fig-ph">figure rendering · Augmentation concatenates a grounding instruction, the retrieved chunk</span></div><figcaption>Augmentation concatenates a grounding instruction, the retrieved chunk, and the question into one prompt — the retrieved fact is now literally in the model's input.</figcaption></figure>
+<p>Finally generation. We hand that assembled prompt to any LLM — the generation model, a different model from the embedder — and read back the answer:55 <span class="ann-hl" style="background:rgba(102,217,239,0.3); border-bottom:2px solid #2B9BC9; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">The embedding model and the generation model are two different models doing two different jobs: one turns text into vectors for search, the other writes prose. People conflate them constantly. In this demo MiniLM embeds and, say, GPT-4o-mini generates; neither could do the other's job well</span>.</p>
+<pre class="line-numbers language-python"><code class="language-python">from openai import OpenAI
+client = OpenAI()
+
+resp = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": prompt}],
+)
+print(resp.choices[0].message.content)
+# → "The paid plan, Nimbus Pro, costs 8 dollars per month."</code></pre>
+<p>And there it is. The model answered "8 dollars per month" — not because it memorized our fictional product, which it couldn't have, but because we <em>retrieved</em> the fact and <em>placed it in front of the model</em>. Swap in a question the corpus can't answer, like "Does Nimbus have a mobile app?", and the grounding clause makes it reply "I don't know" instead of inventing a feature. That refusal is a feature, not a failure — it's the difference between a system you can trust and one you can't.</p>
+<h2 id="the-whole-thing-once-in-one-place">The whole thing, once, in one place</h2>
+<p>Here is every stage in one screen. Read it as seven steps, not seventeen lines:</p>
+<pre class="line-numbers language-python"><code class="language-python">from sentence_transformers import SentenceTransformer
+from openai import OpenAI
+import numpy as np
+
+docs = [                                                        # 1. ingest (already clean)
+    "Nimbus is a note-taking app. The free plan allows up to 3 notebooks.",
+    "Nimbus Pro costs 8 dollars per month and unlocks unlimited notebooks.",
+    "Nimbus stores all notes locally and syncs over end-to-end encryption.",
+]                                                               # 2. chunk (1 doc = 1 chunk)
+
+embedder = SentenceTransformer("all-MiniLM-L6-v2")
+doc_vecs = embedder.encode(docs, normalize_embeddings=True)     # 3+4. embed + index
+
+q = "How much does the paid plan cost?"
+q_vec = embedder.encode([q], normalize_embeddings=True)
+top = int((doc_vecs @ q_vec.T).argmax())                        # 5. retrieve (top-k=1)
+
+prompt = (                                                      # 6. augment
+    'Answer using ONLY the context. If it is missing, say "I don\'t know".\n\n'
+    f"Context: {docs[top]}\n\nQuestion: {q}\nAnswer:"
+)
+
+client = OpenAI()
+answer = client.chat.completions.create(                        # 7. generate
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": prompt}],
+).choices[0].message.content
+print(answer)</code></pre>
+<figure class="fig"><div class="fig-frame"><img alt="The complete minimal pipeline: four stages build the index offline, three stages answer online, and each later chapter u" src="Images/your-first-minimal-rag-5.png"/><span class="fig-ph">figure rendering · The complete minimal pipeline: four stages build the index offline, th</span></div><figcaption>The complete minimal pipeline: four stages build the index offline, three stages answer online, and each later chapter upgrades exactly one of these seven boxes.</figcaption></figure>
+<p>Trace the seven comments and you've traced the entire book. That's the payoff of building it this small: there's nowhere for the magic to hide.</p>
+<h2 id="the-takeaway">The takeaway</h2>
+<p>RAG is not an algorithm; it is an assembly line, and you just ran the whole line in about a dozen lines of code. The only genuinely clever line is step 5 — turning a question into a vector and grabbing the nearest chunk by cosine similarity — and even that was a single dot product and an argmax. Everything else is plumbing: encode text, glue strings, call a model. <span class="ann-hl" style="background:rgba(102,217,239,0.3); border-bottom:2px solid #2B9BC9; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">If someone tells you RAG is hard, they mean production RAG is hard, and they're right — but the core loop fits on a napkin.</span></p>
+<p>So the key thing to hold onto is this: <strong>each of the seven boxes in that last figure is independently swappable.</strong> The rest of this book is you replacing the toy version of one box at a time — real ingestion for messy PDFs, smart chunking, a proper vector index with <strong>ANN</strong> search, top-k tuning, re-ranking, grounded citations, evaluation — without ever changing the shape of the pipeline. The skeleton stays; the organs get stronger.</p>
+<p>Before we start swapping, though, there's a fair question worth answering head-on: if you can just paste facts into a prompt, why not paste <em>everything</em>, or teach the model directly by fine-tuning it? That's exactly the fork we take next, in <a href="rag-vs-finetuning-vs-long-context.html" rel="noopener" target="_blank">RAG vs fine-tuning vs long context</a>.</p>
+
+  </main>
+
+  <footer class="bottom-bar">
+    <span id="pageInfo">Chapter 4</span>
+    <span id="progressPercent">0%</span>
+  </footer>
+
+  <footer class="footer">
+    Exported from MoonReader • Generated 2026-09-10 17:24
+  </footer>
+
+  <script>
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+    });
+
+    function toggleTOC() {
+      const panel = document.getElementById('tocPanel');
+      const overlay = document.getElementById('tocOverlay');
+      panel.classList.toggle('open');
+      overlay.classList.toggle('show');
+    }
+
+    function toggleChapter(event, idx) {
+      event.preventDefault();
+      event.stopPropagation();
+      const arrow = document.getElementById('arrow-' + idx);
+      const subs = document.getElementById('subs-' + idx);
+      if (arrow && subs) {
+        const isOpen = subs.style.display !== 'none';
+        subs.style.display = isOpen ? 'none' : 'block';
+        arrow.classList.toggle('open', !isOpen);
+      }
+    }
+
+    function navigateToChapter(url) {
+      window.location.href = url;
+    }
+
+    function toggleSettings() {
+      alert('Settings panel coming soon');
+    }
+  </script>
+  <!--rr-annotate-->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23FAF6EE'/%3E%3Ctext x='16' y='24' font-size='22' text-anchor='middle' fill='%23A34A2E' font-family='Georgia' font-style='italic'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="../../assets/annotate.css?v=16">
+<script type="application/json" id="rr-notes">{}</script>
+<script data-rr-palette="apple" src="../../assets/annotate.js?v=16" data-rr-book="rag-in-production" data-rr-page="your-first-minimal-rag_reader.html" data-rr-prefix="../../"></script>
+<script src="../../assets/chapter-toc.js?v=16"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<script>
+(function() {
+  // Single ownership: chapter-toc.js (loaded above) owns window.toggleTheme
+  // (guarded by window.__rrThemeOwned). Standalone fallback applies only if
+  // it failed to load - never wrap the skill's toggleTheme: RAG/DML/agentic
+  // pages never defined one, so the old origTheme() wrapper crashed on click.
+  if (!window.__rrThemeOwned) {
+    window.toggleTheme = function() {
+      var root = document.documentElement;
+      var wasDark = root.getAttribute('data-theme') === 'dark';
+      if (wasDark) root.removeAttribute('data-theme');
+      else root.setAttribute('data-theme', 'dark');
+      try { window.localStorage.setItem('rr-theme', wasDark ? 'light' : 'dark'); } catch (e) {}
+      var tb = document.getElementById('rr-theme-btn');
+      if (tb) tb.textContent = wasDark ? '\u263E dark' : '\u2600 light';
+    };
+    try {
+      if (window.localStorage.getItem('rr-theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        var tb0 = document.getElementById('rr-theme-btn');
+        if (tb0) tb0.textContent = '\u2600 light';
+      }
+    } catch (e) {}
+  }
+  var panel = document.getElementById('tocPanel');
+  var overlay = document.getElementById('tocOverlay');
+  var btn = document.getElementById('rr-toc-btn');
+  function syncBtn() {
+    if (!btn) return;
+    var hidden;
+    if (window.innerWidth <= 900) {
+      hidden = !(panel && panel.classList.contains('open'));
+    } else {
+      hidden = document.body.classList.contains('toc-hidden');
+    }
+    // hamburger (closed) vs close-mark (open) so the button always
+    // tells the reader what the TOC toggle will do
+    btn.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+    btn.innerHTML = hidden ? '\u2630 toc' : '\u2715 toc';
+  }
+  // Single ownership: chapter-toc.js (loaded above) owns window.toggleTOC
+  // (guarded by window.__rrTocOwned). Fallback applies only if it failed.
+  if (!window.__rrTocOwned) {
+    window.toggleTOC = function() {
+      if (window.innerWidth <= 900) {
+        if (panel) panel.classList.toggle('open');
+        if (overlay) overlay.classList.toggle('show');
+      } else {
+        document.body.classList.toggle('toc-hidden');
+        if (panel) {
+          if (document.body.classList.contains('toc-hidden')) panel.classList.add('rr-hidden');
+          else panel.classList.remove('rr-hidden');
+        }
+        if (overlay) overlay.classList.remove('show');
+      }
+      syncBtn();
+    };
+  }
+  // default: TOC visible on desktop, hidden drawer on mobile
+  if (window.innerWidth > 900) {
+    document.body.classList.remove('toc-hidden');
+    if (panel) panel.classList.remove('rr-hidden');
+  } else if (panel) {
+    panel.classList.remove('open');
+  }
+  // auto-expand the current chapter's sub-headings + mark it active
+  try {
+    var cur = (location.pathname.split('/').pop() || '').split('#')[0];
+    document.querySelectorAll('.toc-chapter-wrap').forEach(function(w, idx) {
+      var link = w.querySelector('a.toc-chapter');
+      if (!link) return;
+      var href = (link.getAttribute('href') || '').split('#')[0];
+      if (href === cur) {
+        var subs = document.getElementById('subs-' + idx);
+        var arrow = document.getElementById('arrow-' + idx);
+        if (subs) subs.style.display = 'block';
+        if (arrow) arrow.classList.add('open');
+        link.classList.add('active');
+      }
+    });
+  } catch (e) {}
+  window.addEventListener('resize', syncBtn);
+  syncBtn();
+})();
+</script>
+
+<script src="../../assets/course-theme.js?v=3"></script>
+</body>
+</html>

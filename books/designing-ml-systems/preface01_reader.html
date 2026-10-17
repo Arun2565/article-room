@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preface</title>
+  <style>
+    @font-face {
+      font-family: 'Adobe Caslon Pro';
+      src: url('ACaslonPro-Regular.otf') format('opentype');
+    }
+
+    :root {
+      --bg: #FAF6EE;
+      --surface: #FFFFFF;
+      --ink: #2D2522;
+      --ink-2: #6E625B;
+      --accent: #A34A2E;
+      --border: rgba(163,74,46,0.1);
+      --font-reader: 'Adobe Caslon Pro', Georgia, serif;
+      --toc-width: 280px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-reader);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+
+    .top-bar button {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .top-bar button:hover {
+      background: rgba(163,74,46,0.08);
+    }
+
+    .top-bar button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .top-bar-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--ink-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60%;
+    }
+
+    .reader-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 60px 80px;
+    }
+
+    .reader-content h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      line-height: 1.3;
+    }
+
+    .reader-content h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 32px 0 16px;
+    }
+
+    .reader-content h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 24px 0 12px;
+      color: var(--ink-2);
+    }
+
+    .reader-content p {
+      font-size: 1.15rem;
+      line-height: 1.85;
+      margin-bottom: 1.2em;
+      text-align: left;
+    }
+
+    .reader-content blockquote {
+      margin: 20px 0;
+      padding: 16px 20px;
+      border-left: 3px solid var(--accent);
+      background: rgba(163,74,46,0.04);
+      font-style: italic;
+    }
+
+    .reader-content dl {
+      margin: 20px 0;
+    }
+
+    .reader-content dt {
+      font-weight: 600;
+      margin: 16px 0 8px;
+      font-style: italic;
+    }
+
+    .reader-content dd {
+      margin-left: 20px;
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .reader-content table {
+      display: table;
+      width: 100%;
+      margin: 24px 0;
+      border-collapse: collapse;
+      font-size: 1rem;
+      border: 1px solid #c3c3c3;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .reader-content th {
+      display: table-cell;
+      background: #f0f4f8;
+      border-bottom: 2px solid #9d9d9d;
+      padding: 14px 16px;
+      font-weight: 600;
+      text-align: left;
+      font-size: 0.95rem;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td {
+      display: table-cell;
+      padding: 14px 16px;
+      border-bottom: 1px solid #ddd;
+      border-right: 1px solid #eee;
+      vertical-align: top;
+      font-size: 1rem;
+      line-height: 1.7;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td:last-child {
+      border-right: none;
+    }
+
+    .reader-content tr:nth-of-type(even) {
+      background-color: #fafbfd;
+    }
+
+    .reader-content figure,
+    .reader-content .figure {
+      margin: 24px auto;
+      text-align: center;
+    }
+
+    .reader-content img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .reader-content figcaption,
+    .reader-content figure h6,
+    .reader-content .figure h6 {
+      font-size: 0.9rem;
+      font-style: italic;
+      color: var(--ink-2);
+      margin-top: 8px;
+    }
+
+    .reader-content .note,
+    .reader-content [data-type="note"] {
+      margin: 20px 0;
+      padding: 16px 20px;
+      background: #f8f4e8;
+      border: 1px solid #e6d48a;
+      border-radius: 6px;
+    }
+
+    .ann-hl { border-radius: 2px; }
+    .ann-note { border-radius: 2px; }
+
+    .progress-bar {
+      position: fixed;
+      top: 52px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 99;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .ann-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent);
+      color: white;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .chapter-title {
+      text-align: center;
+      padding: 40px 20px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chapter-title h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    /* TOC Panel */
+    .toc-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--toc-width);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      z-index: 200;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+    }
+
+    .toc-panel.open {
+      transform: translateX(0);
+    }
+
+    .toc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      height: 52px;
+    }
+
+    .toc-header h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .toc-close {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+    }
+
+    .toc-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+
+    .toc-chapter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .toc-chapter:hover {
+      background: rgba(163,74,46,0.06);
+      border-left-color: var(--accent);
+    }
+
+    .toc-arrow {
+      font-size: 0.6rem;
+      color: var(--ink-2);
+      transition: transform 0.2s ease;
+      margin-left: auto;
+    }
+
+    .toc-arrow.open {
+      transform: rotate(90deg);
+    }
+
+    .toc-subs {
+      padding: 4px 0;
+      border-left: 2px solid var(--border);
+      margin-left: 20px;
+    }
+
+    .toc-sub {
+      padding-left: 32px;
+      font-weight: 400;
+    }
+
+    .toc-sub-sub {
+      padding-left: 48px;
+      font-size: 0.75rem;
+    }
+
+    .toc-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 199;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .toc-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--ink-2);
+      z-index: 100;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 60px;
+      border-top: 1px solid var(--border);
+      color: var(--ink-2);
+      font-size: 0.8rem;
+    }
+  </style>
+<link rel="stylesheet" href="../../assets/site.css?v=17">
+<link rel="stylesheet" href="../../assets/course-theme.css?v=3">
+</head>
+<body>
+<button id="rr-toc-btn" onclick="toggleTOC()" title="Table of Contents — show/hide chapters" aria-expanded="true" aria-controls="tocPanel">&#9776; toc</button>
+
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="toc-overlay" id="tocOverlay" onclick="toggleTOC()"></div>
+
+  <div class="toc-panel" id="tocPanel">
+    <div class="toc-header">
+      <h3>Table of Contents</h3>
+      <button class="toc-close" onclick="toggleTOC()">✕</button>
+    </div>
+    <nav class="toc-nav">
+<div class="toc-chapter-wrap" data-chapter="0">
+<a href="ch01_reader.html" class="toc-chapter" onclick="navigateToChapter('ch01_reader.html')"><span>Chapter 1.Overview of Machine Learning Systems</span><span class="toc-ann-count">22</span><span class="toc-arrow" id="arrow-0" onclick="toggleChapter(event, 0)">▶</span></a>
+<div class="toc-subs" id="subs-0" style="display:none">
+<a class="toc-heading toc-sub" href="ch01_reader.html#rr-h-5">Machine Learning Use Cases</a>
+<a class="toc-heading toc-sub" href="ch01_reader.html#rr-h-8">Machine Learning in Research Versus in Production</a>
+<a class="toc-heading toc-sub-sub" href="ch01_reader.html#rr-h-9">Different stakeholders and requirements</a>
+<a class="toc-heading toc-sub-sub" href="ch01_reader.html#rr-h-11">Computational priorities</a>
+<a class="toc-heading toc-sub-sub" href="ch01_reader.html#rr-h-14">Data</a>
+<a class="toc-heading toc-sub-sub" href="ch01_reader.html#rr-h-16">Fairness</a>
+<a class="toc-heading toc-sub-sub" href="ch01_reader.html#rr-h-17">Interpretability</a>
+<a class="toc-heading toc-sub-sub" href="ch01_reader.html#rr-h-18">Discussion</a>
+<a class="toc-heading toc-sub" href="ch01_reader.html#rr-h-19">Machine Learning Systems Versus Traditional Software</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="1">
+<a href="preface01_reader.html" class="toc-chapter" onclick="navigateToChapter('preface01_reader.html')"><span>Preface</span><span class="toc-ann-count">4</span></a>
+</div>
+</nav>
+  </div>
+
+  <nav class="top-bar">
+    <button onclick="toggleTOC()" title="Table of Contents">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <span class="top-bar-title">Preface</span>
+    <button onclick="toggleSettings()" title="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </nav>
+
+  <main class="reader-content">
+    <div class="chapter-title">
+      <h1 id="rr-h-0">Preface</h1>
+      <span class="ann-badge">📝 6 annotations</span>
+    </div>
+
+<div id="sbo-rt-content"><section data-pdf-bookmark="Preface" data-type="preface" epub:type="preface"><div class="preface" id="preface">
+<h1 id="rr-h-1">Preface</h1>
+<p>Ever since the first machine learning course I taught at Stanford in 2017, many people have asked me for advice on how to deploy ML models at their organizations. These questions can be generic, such as “What model should I use?” “How often should I retrain my model?” “How can I detect data distribution shifts?” “How do I ensure that the features used during training are consistent with the features used during inference?”</p>
+<p>These questions can also be specific, such as “I’m convinced that switching from batch prediction to online prediction will give our model a performance boost, but how do I convince my manager to let me do so?” or “I’m the most senior data scientist at my company and I’ve recently been tasked with setting up our first machine learning platform; where do I start?”</p>
+<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">My short answer to all these questions is always: “It depends.” My long answers often involve hours of discussion to understand where the questioner comes from, what they’re actually trying to achieve, and the pros and cons of different approaches for their specific use case.</span></p>
+<p>ML systems are both complex and unique. They are <span class="ann-hl" style="background:rgba(102,217,239,0.3); border-bottom:2px solid #2B9BC9; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">complex because they consist of many different components (ML algorithms, data, business logic, evaluation metrics, underlying infrastructure, etc.) and involve many different stakeholders (data scientists, ML engineers, business leaders, users, even society at large</span>). ML systems are unique because they are data dependent, and data varies wildly from one use case to the next.</p>
+<p>For example, two companies might be in the same domain (ecommerce) and have the same problem that they want ML to solve (recommender system), but their resulting ML systems can have different model architecture, use different sets of features, be evaluated on different metrics, and bring different returns on investment.</p>
+<p class="pagebreak-before">Many blog posts and tutorials on ML production focus on answering one specific question. While the focus helps get the point across, they can create the impression that it’s possible to consider each of these questions in isolation. <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">In reality, changes in one component will likely affect other components. Therefore, it’s necessary to consider the system as a whole while attempting to make any design decision.</span></p>
+<p>This book takes a holistic approach to ML systems. It takes into account different components of the system and the objectives of different stakeholders involved. <span class="ann-hl" style="background:rgba(166,226,46,0.3); border-bottom:2px solid #6BBF59; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">The content in this book is illustrated using actual case studies, many of which I’ve personally worked on, backed by ample references, and reviewed by ML practitioners in both academia and industry</span>. Sections that require in-depth knowledge of a certain topic—e.g., batch processing versus stream processing, infrastructure for storage and compute, and responsible AI—are further reviewed by experts whose work focuses on that one topic. In other words, this book is an attempt to give nuanced answers to the aforementioned questions and more.</p>
+<p>When I first wrote the lecture notes that laid the foundation for this book, I thought I wrote them for my students to prepare them for the demands of their future jobs as data scientists and ML engineers. However, I soon realized that I also learned tremendously through the process. The initial drafts I shared with early readers sparked many conversations that tested my assumptions, forced me to consider different perspectives, and introduced me to new problems and new approaches.</p>
+<p>I hope that this learning process will continue for me now that the book is in your hand, as you have experiences and perspectives that are unique to you. Please feel free to share with me any feedback you might have for this book, via the <a href="https://discord.gg/Mw77HPrgjF">MLOps Discord server</a> that I run (where you can also find other readers of this book), <a href="https://twitter.com/chipro">Twitter</a>, <a href="https://www.linkedin.com/in/chiphuyen">LinkedIn</a>, or other channels that you can find on my <a href="https://huyenchip.com">website</a>.</p>
+<section data-pdf-bookmark="Who This Book Is For" data-type="sect1"><div class="sect1" id="who_this_book_is_for">
+<h1 id="rr-h-2">Who This Book Is For</h1>
+<p>This book is for anyone who wants to leverage ML to solve real-world problems. ML in this book refers to both deep learning and classical algorithms, with a leaning toward ML systems at scale, such as those seen at medium to large enterprises and fast-growing startups. Systems at a smaller scale tend to be less complex and might benefit less from the comprehensive approach laid out in this book.</p>
+<p class="pagebreak-after">Because my background is engineering, the language of this book is geared toward engineers, including ML engineers, data scientists, data engineers, ML platform engineers, and engineering managers. You might be able to relate to one of the following scenarios:</p>
+<ul>
+<li><p>You have been given a business problem and a lot of raw data. You want to engineer this data and choose the right metrics to solve this problem.</p></li>
+<li><p>Your initial models perform well in offline experiments and you want to deploy them.</p></li>
+<li><p>You have little feedback on how your models are performing after your models are deployed, and you want to figure out a way to quickly detect, debug, and address any issue your models might run into in production.</p></li>
+<li><p>The process of developing, evaluating, deploying, and updating models for your team has been mostly manual, slow, and error-prone. You want to automate and improve this process.</p></li>
+<li><p>Each ML use case in your organization has been deployed using its own workflow, and you want to lay down the foundation (e.g., model store, feature store, monitoring tools) that can be shared and reused across use cases.</p></li>
+<li><p>You’re worried that there might be biases in your ML systems and you want to make your systems responsible!</p></li>
+</ul>
+<p>You can also benefit from the book if you belong to one of the following groups:</p>
+<ul>
+<li><p>Tool developers who want to identify underserved areas in ML production and figure out how to position your tools in the ecosystem.</p></li>
+<li><p>Individuals looking for ML-related roles in the industry.</p></li>
+<li><p>Technical and business leaders who are considering adopting ML solutions to improve your products and/or business processes. Readers without strong technical backgrounds might benefit the most from Chapters <a data-type="xref" data-xrefstyle="select:labelnumber" href="ch01.xhtml#overview_of_machine_learning_systems">1</a>, <a data-type="xref" data-xrefstyle="select:labelnumber" href="ch02.xhtml#introduction_to_machine_learning_system">2</a>, and <a data-type="xref" data-xrefstyle="select:labelnumber" href="ch11.xhtml#the_human_side_of_machine_learning">11</a>.</p></li>
+</ul>
+</div></section>
+<section data-pdf-bookmark="What This Book Is Not" data-type="sect1"><div class="sect1" id="what_this_book_is_not">
+<h1 id="rr-h-3">What This Book Is Not</h1>
+<p>This book is not an introduction to ML. There are many books, courses, and resources available for ML theories, and therefore, this book shies away from these concepts to focus on the practical aspects of ML. To be specific, the book assumes that readers have a basic understanding of the following topics:</p>
+<ul>
+<li><p><em>ML models</em> such as clustering, logistic regression, decision trees, collaborative filtering, and various neural network architectures including feed-forward, recurrent, convolutional, and transformer</p></li>
+<li><p><em>ML techniques</em> such as supervised versus unsupervised, gradient descent, objective/loss function, regularization, generalization, and hyperparameter tuning</p></li>
+<li><p><em>Metrics</em> such as accuracy, F1, precision, recall, ROC, mean squared error, and log-likelihood</p></li>
+<li><p><em>Statistical concepts</em> such as variance, probability, and normal/long-tail <span class="keep-together">distribution</span></p></li>
+<li><p><em>Common ML tasks</em> such as language modeling, anomaly detection, object classification, and machine translation</p></li>
+</ul>
+<p>You don’t have to know these topics inside out—for concepts whose exact definitions can take some effort to remember, e.g., F1 score, we include short notes as references—but you should have a rough sense of what they mean going in.</p>
+<p>While this book mentions current tools to illustrate certain concepts and solutions, it’s not a tutorial book. Technologies evolve over time. Tools go in and out of style quickly, but fundamental approaches to problem solving should last a bit longer. This book provides a framework for you to evaluate the tool that works best for your use cases. When there’s a tool you want to use, it’s usually straightforward to find tutorials for it online. As a result, this book has few code snippets and instead focuses on providing a lot of discussion around trade-offs, pros and cons, and concrete examples.</p>
+</div></section>
+<section data-pdf-bookmark="Navigating This Book" data-type="sect1"><div class="sect1" id="navigating_this_book">
+<h1 id="rr-h-4">Navigating This Book</h1>
+<p>The chapters in this book are organized to reflect the problems data scientists might encounter as they progress through the lifecycle of an ML project. The first two chapters lay down the groundwork to set an ML project up for success, starting from the most basic question: does your project need ML? It also covers choosing the objectives for your project and how to frame your problem in a way that makes for simpler solutions. If you’re already familiar with these considerations and impatient to get to the technical solutions, feel free to skip the first two chapters.</p>
+<p>Chapters <a data-type="xref" data-xrefstyle="select:labelnumber" href="ch04.xhtml#training_data">4</a> to <a data-type="xref" data-xrefstyle="select:labelnumber" href="ch06.xhtml#model_development_and_offline_evaluatio">6</a> cover the pre-deployment phase of an ML project: from creating the training data and engineering features to developing and evaluating your models in a development environment. This is the phase where expertise in both ML and the problem domain are especially needed.</p>
+<p>Chapters <a data-type="xref" data-xrefstyle="select:labelnumber" href="ch07.xhtml#model_deployment_and_prediction_service">7</a> to <a data-type="xref" data-xrefstyle="select:labelnumber" href="ch09.xhtml#continual_learning_and_test_in_producti">9</a> cover the deployment and post-deployment phase of an ML project. We’ll learn through a story many readers might be able to relate to that having a model deployed isn’t the end of the deployment process. The deployed model will need to be monitored and continually updated to changing environments and business requirements.</p>
+<p>Chapters <a data-type="xref" data-xrefstyle="select:labelnumber" href="ch03.xhtml#data_engineering_fundamentals">3</a> and <a data-type="xref" data-xrefstyle="select:labelnumber" href="ch10.xhtml#infrastructure_and_tooling_for_mlops">10</a> focus on the infrastructure needed to enable stakeholders from different backgrounds to work together to deliver successful ML systems. <a data-type="xref" href="ch03.xhtml#data_engineering_fundamentals">Chapter 3</a> focuses on data systems, whereas <a data-type="xref" href="ch10.xhtml#infrastructure_and_tooling_for_mlops">Chapter 10</a> focuses on compute infrastructure and ML platforms. I debated for a long time on how deep to go into data systems and where to introduce it in the book. Data systems, including databases, data formats, data movements, and data processing engines, tend to be sparsely covered in ML coursework, and therefore many data scientists might think of them as low level or irrelevant. After consulting with many of my colleagues, I decided that because ML systems depend on data, covering the basics of data systems early will help us get on the same page to discuss data matters in the rest of the book.</p>
+<p>While we cover many technical aspects of an ML system in this book, ML systems are built by people, for people, and can have outsized impact on the life of many. It’d be remiss to write a book on ML production without a chapter on the human side of it, which is the focus of <a data-type="xref" href="ch11.xhtml#the_human_side_of_machine_learning">Chapter 11</a>, the last chapter.</p>
+<p>Note that “data scientist” is a role that has evolved a lot in the last few years, and there have been many discussions to determine what this role should entail—we’ll go into some of these discussions in <a data-type="xref" href="ch10.xhtml#infrastructure_and_tooling_for_mlops">Chapter 10</a>. In this book, we use “data scientist” as an umbrella term to include anyone who works developing and deploying ML models, including people whose job titles might be ML engineers, data engineers, data analysts, etc.</p>
+</div></section>
+<section data-pdf-bookmark="GitHub Repository and Community" data-type="sect1"><div class="sect1" id="github_repository_and_community">
+<h1 id="rr-h-5">GitHub Repository and Community</h1>
+<p>This book is accompanied by a <a href="https://oreil.ly/designing-machine-learning-systems-code">GitHub repository</a> that contains:</p>
+<ul>
+<li><p>A review of basic ML concepts</p></li>
+<li><p>A list of references used in this book and other advanced, updated resources</p></li>
+<li><p>Code snippets used in this book</p></li>
+<li><p>A list of tools you can use for certain problems you might encounter in your workflows</p></li>
+</ul>
+<p>I also run a <a href="https://discord.gg/Mw77HPrgjF">Discord server on MLOps</a> where you’re encouraged to discuss and ask questions about the book.</p>
+</div></section>
+<section data-pdf-bookmark="Conventions Used in This Book" data-type="sect1"><div class="sect1" id="_conventions_used_in_this_book">
+<h1 id="rr-h-6">Conventions Used in This Book</h1>
+<p>The following typographical conventions are used in this book:</p>
+<dl>
+<dt><em>Italic</em></dt>
+<dd><p>Indicates new terms, URLs, email addresses, filenames, and file extensions.</p></dd>
+<dt><code>Constant width</code></dt>
+<dd><p>Used for program listings, as well as within paragraphs to refer to program elements such as variable or function names, databases, data types, environment variables, statements, and keywords.</p></dd>
+</dl>
+<div data-type="note" epub:type="note"><h6 id="rr-h-7">Note</h6>
+<p>This element signifies a general note.</p>
+</div>
+<div data-type="warning" epub:type="warning"><h6 id="rr-h-8">Warning</h6>
+<p>This element indicates a warning or caution.</p>
+</div>
+</div></section>
+<section data-pdf-bookmark="Using Code Examples" data-type="sect1"><div class="sect1" id="_using_code_examples">
+<h1 id="rr-h-9">Using Code Examples</h1>
+<!--PROD: Please reach out to author to find out if they will be uploading code examples to oreilly.com or their own site (e.g., GitHub). If there is no code download, delete this whole section. If there is, when you email digidist with the link, let them know what you filled in for title_title (should be as close to book title as possible, i.e., learning_python_2e). This info will determine where digidist loads the files.-->
+<p>As mentioned, supplemental material (code examples, exercises, etc.) is available for download at <a href="https://oreil.ly/designing-machine-learning-systems-code"><em class="hyperlink">https://oreil.ly/designing-machine-learning-systems-code</em></a>.</p>
+<p>If you have a technical question or a problem using the code examples, please send email to <a class="email" href="mailto:bookquestions@oreilly.com"><em>bookquestions@oreilly.com</em></a>.</p>
+<p>This book is here to help you get your job done. In general, if example code is offered with this book, you may use it in your programs and documentation. You do not need to contact us for permission unless you’re reproducing a significant portion of the code. For example, writing a program that uses several chunks of code from this book does not require permission. Selling or distributing examples from O’Reilly books does require permission. Answering a question by citing this book and quoting example code does not require permission. Incorporating a significant amount of example code from this book into your product’s documentation does require permission.</p>
+<p>We appreciate, but generally do not require, attribution. An attribution usually includes the title, author, publisher, and ISBN. For example: “<em>Designing Machine Learning Systems</em> by Chip Huyen (O’Reilly). Copyright 2022 Huyen Thi Khanh Nguyen, 978-1-098-10796-3.”</p>
+<p>If you feel your use of code examples falls outside fair use or the permission given above, feel free to contact us at <a class="email" href="mailto:permissions@oreilly.com"><em>permissions@oreilly.com</em></a>.</p>
+</div></section>
+<section data-pdf-bookmark="O’Reilly Online Learning" data-type="sect1"><div class="sect1" id="_safari_books_online">
+<h1 id="rr-h-10">O’Reilly Online Learning</h1>
+<div class="ormenabled" data-type="note" epub:type="note"><h6 id="rr-h-11">Note</h6>
+<p>For more than 40 years, <a class="orm:hideurl" href="https://oreilly.com"><em class="hyperlink">O’Reilly Media</em></a> has provided technology and business training, knowledge, and insight to help companies succeed.</p>
+</div>
+<p>Our unique network of experts and innovators share their knowledge and expertise through books, articles, and our online learning platform. O’Reilly’s online learning platform gives you on-demand access to live training courses, in-depth learning paths, interactive coding environments, and a vast collection of text and video from O’Reilly and 200+ other publishers. For more information, visit <a class="orm:hideurl" href="https://oreilly.com"><em>https://oreilly.com</em></a>.</p>
+</div></section>
+<section data-pdf-bookmark="How to Contact Us" data-type="sect1"><div class="sect1" id="_how_to_contact_us">
+<h1 id="rr-h-12">How to Contact Us</h1>
+<p>Please address comments and questions concerning this book to the publisher:</p>
+<ul class="simplelist">
+<li>O’Reilly Media, Inc.</li>
+<li>1005 Gravenstein Highway North</li>
+<li>Sebastopol, CA 95472</li>
+<li>800-998-9938 (in the United States or Canada)</li>
+<li>707-829-0515 (international or local)</li>
+<li>707-829-0104 (fax)</li>
+</ul>
+<p>We have a web page for this book, where we list errata, examples, and any additional information. You can access this page at <a href="https://oreil.ly/designing-machine-learning-systems"><em class="hyperlink">https://oreil.ly/designing-machine-learning-systems</em></a>.</p>
+<!--Don't forget to update the link above.-->
+<p>Email <a class="email" href="mailto:bookquestions@oreilly.com"><em>bookquestions@oreilly.com</em></a> to comment or ask technical questions about this book.</p>
+<p>For news and information about our books and courses, visit <a href="https://oreilly.com"><em class="hyperlink">https://oreilly.com</em></a>.</p>
+<p>Find us on LinkedIn: <a href="https://linkedin.com/company/oreilly-media"><em class="hyperlink">https://linkedin.com/company/oreilly-media</em></a></p>
+<p>Follow us on Twitter: <a href="https://twitter.com/oreillymedia"><em class="hyperlink">https://twitter.com/oreillymedia</em></a></p>
+<p>Watch us on YouTube: <a href="https://youtube.com/oreillymedia"><em class="hyperlink">https://youtube.com/oreillymedia</em></a></p>
+</div></section>
+<section data-pdf-bookmark="Acknowledgments" data-type="sect1"><div class="sect1" id="acknowledgments">
+<h1 id="rr-h-13">Acknowledgments</h1>
+<p>This book took two years to write, and many more years beforehand to prepare. Looking back, I’m equally amazed and grateful for the enormous amount of help I received in writing this book. I tried my best to include the names of everyone who has helped me here, but due to the inherent faultiness of human memory, I undoubtedly neglected to mention many. If I forgot to include your name, please know that it wasn’t because I don’t appreciate your contribution and please kindly remind me so that I can rectify as soon as possible!</p>
+<p>First and foremost, I’d like to thank the course staff who helped me develop the course and materials this book was based on: Michael Cooper, Xi Yin, Chloe He, Kinbert Chou, Megan Leszczynski, Karan Goel, and Michele Catasta. I’d like to thank my professors, Christopher Ré and Mehran Sahami, without whom the course wouldn’t exist in the first place.</p>
+<p>I’d like to thank a long list of reviewers who not only gave encouragement but also improved the book by many orders of magnitude: Eugene Yan, Josh Wills, Han-chung Lee, Thomas Dietterich, Irene Tematelewo, Goku Mohandas, Jacopo Tagliabue, Andrey Kurenkov, Zach Nussbaum, Jay Chia, Laurens Geffert, Brian Spiering, Erin Ledell, Rosanne Liu, Chin Ling, Shreya Shankar, and Sara Hooker.</p>
+<p>I’d like to thank all the readers who read the early release version of the book and gave me ideas on how to improve the book, including Charles Frye, Xintong Yu, Jordan Zhang, Jonathon Belotti, and Cynthia Yu.</p>
+<p>Of course, the book wouldn’t have been possible with the team at O’Reilly, especially my development editor, Jill Leonard, and my production editors, Kristen Brown, Sharon Tripp, and Gregory Hyman. I’d like to thank Laurence Moroney, Hannes Hapke, and Rebecca Novack, who helped me get this book from an idea to a proposal.</p>
+<p>This book, after all, is an accumulation of invaluable lessons I learned throughout my career to date. I owe these lessons to my extremely competent and patient coworkers and former coworkers at Claypot AI, Primer AI, Netflix, NVIDIA, and Snorkel AI. Every person I’ve worked with has taught me something new about bringing ML into the world.</p>
+<p>A special thanks to my cofounder Zhenzhong Xu for putting out the fires at our startup and allowing me to spend time on this book. Thank you, Luke, for always being so supportive of everything that I want to do, no matter how ambitious it is.</p>
+</div></section>
+</div></section></div>
+  </main>
+
+  <footer class="bottom-bar">
+    <span id="pageInfo">Chapter 1</span>
+    <span id="progressPercent">0%</span>
+  </footer>
+
+  <footer class="footer">
+    Exported from MoonReader • Generated 2026-09-10 13:32
+  </footer>
+
+  <script>
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+    });
+
+    function toggleTOC() {
+      const panel = document.getElementById('tocPanel');
+      const overlay = document.getElementById('tocOverlay');
+      panel.classList.toggle('open');
+      overlay.classList.toggle('show');
+    }
+
+    function toggleChapter(event, idx) {
+      event.preventDefault();
+      event.stopPropagation();
+      const arrow = document.getElementById('arrow-' + idx);
+      const subs = document.getElementById('subs-' + idx);
+      if (arrow && subs) {
+        const isOpen = subs.style.display !== 'none';
+        subs.style.display = isOpen ? 'none' : 'block';
+        arrow.classList.toggle('open', !isOpen);
+      }
+    }
+
+    function navigateToChapter(url) {
+      window.location.href = url;
+    }
+
+    function toggleSettings() {
+      alert('Settings panel coming soon');
+    }
+  </script>
+<!--rr-annotate-->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23FAF6EE'/%3E%3Ctext x='16' y='24' font-size='22' text-anchor='middle' fill='%23A34A2E' font-family='Georgia' font-style='italic'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="../../assets/annotate.css?v=16">
+<script type="application/json" id="rr-notes">{}</script>
+<script data-rr-palette="apple" src="../../assets/annotate.js?v=16" data-rr-book="designing-ml-systems" data-rr-page="preface01_reader.html" data-rr-prefix="../../"></script>
+<script src="../../assets/chapter-toc.js?v=16"></script>
+<script>
+(function() {
+  // Single ownership: chapter-toc.js (loaded above) owns window.toggleTheme
+  // (guarded by window.__rrThemeOwned). Standalone fallback applies only if
+  // it failed to load - never wrap the skill's toggleTheme: RAG/DML/agentic
+  // pages never defined one, so the old origTheme() wrapper crashed on click.
+  if (!window.__rrThemeOwned) {
+    window.toggleTheme = function() {
+      var root = document.documentElement;
+      var wasDark = root.getAttribute('data-theme') === 'dark';
+      if (wasDark) root.removeAttribute('data-theme');
+      else root.setAttribute('data-theme', 'dark');
+      try { window.localStorage.setItem('rr-theme', wasDark ? 'light' : 'dark'); } catch (e) {}
+      var tb = document.getElementById('rr-theme-btn');
+      if (tb) tb.textContent = wasDark ? '\u263E dark' : '\u2600 light';
+    };
+    try {
+      if (window.localStorage.getItem('rr-theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        var tb0 = document.getElementById('rr-theme-btn');
+        if (tb0) tb0.textContent = '\u2600 light';
+      }
+    } catch (e) {}
+  }
+  var panel = document.getElementById('tocPanel');
+  var overlay = document.getElementById('tocOverlay');
+  var btn = document.getElementById('rr-toc-btn');
+  function syncBtn() {
+    if (!btn) return;
+    var hidden;
+    if (window.innerWidth <= 900) {
+      hidden = !(panel && panel.classList.contains('open'));
+    } else {
+      hidden = document.body.classList.contains('toc-hidden');
+    }
+    // hamburger (closed) vs close-mark (open) so the button always
+    // tells the reader what the TOC toggle will do
+    btn.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+    btn.innerHTML = hidden ? '\u2630 toc' : '\u2715 toc';
+  }
+  // Single ownership: chapter-toc.js (loaded above) owns window.toggleTOC
+  // (guarded by window.__rrTocOwned). Fallback applies only if it failed.
+  if (!window.__rrTocOwned) {
+    window.toggleTOC = function() {
+      if (window.innerWidth <= 900) {
+        if (panel) panel.classList.toggle('open');
+        if (overlay) overlay.classList.toggle('show');
+      } else {
+        document.body.classList.toggle('toc-hidden');
+        if (panel) {
+          if (document.body.classList.contains('toc-hidden')) panel.classList.add('rr-hidden');
+          else panel.classList.remove('rr-hidden');
+        }
+        if (overlay) overlay.classList.remove('show');
+      }
+      syncBtn();
+    };
+  }
+  // default: TOC visible on desktop, hidden drawer on mobile
+  if (window.innerWidth > 900) {
+    document.body.classList.remove('toc-hidden');
+    if (panel) panel.classList.remove('rr-hidden');
+  } else if (panel) {
+    panel.classList.remove('open');
+  }
+  // auto-expand the current chapter's sub-headings + mark it active
+  try {
+    var cur = (location.pathname.split('/').pop() || '').split('#')[0];
+    document.querySelectorAll('.toc-chapter-wrap').forEach(function(w, idx) {
+      var link = w.querySelector('a.toc-chapter');
+      if (!link) return;
+      var href = (link.getAttribute('href') || '').split('#')[0];
+      if (href === cur) {
+        var subs = document.getElementById('subs-' + idx);
+        var arrow = document.getElementById('arrow-' + idx);
+        if (subs) subs.style.display = 'block';
+        if (arrow) arrow.classList.add('open');
+        link.classList.add('active');
+      }
+    });
+  } catch (e) {}
+  window.addEventListener('resize', syncBtn);
+  syncBtn();
+})();
+</script>
+
+<script src="../../assets/course-theme.js?v=3"></script>
+</body>
+</html>

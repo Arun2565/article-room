@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 1.Overview of Machine Learning Systems</title>
+  <style>
+    @font-face {
+      font-family: 'Adobe Caslon Pro';
+      src: url('ACaslonPro-Regular.otf') format('opentype');
+    }
+
+    :root {
+      --bg: #FAF6EE;
+      --surface: #FFFFFF;
+      --ink: #2D2522;
+      --ink-2: #6E625B;
+      --accent: #A34A2E;
+      --border: rgba(163,74,46,0.1);
+      --font-reader: 'Adobe Caslon Pro', Georgia, serif;
+      --toc-width: 280px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-reader);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+
+    .top-bar button {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .top-bar button:hover {
+      background: rgba(163,74,46,0.08);
+    }
+
+    .top-bar button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .top-bar-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--ink-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60%;
+    }
+
+    .reader-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 60px 80px;
+    }
+
+    .reader-content h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      line-height: 1.3;
+    }
+
+    .reader-content h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 32px 0 16px;
+    }
+
+    .reader-content h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 24px 0 12px;
+      color: var(--ink-2);
+    }
+
+    .reader-content p {
+      font-size: 1.15rem;
+      line-height: 1.85;
+      margin-bottom: 1.2em;
+      text-align: left;
+    }
+
+    .reader-content blockquote {
+      margin: 20px 0;
+      padding: 16px 20px;
+      border-left: 3px solid var(--accent);
+      background: rgba(163,74,46,0.04);
+      font-style: italic;
+    }
+
+    .reader-content dl {
+      margin: 20px 0;
+    }
+
+    .reader-content dt {
+      font-weight: 600;
+      margin: 16px 0 8px;
+      font-style: italic;
+    }
+
+    .reader-content dd {
+      margin-left: 20px;
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .reader-content table {
+      display: table;
+      width: 100%;
+      margin: 24px 0;
+      border-collapse: collapse;
+      font-size: 1rem;
+      border: 1px solid #c3c3c3;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .reader-content th {
+      display: table-cell;
+      background: #f0f4f8;
+      border-bottom: 2px solid #9d9d9d;
+      padding: 14px 16px;
+      font-weight: 600;
+      text-align: left;
+      font-size: 0.95rem;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td {
+      display: table-cell;
+      padding: 14px 16px;
+      border-bottom: 1px solid #ddd;
+      border-right: 1px solid #eee;
+      vertical-align: top;
+      font-size: 1rem;
+      line-height: 1.7;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td:last-child {
+      border-right: none;
+    }
+
+    .reader-content tr:nth-of-type(even) {
+      background-color: #fafbfd;
+    }
+
+    .reader-content figure,
+    .reader-content .figure {
+      margin: 24px auto;
+      text-align: center;
+    }
+
+    .reader-content img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .reader-content figcaption,
+    .reader-content figure h6,
+    .reader-content .figure h6 {
+      font-size: 0.9rem;
+      font-style: italic;
+      color: var(--ink-2);
+      margin-top: 8px;
+    }
+
+    .reader-content .note,
+    .reader-content [data-type="note"] {
+      margin: 20px 0;
+      padding: 16px 20px;
+      background: #f8f4e8;
+      border: 1px solid #e6d48a;
+      border-radius: 6px;
+    }
+
+    .ann-hl { border-radius: 2px; }
+    .ann-note { border-radius: 2px; }
+
+    .progress-bar {
+      position: fixed;
+      top: 52px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 99;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .ann-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent);
+      color: white;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .chapter-title {
+      text-align: center;
+      padding: 40px 20px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chapter-title h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    /* TOC Panel */
+    .toc-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--toc-width);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      z-index: 200;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+    }
+
+    .toc-panel.open {
+      transform: translateX(0);
+    }
+
+    .toc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      height: 52px;
+    }
+
+    .toc-header h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .toc-close {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+    }
+
+    .toc-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+
+    .toc-chapter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .toc-chapter:hover {
+      background: rgba(163,74,46,0.06);
+      border-left-color: var(--accent);
+    }
+
+    .toc-arrow {
+      font-size: 0.6rem;
+      color: var(--ink-2);
+      transition: transform 0.2s ease;
+      margin-left: auto;
+    }
+
+    .toc-arrow.open {
+      transform: rotate(90deg);
+    }
+
+    .toc-subs {
+      padding: 4px 0;
+      border-left: 2px solid var(--border);
+      margin-left: 20px;
+    }
+
+    .toc-sub {
+      padding-left: 32px;
+      font-weight: 400;
+    }
+
+    .toc-sub-sub {
+      padding-left: 48px;
+      font-size: 0.75rem;
+    }
+
+    .toc-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 199;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .toc-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--ink-2);
+      z-index: 100;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 60px;
+      border-top: 1px solid var(--border);
+      color: var(--ink-2);
+      font-size: 0.8rem;
+    }
+  </style>
+<link rel="stylesheet" href="../../assets/site.css?v=17">
+<link rel="stylesheet" href="../../assets/course-theme.css?v=3">
+</head>
+<body>
+<button id="rr-toc-btn" onclick="toggleTOC()" title="Table of Contents — show/hide chapters" aria-expanded="true" aria-controls="tocPanel">&#9776; toc</button>
+
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="toc-overlay" id="tocOverlay" onclick="toggleTOC()"></div>
+
+  <div class="toc-panel" id="tocPanel">
+    <div class="toc-header">
+      <h3>Table of Contents</h3>
+      <button class="toc-close" onclick="toggleTOC()">✕</button>
+    </div>
+    <nav class="toc-nav">
+<div class="toc-chapter-wrap" data-chapter="0">
+<a href="ch01_reader.html" class="toc-chapter" onclick="navigateToChapter('ch01_reader.html')"><span>Chapter 1.Overview of Machine Learning Systems</span><span class="toc-ann-count">22</span><span class="toc-arrow" id="arrow-0" onclick="toggleChapter(event, 0)">▶</span></a>
+<div class="toc-subs" id="subs-0" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-5">Machine Learning Use Cases</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">Machine Learning in Research Versus in Production</a>
+<a class="toc-heading toc-sub-sub" href="#rr-h-9">Different stakeholders and requirements</a>
+<a class="toc-heading toc-sub-sub" href="#rr-h-11">Computational priorities</a>
+<a class="toc-heading toc-sub-sub" href="#rr-h-14">Data</a>
+<a class="toc-heading toc-sub-sub" href="#rr-h-16">Fairness</a>
+<a class="toc-heading toc-sub-sub" href="#rr-h-17">Interpretability</a>
+<a class="toc-heading toc-sub-sub" href="#rr-h-18">Discussion</a>
+<a class="toc-heading toc-sub" href="#rr-h-19">Machine Learning Systems Versus Traditional Software</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="1">
+<a href="preface01_reader.html" class="toc-chapter" onclick="navigateToChapter('preface01_reader.html')"><span>Preface</span><span class="toc-ann-count">4</span></a>
+</div>
+</nav>
+  </div>
+
+  <nav class="top-bar">
+    <button onclick="toggleTOC()" title="Table of Contents">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <span class="top-bar-title">Chapter 1.Overview of Machine Learning Systems</span>
+    <button onclick="toggleSettings()" title="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </nav>
+
+  <main class="reader-content">
+    <div class="chapter-title">
+      <h1 id="rr-h-0">Chapter 1.Overview of Machine Learning Systems</h1>
+      <span class="ann-badge">📝 37 annotations</span>
+    </div>
+
+<div id="sbo-rt-content"><section class="pagenumrestart" data-pdf-bookmark="Chapter 1. Overview of Machine Learning Systems" data-type="chapter" epub:type="chapter"><div class="chapter" id="overview_of_machine_learning_systems">
+<h1 id="rr-h-1"><span class="label">Chapter 1. </span>Overview of Machine Learning Systems</h1>
+<p>In November 2016, Google announced that it had incorporated its multilingual neural machine translation system into Google Translate, <span class="ann-hl" style="background:rgba(102,217,239,0.3); border-bottom:2px solid #2B9BC9; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">marking one of the first success stories of deep artificial neural networks in production at scale.1</span> According to Google, with this update, the quality of translation improved more in a single leap than they had seen in the previous 10 years combined.</p>
+<p>This success of deep learning renewed the <a contenteditable="false" data-primary="ML (machine learning)" data-secondary="deep learning and" data-type="indexterm" id="idm46868213651056"></a><a contenteditable="false" data-primary="deep learning" data-secondary="ML (machine learning) and" data-type="indexterm" id="idm46868226338784"></a>interest in machine learning (ML) at large. Since then, more and more companies have turned toward ML for solutions to their most challenging problems. In just five years, ML has found its way into almost every aspect of our lives: how we access information, how we communicate, how we work, how we find love. The spread of ML has been so rapid that it’s already hard to imagine life without it. Yet there are still many more use cases for ML waiting to be explored in fields such as health care, transportation, farming, and even in helping us understand the universe.<sup><a data-type="noteref" href="ch01.xhtml#ch01fn2" id="ch01fn2-marker">2</a></sup></p>
+<p>Many people, when they hear “machine learning system,” think of just the ML algorithms being used such as logistic regression or different types of neural networks. However, the algorithm is only a small part of an ML system in production. <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">The system also includes the business requirements that gave birth to the ML project in the first place, the interface where users and developers interact with your system, the data stack, and the logic for developing, monitoring, and updating your models, as well as the infrastructure that enables the delivery of that logic</span>. Figure 1-1 shows you the different components of an ML system and in which chapters of this book they will be covered.</p>
+<div data-type="note" epub:type="note">
+<h1 id="rr-h-2">The Relationship Between MLOps and ML Systems Design</h1>
+<p>Ops in MLOps comes from DevOps, short for Developments and Operations. To operationalize something means to bring it into production, which includes deploying, monitoring, and maintaining it. <span class="ann-hl" style="background:rgba(102,217,239,0.3); border-bottom:2px solid #2B9BC9; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">MLOps is a set of tools and best practices for bringing ML into production.</span></p>
+<p>ML systems design takes a system approach to MLOps, which means that it considers an ML system holistically to ensure that all the components and their stakeholders can work together to satisfy the specified objectives and requirements.</p>
+</div>
+<figure><div class="figure" id="different_components_of_an_ml_systemdot"><img alt="" height="357" src="Images/dmls_0101.png" width="600"/>
+<h6 id="rr-h-3"><span class="label">Figure 1-1. </span>Different components of an ML system. “ML algorithms” is usually what people think of when they say machine learning, but it’s only a small part of the entire system.</h6>
+</div></figure>
+<p>There are many excellent books about various ML algorithms. This book doesn’t cover any specific algorithms in detail but rather helps readers understand the entire ML system as a whole. In other words, <span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">this book’s goal is to provide you with a framework to develop a solution that best works for your problem, regardless of which algorithm you might end up using</span>. Algorithms might become outdated quickly as new algorithms are constantly being developed, but the framework proposed in this book should still work with new algorithms.</p>
+<p>The first chapter of the book aims to give you an overview of what it takes to bring an ML model to production. Before discussing how to develop an ML system, it’s important to ask a fundamental question of when and when not to use ML. We’ll cover some of the popular use cases of ML to illustrate this point.</p>
+<p>After the use cases, we’ll move on to the challenges of deploying ML systems, and we’ll do so by comparing ML in production to ML in research as well as to traditional software. If you’ve been in the trenches of developing applied ML systems, you might already be familiar with what’s written in this chapter. However, if you have only had experience with ML in an academic setting, this chapter will give an honest view of ML in the real <a contenteditable="false" data-primary="MLOPs, ML systems design and" data-startref="mlmlsys" data-type="indexterm" id="idm46868213487088"></a>world and set your first application up for success.</p>
+<section data-pdf-bookmark="When to Use Machine Learning" data-type="sect1"><div class="sect1" id="when_to_use_machine_learning">
+<h1 id="rr-h-4">When to Use Machine Learning</h1>
+<p>As its adoption in the industry quickly grows, ML has proven to be a powerful tool for a wide range of problems. Despite an incredible amount of excitement and hype generated by people both inside and outside the field, ML is not a magic tool that can solve all problems. Even for problems that ML can solve, ML solutions might not be the optimal solutions. <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Before starting an ML project, you might want to ask whether ML is necessary or cost-effective</span>.3</p>
+<p>To understand what ML can do, let’s examine what ML solutions generally do:</p>
+<blockquote>
+<p>Machine learning is an approach to (1) <em>learn</em> (2) <em>complex patterns</em> from (3) <em>existing data</em> and use these patterns to make (4) <em>predictions</em> on (5) <em>unseen data</em>.</p>
+</blockquote>
+<p>We’ll look at each of the italicized keyphrases in the above framing to understand its implications to the problems ML can solve:</p>
+<dl>
+<dt><em>1. Learn</em>: the system has the capacity to learn</dt>
+<dd>
+A relational database isn’t an ML system because it doesn’t have the capacity to learn. You can explicitly state the relationship between two columns in a relational database, but it’s unlikely to have the capacity to figure out the relationship between these two columns by itself.
+For an ML system to learn, there must be something for it to learn from. In most cases, ML systems learn from data. In supervised learning, based on example input and output pairs, ML systems learn how to generate outputs for arbitrary inputs. For example, if you want to build an ML system to learn to predict the rental price for Airbnb listings, you need to provide a dataset where each input is a listing with relevant characteristics (square footage, number of rooms, neighborhood, amenities, rating of that listing, etc.) and the associated output is the rental price of that listing. <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Once learned, this ML system should be able to predict the price of a new listing given its characteristics.</span>
+</dd>
+<dt><em>2. Complex patterns</em>: there are patterns to learn, and they are complex</dt>
+<dd>
+ML solutions are only useful when there are patterns to learn. Sane people don’t invest money into building an ML system to predict the next outcome of a fair die because there’s no pattern in how these outcomes are generated.4 However, there are patterns in how stocks are priced, and therefore companies have invested billions of dollars in building ML systems to learn those patterns.
+Whether a pattern exists might not be obvious, or if patterns exist, your dataset or ML algorithms might not be sufficient to capture them. For example, there might be a pattern in how Elon Musk’s tweets affect cryptocurrency prices. However, you wouldn’t know until you’ve rigorously trained and evaluated your ML models on his tweets. Even if all your models fail to make reasonable predictions of cryptocurrency prices, it doesn’t mean there’s no pattern.
+Consider a website like Airbnb with a lot of house listings; each listing comes with a zip code. If you want to sort listings into the states they are located in, you wouldn’t need an ML system. Since the pattern is simple—each zip code corresponds to a known state—you can just use a lookup table.
+<span class="ann-hl" style="background:rgba(102,217,239,0.3); border-bottom:2px solid #2B9BC9; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">The relationship between a rental price and all its characteristics follows a much more complex pattern, which would be very challenging to manually specify. ML is a good solution for this</span>. Instead of telling your system how to calculate the price from a list of characteristics, you can provide prices and characteristics, and let your ML system figure out the pattern. The difference between ML solutions and the lookup table solution as well as general traditional software solutions is shown in Figure 1-2. For this reason, ML is also called Software 2.0.5
+ML has been very successful with tasks with complex patterns such as object detection and speech recognition. What is complex to machines is different from what is complex to humans. Many tasks that are hard for humans to do are easy for machines—for example, raising a number of the power of 10. On the other hand, many tasks that are easy for humans can be hard for machines—for example, deciding whether there’s a cat in a picture.
+
+Figure 1-2. Instead of requiring hand-specified patterns to calculate outputs, ML solutions learn patterns from inputs and outputs
+
+</dd>
+<dt><em>3. Existing data</em>: data is available, or it’s possible to collect data</dt>
+<dd>
+Because ML learns from data, there must be data for it to learn from. It’s amusing to think about building a model to predict how much tax a person should pay a year, but it’s not possible unless you have access to tax and income data of a large population.
+In the zero-shot learning (sometimes known as zero-data learning) context, it’s possible for an ML system to make good predictions for a task without having been trained on data for that task. However, this ML system was previously trained on data for other tasks, often related to the task in consideration. So even though the system doesn’t require data for the task at hand to learn from, it still requires data to learn.
+It’s also possible to launch an ML system without data. For example, in the <span class="ann-hl" style="background:rgba(102,217,239,0.3); border-bottom:2px solid #2B9BC9; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">context of continual learning, ML models can be deployed without having been trained on any data, but they will learn from incoming data in production</span>.6 However, serving insufficiently trained models to users comes with certain risks, such as poor customer experience.
+Without data and without continual learning, many companies follow a “fake-it-til-you make it” approach: launching a product that serves predictions made by humans, instead of ML models, with the hope of using the generated data to train ML models later.
+</dd>
+<dt class="less_space"><em>4. Predictions</em>: it’s a predictive problem</dt>
+<dd>
+ML models make predictions, so they can only solve problems that require predictive answers. ML can be especially appealing when you can benefit from a large quantity of cheap but approximate predictions. In English, “predict” means “estimate a value in the future.” For example, what will the weather be like tomorrow? Who will win the Super Bowl this year? What movie will a user want to watch next?
+As predictive machines (e.g., ML models) are becoming more effective, more and more problems are being reframed as predictive problems. Whatever question you might have, you can always frame it as: “What would the answer to this question be?” regardless of whether this question is about something in the future, the present, or even the past.
+Compute-intensive problems are one class of problems that have been very successfully reframed as predictive. Instead of computing the exact outcome of a process, which might be even more computationally costly and time-consuming than ML, you can frame the problem as: “What would the outcome of this process look like?” and approximate it using an ML model. The output will be an approximation of the exact output, but often, it’s good enough. You can see a lot of it in <span class="ann-hl" style="background:rgba(102,217,239,0.3); border-bottom:2px solid #2B9BC9; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">graphic renderings, such as image denoising and screen-space shading</span>.7
+</dd>
+<dt><em>5. Unseen data</em>: unseen data shares patterns with the training data</dt>
+<dd>
+The patterns your model learns from existing data are only useful if unseen data also share these patterns. A model to predict whether an app will get downloaded on Christmas 2020 won’t perform very well if it’s trained on data from 2008, when the most popular app on the App Store was Koi Pond. What’s Koi Pond? Exactly.
+In technical terms, it means your <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">unseen data and training data should come from similar distributions</span>. You might ask: “If the data is unseen, how do we know what distribution it comes from?” We don’t, but we can make assumptions—such as we can assume that users’ behaviors tomorrow won’t be too different from users’ behaviors today—and hope that our assumptions hold. If they don’t, we’ll have a model that performs poorly, which we might be able to find out with monitoring, as covered in Chapter 8, and test in production, as covered in Chapter 9.
+</dd>
+</dl>
+<p>Due to the way most ML algorithms today learn, ML solutions will especially shine if your problem has these additional following characteristics:</p>
+<dl>
+<dt>6. It’s repetitive</dt>
+<dd>
+Humans are great at few-shot learning: you can show kids a few pictures of cats and most of them will recognize a cat the next time they see one. Despite exciting progress in few-shot learning research, most ML algorithms still require many examples to learn a pattern. <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">When a task is repetitive, each pattern is repeated multiple times, which makes it easier for machines to learn it</span>.
+</dd>
+<dt>7. The cost of wrong predictions is cheap</dt>
+<dd>
+Unless your ML model’s performance is 100% all the time, which is highly unlikely for any meaningful tasks, your model is going to make mistakes. ML is especially suitable when the cost of a wrong prediction is low. For example, one of the biggest use cases of ML today is in recommender systems because with recommender systems, a bad recommendation is usually forgiving—the user just won’t click on the recommendation.
+<span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">If one prediction mistake can have catastrophic consequences, ML might still be a suitable solution if, on average, the benefits of correct predictions outweigh the cost of wrong predictions</span>. Developing self-driving cars is challenging because an algorithmic mistake can lead to death. However, many companies still want to develop self-driving cars because they have the potential to save many lives once self-driving cars are statistically safer than human drivers.
+</dd>
+<dt>8. It’s at scale</dt>
+<dd>
+ML solutions often require nontrivial up-front investment on data, compute, infrastructure, and talent, so it’d make sense if we can use these solutions a lot.
+“<span class="ann-hl" style="background:rgba(102,217,239,0.3); border-bottom:2px solid #2B9BC9; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">At scale” means different things for different tasks, but, in general, it means making a lot of predictions</span>. Examples include sorting through millions of emails a year or predicting which departments thousands of support tickets should be routed to a day.
+A problem might appear to be a singular prediction, but it’s actually a series of predictions. For example, a model that predicts who will win a US presidential election seems like it only makes one prediction every four years, but it might actually be making a prediction every hour or even more frequently because that prediction has to be continually updated to incorporate new information.
+Having a problem at scale also means that there’s a lot of data for you to collect, which is useful for training ML models.
+</dd>
+<dt class="less_space">9. The patterns are constantly changing</dt>
+<dd>
+Cultures change. Tastes change. Technologies change. What’s trendy today might be old news tomorrow. Consider the task of email spam classification. Today an indication of a spam email is a Nigerian prince, but tomorrow it might be a distraught Vietnamese writer.
+If your problem involves one or more constantly changing patterns, hardcoded solutions such as handwritten rules can become outdated quickly. Figuring how your problem has changed so that you can update your handwritten rules accordingly can be too expensive or impossible. Because <span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">ML learns from data, you can update your ML model with new data without having to figure out how the data has changed.</span> It’s also possible to set up your system to adapt to the changing data distributions, an approach we’ll discuss in the section “Continual Learning”.
+</dd>
+</dl>
+<p>The list of use cases can go on and on, and it’ll grow even longer as ML adoption matures in the industry. Even though ML can solve a subset of problems very well, it can’t solve and/or shouldn’t be used for a lot of problems. Most of today’s ML algorithms shouldn’t be used under any of the following conditions:</p>
+<ul>
+<li>
+<p>It’s unethical. We’ll go over one case study where the use of ML algorithms can be argued as unethical in the section <a data-type="xref" href="ch11.xhtml#case_study_i_automated_graderapostrophe">“Case study I: Automated grader’s biases”</a>.</p>
+</li>
+<li>
+<p>Simpler solutions do the trick. In <a data-type="xref" href="ch06.xhtml#model_development_and_offline_evaluatio">Chapter 6</a>, we’ll cover the four phases of ML model development where the first phase should be non-ML solutions.</p>
+</li>
+<li>
+<p>It’s not cost-effective.</p>
+</li>
+</ul>
+<p><span class="ann-hl" style="background:rgba(102,217,239,0.3); border-bottom:2px solid #2B9BC9; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">However, even if ML can’t solve your problem, it might be possible to break your problem into smaller components, and use ML to solve some of them.</span> For example, if you can’t build a chatbot to answer all your customers’ queries, it might be possible to build an ML model to predict whether a query matches one of the frequently asked questions. If yes, direct the customer to the answer. If not, direct them to customer service.</p>
+<p class="pagebreak-after">I’<span class="ann-hl" style="background:rgba(102,217,239,0.3); border-bottom:2px solid #2B9BC9; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">d also want to caution against dismissing a new technology because it’s not as cost-effective as the existing technologies at the moment</span>. Most technological advances are incremental. A type of technology might not be efficient now, but it might be over time with more investments. If you wait for the technology to prove its worth to the rest of the industry before jumping in, you might end up years or decades behind your competitors.</p>
+<section data-pdf-bookmark="Machine Learning Use Cases" data-type="sect2"><div class="sect2" id="machine_learning_use_cases">
+<h2 class="less_space" id="rr-h-5">Machine Learning Use Cases</h2>
+<p>ML has found increasing usage in both <a contenteditable="false" data-primary="ML (machine learning)" data-secondary="use cases" data-type="indexterm" id="mlusec"></a><a contenteditable="false" data-primary="use cases" data-type="indexterm" id="useca"></a>enterprise and consumer applications. Since the mid-2010s, there has been an explosion of applications that leverage ML to deliver superior or previously impossible services to consumers.</p>
+<p>With the explosion of information and services, it would have been very challenging for us to find what we want without the help of ML, manifested in either a search engine or a recommender system. When you visit a website like Amazon or Netflix, you’re recommended items that are predicted to best match your taste. If you don’t like any of your recommendations, you might want to search for specific items, and <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">your search results are likely powered by ML.</span></p>
+<p>If you have a smartphone, ML is likely already assisting you in many of your daily activities. Typing on your <a contenteditable="false" data-primary="smartphones" data-secondary="ML (machine learning) and" data-type="indexterm" id="idm46868229085120"></a><a contenteditable="false" data-primary="ML (machine learning)" data-secondary="smartphones and" data-type="indexterm" id="idm46868213662064"></a>phone is made easier with <em>predictive typing</em>, an ML system that gives you suggestions on what you might want to say next. An ML system might run in your photo editing app to suggest how best to enhance your photos. You might authenticate your phone using your fingerprint or your face, which requires an ML system to predict whether a fingerprint or a face matches yours.</p>
+<p>The ML use case that drew me into the field was <em>machine translation</em>, automatically translating from one language to another. It has the potential to allow people from different cultures to communicate with each other, erasing the language barrier. My parents don’t speak English, but thanks to Google Translate, now they can read my writing and talk to my friends who don’t speak Vietnamese.</p>
+<p>ML is increasingly present in our homes with smart personal assistants such as Alexa and Google Assistant. Smart security cameras can let you know when your pets leave home or if you have an uninvited guest. A friend of mine was worried about his aging mother living by herself—if she falls, no one is there to help her get up—so he relied on an at-home health monitoring system that predicts whether someone has fallen in the house.</p>
+<p>Even though the market for consumer ML applications is booming, the majority of ML use cases are still in the enterprise world. Enterprise ML applications tend to have vastly different requirements and considerations from consumer applications. There are many exceptions, but for most cases, enterprise applications might have stricter accuracy requirements but be more forgiving with latency requirements. For example, improving a speech recognition system’s accuracy from 95% to 95.5% might not be noticeable to most consumers, but improving a resource allocation system’s efficiency by just 0.1% can help a corporation like Google or General Motors save millions of dollars. At the same time, latency of a second might get a consumer distracted and opening something else, but enterprise users might be more tolerant of high latency. For people interested in building companies out of ML applications, consumer apps might be easier to distribute but much harder to monetize. However, most enterprise use cases aren’t obvious unless you’ve encountered them yourself.</p>
+<p>According to Algorithmia’s 2020 state of enterprise machine learning survey, ML applications in enterprises are diverse, serving both internal use cases (reducing costs, generating customer insights and intelligence, internal processing automation) and external use cases (improving customer experience, retaining customers, interacting with customers) as shown in <a data-type="xref" href="#twozerotwozero_state_of_enterprise_mach">Figure 1-3</a>.<sup><a data-type="noteref" href="ch01.xhtml#ch01fn8" id="ch01fn8-marker">8</a></sup></p>
+<figure><div class="figure" id="twozerotwozero_state_of_enterprise_mach"><img alt="" height="450" src="Images/dmls_0103.png" width="600"/>
+<h6 id="rr-h-6"><span class="label">Figure 1-3. </span>2020 state of enterprise machine learning. Source: Adapted from an image by Algorithmia</h6>
+</div></figure>
+<p class="pagebreak-before"><em>Fraud detection</em> is among the <a contenteditable="false" data-primary="fraud detection" data-type="indexterm" id="idm46868214698416"></a>oldest applications of ML in the enterprise world. If your product or service involves transactions of any value, it’ll be susceptible to fraud. By leveraging ML solutions for anomaly detection, you can have systems that learn from historical fraud transactions and predict whether a future transaction is fraudulent.</p>
+<p>Deciding how much to charge for your product or service is probably one of the hardest business decisions; why not let ML do it for you? Price optimization is the process of estimating a price at a certain time period to maximize a defined objective function, such as the company’s margin, revenue, or growth rate. ML-based pricing optimization is most suitable for cases with a large number of transactions where demand fluctuates and <span class="ann-hl" style="background:rgba(102,217,239,0.3); border-bottom:2px solid #2B9BC9; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">consumers are willing to pay a dynamic price—for example, internet ads, flight tickets, accommodation bookings, ride-sharing, and events</span>.</p>
+<p>To run a business, it’s important to be <a contenteditable="false" data-primary="forecasting customer demand" data-type="indexterm" id="idm46868213483984"></a>able to forecast customer demand so that you can prepare a budget, stock inventory, allocate resources, and update pricing strategy. For example, if you run a grocery store, you want to stock enough so that customers find what they’re looking for, but you don’t want to overstock, because if you do, your groceries might go bad and you lose money.</p>
+<p>Acquiring a new user is expensive. As of 2019, the average cost for an app to acquire a user who’ll make an in-app purchase is $86.61.<sup><a data-type="noteref" href="ch01.xhtml#ch01fn9" id="ch01fn9-marker">9</a></sup> The acquisition cost for Lyft is estimated at $158/rider.<sup><a data-type="noteref" href="ch01.xhtml#ch01fn10" id="ch01fn10-marker">10</a></sup> This cost is so much higher for enterprise customers. Customer acquisition cost is hailed by investors as a startup killer.<sup><a data-type="noteref" href="ch01.xhtml#ch01fn11" id="ch01fn11-marker">11</a></sup> Reducing customer acquisition costs by a small amount can result in a large increase in profit. This can be done through better identifying potential customers, showing better-targeted ads, giving discounts at the right time, etc.—all of which are suitable tasks for ML.</p>
+<p>After you’ve spent so much money acquiring a customer, it’d be a shame if they leave. The cost of acquiring a new user is approximated to be 5 to 25 times more expensive than retaining an existing one.<sup><a data-type="noteref" href="ch01.xhtml#ch01fn12" id="ch01fn12-marker">12</a></sup> <em>Churn prediction</em> is predicting when a specific customer is about to stop using your products or services so that you can take appropriate actions to win them back. Churn prediction can be used not only for customers but also for employees.</p>
+<p>To prevent customers from leaving, it’s important to keep them happy by addressing their concerns as soon as they arise. Automated support ticket classification can help with that. Previously, when a customer opened a support ticket or sent an email, it needed to first be processed then passed around to different departments until it arrived at the inbox of someone who could address it. An ML system can analyze the ticket content and predict where it should go, which can shorten the response time and improve customer satisfaction. It can also be used to classify internal IT tickets.</p>
+<p>Another popular use case of ML in enterprise is <a contenteditable="false" data-primary="brand monitoring" data-type="indexterm" id="idm46868213886912"></a>brand monitoring. The brand is a valuable asset of a business.<sup><a data-type="noteref" href="ch01.xhtml#ch01fn13" id="ch01fn13-marker">13</a></sup> It’s important to monitor how the public and your customers perceive your brand. You might want to know when/where/how it’s mentioned, both explicitly (e.g., when someone mentions “Google”) or implicitly (e.g., when someone says “the search giant”), as well as the sentiment associated with it. If there’s suddenly a surge of negative sentiment in your brand mentions, you might want to address it as soon as possible. Sentiment analysis is a typical ML task.</p>
+<p>A set of ML use cases that has generated much excitement recently is in health care. There are ML systems that can detect skin cancer and diagnose diabetes. Even though many health-care applications are geared toward consumers, because of their strict requirements with accuracy and privacy, they are usually provided through a health-care provider such <a contenteditable="false" data-primary="ML (machine learning)" data-secondary="when to use" data-startref="mlwhen" data-type="indexterm" id="idm46868213356368"></a><a contenteditable="false" data-primary="ML (machine learning)" data-secondary="use cases" data-startref="mlusec" data-type="indexterm" id="idm46868213830608"></a><a contenteditable="false" data-primary="use cases" data-startref="useca" data-type="indexterm" id="idm46868213674576"></a>as a hospital or used to assist doctors in providing diagnosis.</p>
+</div></section>
+</div></section>
+<section data-pdf-bookmark="Understanding Machine Learning Systems" data-type="sect1"><div class="sect1" id="understanding_machine_learning_systems">
+<h1 id="rr-h-7">Understanding Machine Learning Systems</h1>
+<p>Understanding ML systems will be helpful in designing and developing them. In this section, we’ll go over how ML systems are different from both ML in research (or as often taught in school) and traditional software, which motivates the need for this book.</p>
+<section data-pdf-bookmark="Machine Learning in Research Versus in Production" data-type="sect2"><div class="sect2" id="machine_learning_in_research_versus_in">
+<h2 id="rr-h-8">Machine Learning in Research Versus in Production</h2>
+<p class="pagebreak-after">As ML usage in the industry is still fairly new, most <a contenteditable="false" data-primary="ML (machine learning)" data-secondary="research and" data-type="indexterm" id="mlres"></a><a contenteditable="false" data-primary="ML (machine learning)" data-secondary="production and" data-type="indexterm" id="mlprod"></a><a contenteditable="false" data-primary="production, ML and" data-type="indexterm" id="proml"></a>people with ML expertise have gained it through academia: taking courses, doing research, reading academic papers. If that describes your background, it might be a steep learning curve for you to understand the challenges of deploying ML systems in the wild and navigate an overwhelming set of solutions to these challenges. ML in production is very different from ML in research. <a data-type="xref" href="#key_differences_between_ml_in_research">Table 1-1</a> shows five of the major differences.</p>
+<table class="border less_space" id="key_differences_between_ml_in_research">
+<caption><span class="label">Table 1-1. </span>Key differences between ML in research and ML in production</caption>
+<thead>
+<tr>
+<th> </th>
+<th>Research</th>
+<th>Production</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Requirements</td>
+<td>State-of-the-art model performance on benchmark datasets</td>
+<td>Different stakeholders have different requirements</td>
+</tr>
+<tr>
+<td>Computational priority</td>
+<td>Fast training, high throughput</td>
+<td>Fast inference, low latency</td>
+</tr>
+<tr>
+<td>Data</td>
+<td>Static<sup><a data-type="noteref" href="ch01.xhtml#ch01fn14" id="ch01fn14-marker">a</a></sup></td>
+<td>Constantly shifting</td>
+</tr>
+<tr>
+<td>Fairness</td>
+<td>Often not a focus</td>
+<td>Must be considered</td>
+</tr>
+<tr>
+<td>Interpretability</td>
+<td>Often not a focus</td>
+<td>Must be considered</td>
+</tr>
+</tbody>
+<tbody><tr class="footnotes"><td colspan="3"><p data-type="footnote" id="ch01fn14"><sup><a href="ch01.xhtml#ch01fn14-marker">a</a></sup> A subfield of research focuses on continual learning: developing models to work with changing data distributions. We’ll cover continual learning in <a data-type="xref" href="ch09.xhtml#continual_learning_and_test_in_producti">Chapter 9</a>.</p></td></tr></tbody></table>
+<section data-pdf-bookmark="Different stakeholders and requirements" data-type="sect3"><div class="sect3" id="different_stakeholders_and_requirements">
+<h3 id="rr-h-9">Different stakeholders and requirements</h3>
+<p>People involved in a research and leaderboard project often align on one single objective. The most common <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">objective is model performance—develop a model that achieves the state-of-the-art results on benchmark datasets</span>. To edge out a small improvement in performance, researchers often resort to techniques that make models too complex to be useful.</p>
+<p>There are many stakeholders involved in bringing an ML system into production. Each stakeholder has their own requirements. Having different, often conflicting, requirements can make it difficult to design, develop, and select an ML model that satisfies all the requirements.</p>
+<p>Consider a mobile app that recommends restaurants to users. The app makes money by charging restaurants a 10% service fee on each order. This means that expensive orders give the app more money than cheap orders. The project involves ML engineers, salespeople, product managers, infrastructure engineers, and a manager:</p>
+<dl>
+<dt>ML engineers</dt>
+<dd>
+<p>Want a model that recommends restaurants that users will most likely order from, and they believe they can do so by using a more complex model with more data.</p>
+</dd>
+<dt>Sales team</dt>
+<dd>
+<p>Wants a model that recommends the more expensive restaurants since these restaurants bring in more service fees.</p>
+</dd>
+<dt>Product team</dt>
+<dd>
+<p>Notices that every increase in latency leads to a drop in orders through the service, so they want a model that can return the recommended restaurants in less than 100 milliseconds.</p>
+</dd>
+<dt>ML platform team</dt>
+<dd>
+<p>As the traffic grows, this team has been woken up in the middle of the night because of problems with scaling their existing system, so they want to hold off on model updates to prioritize improving the ML platform.</p>
+</dd>
+<dt>Manager</dt>
+<dd>
+<p>Wants to maximize the margin, and one way to achieve this might be to let go of the ML team.<sup><a data-type="noteref" href="ch01.xhtml#ch01fn15" id="ch01fn15-marker">14</a></sup></p>
+</dd>
+</dl>
+<p>“<span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Recommending the restaurants that users are most likely to click on” and “recommending the restaurants that will bring in the most money for the app” are</span> two different objectives, and in the section “Decoupling objectives”, we’ll discuss how to develop an ML system that satisfies different objectives. Spoiler: we’ll develop one model for each objective and combine their predictions.</p>
+<p>Let’s imagine for now that we have two different models. Model A is the model that recommends the restaurants that users are most likely to click on, and <span class="ann-hl" style="background:rgba(102,217,239,0.3); border-bottom:2px solid #2B9BC9; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">model B is the model that recommends the restaurants that will bring in the most money for the app.</span> A and B might be very different models. Which model should be deployed to the users? To make the decision more difficult, neither A nor B satisfies the requirement set forth by the product team: they can’t return restaurant recommendations in less than 100 milliseconds.</p>
+<p>When developing an ML project, it’s important for ML engineers to understand requirements from all stakeholders involved and how strict these requirements are. For example, if being able to return recommendations within 100 milliseconds is a must-have requirement—the company finds that if your model takes over 100 milliseconds to recommend restaurants, 10% of users would lose patience and close the app—then neither model A nor model B will work. However, if it’s just a nice-to-have requirement, you might still want to consider model A or model B.</p>
+<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Production having different requirements from research is one of the reasons why successful research projects might not always be used in production</span>. For example, ensembling is a technique popular among the winners of many ML competitions, including the famed $1 million Netflix Prize, and yet it’s not widely used in production. Ensembling combines “multiple learning algorithms to obtain better predictive performance than could be obtained from any of the constituent learning algorithms alone.”15 While it can give your ML system a small performance improvement, ensembling tends to make a system too complex to be useful in production, e.g., slower to make predictions or harder to interpret the results. We’ll discuss ensembling further in the section “Ensembles”.</p>
+<p>For many tasks, a small improvement in performance can result in a huge boost in revenue or cost savings. For example, a 0.2% improvement in the click-through rate for a product recommender system can result in millions of dollars increase in revenue for an ecommerce site. However, for many tasks, a small improvement might not be noticeable for users. For the second type of task, if a simple model can do a reasonable job, complex models must perform significantly better to justify the complexity.</p>
+<aside data-type="sidebar" epub:type="sidebar"><div class="sidebar" id="id_zerozerozerozerozerozeroone">
+<h5 id="rr-h-10">Criticism of ML Leaderboards</h5>
+<p>In recent years, there have been many critics of ML leaderboards, both competitions such as Kaggle and research leaderboards such as ImageNet or GLUE.</p>
+<p>An obvious argument is that in these competitions many of the hard steps needed for building ML systems are already done for you.<sup><a data-type="noteref" href="ch01.xhtml#ch01fn17" id="ch01fn17-marker">16</a></sup></p>
+<p>A less obvious argument is that due to the multiple-hypothesis testing scenario that happens when you have multiple teams testing on the same hold-out test set, a model can do better than the rest just by chance.<sup><a data-type="noteref" href="ch01.xhtml#ch01fn18" id="ch01fn18-marker">17</a></sup></p>
+<p>The misalignment of interests between research and production has been noticed by researchers. In an EMNLP 2020 paper, Ethayarajh and Jurafsky argued that benchmarks have helped drive advances in natural language processing (NLP) by incentivizing the creation of more accurate models at the expense of other qualities valued by practitioners such as compactness, <a contenteditable="false" data-primary="stakeholders, research projects" data-startref="stres" data-type="indexterm" id="idm46868221030128"></a>fairness, and energy efficiency.<sup><a data-type="noteref" href="ch01.xhtml#ch01fn19" id="ch01fn19-marker">18</a></sup></p>
+</div></aside>
+</div></section>
+<section data-pdf-bookmark="Computational priorities" data-type="sect3"><div class="sect3" id="computational_priorities">
+<h3 id="rr-h-11">Computational priorities</h3>
+<p>When designing an ML system, people who <a contenteditable="false" data-primary="computational priorities" data-type="indexterm" id="idm46868213577232"></a>haven’t deployed an ML system often make the mistake of focusing too much on the model development part and not enough on the model deployment and maintenance part.</p>
+<p>During the model development process, you might train many different models, and each model does multiple passes over the training data. Each trained model then generates predictions on the validation data once to report the scores. The validation data is usually much smaller than the training data. During model development, training is the bottleneck. Once the model has been deployed, however, its job is to generate predictions, so inference is the bottleneck. Research usually prioritizes fast training, whereas production usually prioritizes fast inference.</p>
+<p>One corollary of this is that <a contenteditable="false" data-primary="latency versus throughput" data-type="indexterm" id="latv"></a>research prioritizes high throughput whereas production prioritizes low latency. In case you need a refresh, latency refers to the time it takes from receiving a query to returning the result. Throughput refers to how many queries are processed within a specific period of time.</p>
+<div data-type="note" epub:type="note">
+<h1 id="rr-h-12">Terminology Clash</h1>
+<p>Some books make the distinction <a contenteditable="false" data-primary="latency" data-type="indexterm" id="idm46868221109824"></a>between latency and response time. According to Martin Kleppmann in his book <em>Designing Data-Intensive Applications</em>, “The response time is what the client sees: besides the actual time to process the request (the service time), it includes network delays and queueing delays. Latency is the duration that a request is waiting to be handled—during which it is latent, awaiting service.”<sup><a data-type="noteref" href="ch01.xhtml#custom_ch01fn1" id="custom_ch01fn1-marker">19</a></sup></p>
+<p>In this book, to simplify the discussion and to be consistent with the terminology used in the ML community, we use latency to refer to the response time, so the latency of a request measures the time from when the request is sent to the time a response is received.</p>
+</div>
+<p>For example, the average latency of Google Translate is the average time it takes from when a user clicks Translate to when the translation is shown, and the throughput is how many queries it processes and serves a second.</p>
+<p>If your system always processes one query at a time, higher latency means lower throughput. If the average latency is 10 ms, which means it takes 10 ms to process a query, the throughput is 100 queries/second. If the average latency is 100 ms, the throughput is 10 queries/second.</p>
+<p>However, because most modern distributed systems batch queries to process them together, often concurrently, <em>higher latency might also mean higher throughput</em>. If you process 10 queries at a time and it takes 10 ms to run a batch, the average latency is still 10 ms but the throughput is now 10 times higher—1,000 queries/second. If you process 50 queries at a time and it takes 20 ms to run a batch, the average latency now is 20 ms and the throughput is 2,500 queries/second. Both latency and throughput have increased! The difference in latency and throughput trade-off for processing queries one at a time and processing queries in batches is illustrated in <a data-type="xref" href="#when_processing_queries_one_at_a_timeco">Figure 1-4</a>.</p>
+<figure><div class="figure" id="when_processing_queries_one_at_a_timeco"><img alt="" height="341" src="Images/dmls_0104.png" width="600"/>
+<h6 id="rr-h-13"><span class="label">Figure 1-4. </span>When processing queries one at a time, higher latency means lower throughput. When processing queries in batches, however, higher latency might also mean higher throughput.</h6>
+</div></figure>
+<p>This is even more complicated if you want to batch online queries. Batching requires your system to wait for enough queries to arrive in a batch before processing them, which further increases latency.</p>
+<p>In research, you care more about how many samples you can process in a second (throughput) and less about how long it takes for each sample to be processed (latency). You’re willing to increase latency to increase throughput, for example, with aggressive batching.</p>
+<p>However, once you deploy your model into the real world, latency matters a lot. In 2017, an Akamai study found that a 100 ms delay can hurt conversion rates by 7%.<sup><a data-type="noteref" href="ch01.xhtml#ch01fn20" id="ch01fn20-marker">20</a></sup> In 2019, Booking.com found that an increase of about 30% in latency cost about 0.5% in conversion rates—“a relevant cost for our business.”<sup><a data-type="noteref" href="ch01.xhtml#ch01fn21" id="ch01fn21-marker">21</a></sup> In 2016, Google found that more than half of mobile users will leave a page if it takes more than three seconds to load.<sup><a data-type="noteref" href="ch01.xhtml#ch01fn22" id="ch01fn22-marker">22</a></sup> Users today are even less patient.</p>
+<p>To reduce latency in production, you might have to reduce the number of queries you can process on the same hardware at a time. If your hardware is capable of processing many more queries at a time, using it to process fewer queries means underutilizing your hardware, increasing the cost of processing each query.</p>
+<p>When thinking about latency, it’s important to keep in mind that latency is not an individual number but a distribution. It’s tempting to simplify this distribution by using a single number like the average (arithmetic mean) latency of all the requests within a time window, but this number can be misleading. Imagine you have 10 requests whose latencies are 100 ms, 102 ms, 100 ms, 100 ms, 99 ms, 104 ms, 110 ms, 90 ms, 3,000 ms, 95 ms. The average latency is 390 ms, which makes your system seem slower than it actually is. What might have happened is that there was a network error that made one request much slower than others, and you should investigate that troublesome request.</p>
+<p>It’s usually better to think in percentiles, as they tell you something about a certain percentage of your requests. The most common percentile is the 50th percentile, abbreviated as p50. It’s also known as the median. If the median is 100 ms, half of the requests take longer than 100 ms, and half of the requests take less than 100 ms.</p>
+<p>Higher percentiles also help you discover outliers, which might be symptoms of something wrong. Typically, the percentiles you’ll want to look at are p90, p95, and p99. The 90th percentile (p90) for the 10 requests above is 3,000 ms, which is an outlier.</p>
+<p>Higher percentiles are important to look at because even though they account for a small percentage of your users, sometimes they can be the most important users. For example, on the Amazon website, the customers with the slowest requests are often those who have the most data on their accounts because they have made many purchases—that is, they’re the most valuable customers.<sup><a data-type="noteref" href="ch01.xhtml#ch01fn23" id="ch01fn23-marker">23</a></sup></p>
+<p>It’s a common practice to use high percentiles to specify the performance requirements for your system; for example, a product manager might specify that the 90th percentile or 99.9th percentile <a contenteditable="false" data-primary="latency versus throughput" data-startref="latv" data-type="indexterm" id="idm46868214142016"></a>latency of a system must be below a certain number.</p>
+</div></section>
+<section data-pdf-bookmark="Data" data-type="sect3"><div class="sect3" id="data">
+<h3 id="rr-h-14">Data</h3>
+<p>During the research phase, the datasets you work with are often clean and well-formatted, freeing you to focus on <a contenteditable="false" data-primary="data" data-type="indexterm" id="idm46868213567552"></a>developing models. They are static by nature so that the community can use them to benchmark new architectures and techniques. This means that many people might have used and discussed the same datasets, and quirks of the dataset are known. You might even find open source scripts to process and feed the data directly into your models.</p>
+<p>In production, data, if available, is a lot more messy. It’s noisy, possibly unstructured, constantly shifting. It’s likely biased, and you likely don’t know how it’s biased. Labels, if there are any, might be sparse, imbalanced, or incorrect. Changing project or business requirements might require updating some or all of your existing labels. If you work with users’ data, you’ll also have to worry about privacy and regulatory concerns. We’ll discuss a case study where users’ data is inadequately handled in the section <a data-type="xref" href="ch11.xhtml#case_study_ii_the_danger_of_quotation_m">“Case study II: The danger of “anonymized” data”</a>.</p>
+<p>In research, you mostly work with historical data, e.g., data that already exists and is stored somewhere. In production, most likely you’ll also have to work with data that is being constantly generated by users, systems, and third-party data.</p>
+<p><a data-type="xref" href="#data_in_research_versus_data_in_product">Figure 1-5</a> has been adapted from a great graphic by Andrej Karpathy, director of AI at Tesla, that illustrates the data problems he encountered during his PhD compared to his time at Tesla.</p>
+<figure><div class="figure" id="data_in_research_versus_data_in_product"><img alt="" height="352" src="Images/dmls_0105.png" width="600"/>
+<h6 id="rr-h-15"><span class="label">Figure 1-5. </span>Data in research versus data in production. Source: Adapted from an image by Andrej Karpathy<sup><a data-type="noteref" href="ch01.xhtml#ch01fn24" id="ch01fn24-marker">24</a></sup></h6>
+</div></figure>
+</div></section>
+<section data-pdf-bookmark="Fairness" data-type="sect3"><div class="sect3" id="fairness">
+<h3 id="rr-h-16">Fairness</h3>
+<p>During the research phase, a model is <a contenteditable="false" data-primary="fairness" data-type="indexterm" id="idm46868214009184"></a>not yet used on people, so it’s easy for researchers to put off fairness as an afterthought: “Let’s try to get state of the art first and worry about fairness when we get to production.” When it gets to production, it’s too late. If you optimize your models for better accuracy or lower latency, you can show that your models beat state of the art. But, as of writing this book, there’s no equivalent state of the art for fairness metrics.</p>
+<p>You or someone in your life might already be a victim of biased mathematical algorithms without knowing it. Your loan application might be rejected because the ML algorithm picks on your zip code, which embodies biases about one’s socioeconomic background. Your resume might be ranked lower because the ranking system employers use picks on the spelling of your name. Your mortgage might get a higher interest rate because it relies partially on credit scores, which favor the rich and punish the poor. Other examples of ML biases in the real world are in predictive policing algorithms, personality tests administered by potential employers, and college rankings.</p>
+<p>In 2019, “Berkeley researchers found that both face-to-face and online lenders rejected a total of 1.3 million creditworthy Black and Latino applicants between 2008 and 2015.” When the researchers “used the income and credit scores of the rejected applications but deleted the race identifiers, the mortgage application was accepted.”<sup><a data-type="noteref" href="ch01.xhtml#ch01fn25" id="ch01fn25-marker">25</a></sup> For even more galling examples, I recommend Cathy O’Neil’s <em>Weapons of Math Destruction</em>.<sup><a data-type="noteref" href="ch01.xhtml#ch01fn26" id="ch01fn26-marker">26</a></sup></p>
+<p>ML algorithms don’t predict the future, but encode the past, thus perpetuating the biases in the data and more. When ML algorithms are deployed at scale, they can discriminate against people at scale. If a human operator might only make sweeping judgments about a few individuals at a time, an ML algorithm can make sweeping judgments about millions in split seconds. This can especially hurt members of minority groups because misclassification on them could only have a minor effect on models’ overall performance metrics.</p>
+<p>If an algorithm can already make correct predictions on 98% of the population, and improving the predictions on the other 2% would incur multiples of cost, some companies might, unfortunately, choose not to do it. During a McKinsey &amp; Company research study in 2019, only 13% of the large companies surveyed said they are taking steps to mitigate risks to equity and fairness, such as algorithmic bias and discrimination.<sup><a data-type="noteref" href="ch01.xhtml#ch01fn27" id="ch01fn27-marker">27</a></sup> However, this is changing rapidly. We’ll cover fairness and other aspects of responsible AI in <a data-type="xref" href="ch11.xhtml#the_human_side_of_machine_learning">Chapter 11</a>.</p>
+</div></section>
+<section data-pdf-bookmark="Interpretability" data-type="sect3"><div class="sect3" id="interpretability">
+<h3 id="rr-h-17">Interpretability</h3>
+<p>In early 2020, the Turing Award winner Professor Geoffrey Hinton proposed a heatedly debated question about the importance <a contenteditable="false" data-primary="interpretability" data-type="indexterm" id="idm46868220889728"></a>of interpretability in ML systems. “Suppose you have cancer and you have to choose between a black box AI surgeon that cannot explain how it works but has a 90% cure rate and a human surgeon with an 80% cure rate. Do you want the AI surgeon to be illegal?”<sup><a data-type="noteref" href="ch01.xhtml#ch01fn28" id="ch01fn28-marker">28</a></sup></p>
+<p>A couple of weeks later, when I asked this question to a group of 30 technology executives at public nontech companies, only half of them would want the highly effective but unable-to-explain AI surgeon to operate on them. The other half wanted the human surgeon.</p>
+<p>While most of us are comfortable with using a microwave without understanding how it works, many don’t feel the same way about AI yet, especially if that AI makes important decisions about their lives.</p>
+<p>Since most ML research is still evaluated on a single objective, model performance, researchers aren’t incentivized to work on model interpretability. However, interpretability isn’t just optional for most ML use cases in the industry, but a requirement.</p>
+<p>First, interpretability is important for users, both business leaders and end users, to understand why a decision is made so that they can trust a model and detect potential biases mentioned previously.<sup><a data-type="noteref" href="ch01.xhtml#ch01fn29" id="ch01fn29-marker">29</a></sup> Second, it’s important for developers to be able to debug and improve a model.</p>
+<p>Just because interpretability is a requirement doesn’t mean everyone is doing it. As of 2019, only 19% of large companies are working to improve the explainability of their algorithms.<sup><a data-type="noteref" href="ch01.xhtml#ch01fn30" id="ch01fn30-marker">30</a></sup></p>
+</div></section>
+<section data-pdf-bookmark="Discussion" data-type="sect3"><div class="sect3" id="discussion">
+<h3 id="rr-h-18">Discussion</h3>
+<p>Some might argue that it’s OK to know only the academic side of ML because there are plenty of jobs in research. The first part—it’s OK to know only the academic side of ML—is true. The second part is false.</p>
+<p>While it’s important to pursue pure research, most companies can’t afford it unless it leads to short-term business applications. This is especially true now that the research community took the “bigger, better” approach. Oftentimes, new models require a massive amount of data and tens of millions of dollars in compute alone.</p>
+<p>As ML research and off-the-shelf models become more accessible, more people and organizations would want to find applications for them, which increases the demand for ML in production.</p>
+<p>The vast majority of ML-related jobs will be, <a contenteditable="false" data-primary="ML (machine learning)" data-secondary="research and" data-startref="mlres" data-type="indexterm" id="idm46868213349360"></a><a contenteditable="false" data-primary="ML (machine learning)" data-secondary="production and" data-startref="mlprod" data-type="indexterm" id="idm46868213347712"></a><a contenteditable="false" data-primary="production, ML and" data-startref="proml" data-type="indexterm" id="idm46868213512016"></a>and already are, in productionizing ML.</p>
+</div></section>
+</div></section>
+<section data-pdf-bookmark="Machine Learning Systems Versus Traditional Software" data-type="sect2"><div class="sect2" id="machine_learning_systems_versus_traditi">
+<h2 id="rr-h-19">Machine Learning Systems Versus Traditional Software</h2>
+<p>Since ML is part of software <a contenteditable="false" data-primary="ML systems" data-secondary="versus traditional software" data-type="indexterm" id="msystrad"></a>engineering (SWE), and software has been successfully used in production for more than half a century, some might wonder why we don’t just take tried-and-true best practices in software engineering and apply them to ML.</p>
+<p>That’s an excellent idea. In fact, ML production would be a much better place if ML experts were better software engineers. Many traditional SWE tools can be used to develop and deploy ML applications.</p>
+<p>However, many challenges are unique to ML applications and require their own tools. In SWE, there’s an underlying assumption that code and data are separated. In fact, in SWE, we want to keep things as modular and separate as possible (see the Wikipedia page on <a href="https://oreil.ly/kH67y">separation of concerns</a>).</p>
+<p>On the contrary, ML systems are part code, part data, and part artifacts created from the two. The trend in the last decade shows that applications developed with the most/best data win. Instead of focusing on improving ML algorithms, most companies will focus on improving their data. Because data can change quickly, ML applications need to be adaptive to the changing environment, which might require faster development and deployment cycles.</p>
+<p>In traditional SWE, you only need to focus on testing and versioning your code. With ML, we have to test and version our data too, and that’s the hard part. How to version large datasets? How to know if a data sample is good or bad for your system? Not all data samples are equal—some are more valuable to your model than others. For example, if your model has already trained on one million scans of normal lungs and only one thousand scans of cancerous lungs, a scan of a cancerous lung is much more valuable than a scan of a normal lung. Indiscriminately accepting all available data might hurt your model’s performance and even make it susceptible to data poisoning attacks.<sup><a data-type="noteref" href="ch01.xhtml#ch01fn31" id="ch01fn31-marker">31</a></sup></p>
+<p>The size of ML models is another challenge. As of 2022, it’s common for ML models to have hundreds of millions, if not billions, of parameters, which requires gigabytes of random-access memory (RAM) to load them into memory. A few years from now, a billion parameters might seem quaint—like, “Can you believe the computer that sent men to the moon only had 32 MB of RAM?”</p>
+<p>However, for now, getting these large models into production, especially on edge devices,<sup><a data-type="noteref" href="ch01.xhtml#ch01fn32" id="ch01fn32-marker">32</a></sup> is a massive engineering challenge. Then there is the question of how to get these models to run fast enough to be useful. An autocompletion model is useless if the time it takes to suggest the next character is longer than the time it takes for you to type.</p>
+<p>Monitoring and debugging these models in production is also nontrivial. As ML models get more complex, coupled with the lack of visibility into their work, it’s hard to figure out what went wrong or be alerted quickly enough when things go wrong.</p>
+<p>The good news is that these engineering <a contenteditable="false" data-primary="ML systems" data-secondary="versus traditional software" data-startref="msystrad" data-type="indexterm" id="idm46868214579920"></a>challenges are being tackled at a breakneck pace. Back in 2018, when the Bidirectional Encoder Representations from Transformers (BERT) paper first came out, people were talking about how BERT was too big, too complex, and too slow to be practical. The pretrained large BERT model has 340 million parameters and is 1.35 GB.<sup><a data-type="noteref" href="ch01.xhtml#ch01fn33" id="ch01fn33-marker">33</a></sup> Fast-forward two years later, BERT and its variants were already used in almost every English search on Google.<sup><a data-type="noteref" href="ch01.xhtml#ch01fn34" id="ch01fn34-marker">34</a></sup></p>
+</div></section>
+</div></section>
+<section data-pdf-bookmark="Summary" data-type="sect1"><div class="sect1" id="summary">
+<h1 id="rr-h-20">Summary</h1>
+<p>This opening chapter aimed to give readers an understanding of what it takes to bring ML into the real world. We started with a tour of the wide range of use cases of ML in production today. While most people are familiar with ML in consumer-facing applications, the majority of ML use cases are for enterprise. We also discussed when ML solutions would be appropriate. Even though ML can solve many problems very well, it can’t solve all the problems and it’s certainly not appropriate for all the problems. However, for problems that ML can’t solve, it’s possible that ML can be one part of the solution.</p>
+<p>This chapter also highlighted the differences between ML in research and ML in production. The differences include the stakeholder involvement, computational priority, the properties of data used, the gravity of fairness issues, and the requirements for interpretability. This section is the most helpful to those coming to ML production from academia. We also discussed how ML systems differ from traditional software systems, which motivated the need for this book.</p>
+<p>ML systems are complex, consisting of many different components. Data scientists and ML engineers working with ML systems in production will likely find that focusing only on the ML algorithms part is far from enough. It’s important to know about other aspects of the system, including the data stack, deployment, monitoring, maintenance, infrastructure, etc. This book takes a system approach to developing ML systems, which means that we’ll consider all components of a system holistically instead of just looking at ML algorithms. We’ll provide detail on what this holistic approach means in the next chapter.</p>
+</div></section>
+<div data-type="footnotes"><p data-type="footnote" id="ch01fn1"><sup><a href="ch01.xhtml#ch01fn1-marker">1</a></sup> Mike Schuster, Melvin Johnson, and Nikhil Thorat, “Zero-Shot Translation with Google’s Multilingual Neural Machine Translation System,” <em>Google AI Blog</em>, November 22, 2016, <a href="https://oreil.ly/2R1CB"><em class="hyperlink">https://oreil.ly/2R1CB</em></a>.</p><p data-type="footnote" id="ch01fn2"><sup><a href="ch01.xhtml#ch01fn2-marker">2</a></sup> Larry Hardesty, “A Method to Image Black Holes,” <em>MIT News</em>, June 6, 2016, <a href="https://oreil.ly/HpL2F"><em class="hyperlink">https://oreil.ly/HpL2F</em></a>.</p><p data-type="footnote" id="ch01fn3"><sup><a href="ch01.xhtml#ch01fn3-marker">3</a></sup> I didn’t ask whether ML is sufficient because the answer is always no.</p><p data-type="footnote" id="ch01fn4"><sup><a href="ch01.xhtml#ch01fn4-marker">4</a></sup> Patterns are different from distributions. We know the distribution of the outcomes of a fair die, but there are no patterns in the way the outcomes are generated.</p><p data-type="footnote" id="ch01fn5"><sup><a href="ch01.xhtml#ch01fn5-marker">5</a></sup> Andrej Karpathy, “Software 2.0,” <em>Medium</em>, November 11, 2017, <a href="https://oreil.ly/yHZrE"><em class="hyperlink">https://oreil.ly/yHZrE</em></a>.</p><p data-type="footnote" id="ch01fn6"><sup><a href="ch01.xhtml#ch01fn6-marker">6</a></sup> We’ll go over online learning in <a data-type="xref" href="ch09.xhtml#continual_learning_and_test_in_producti">Chapter 9</a>.</p><p data-type="footnote" id="ch01fn7"><sup><a href="ch01.xhtml#ch01fn7-marker">7</a></sup> Steke Bako, Thijs Vogels, Brian McWilliams, Mark Meyer, Jan Novák, Alex Harvill, Pradeep Sen, Tony Derose, and Fabrice Rousselle, “Kernel-Predicting Convolutional Networks for Denoising Monte Carlo Renderings,” <em>ACM Transactions on Graphics</em> 36, no. 4 (2017): 97, <a href="https://oreil.ly/EeI3j"><em class="hyperlink">https://oreil.ly/EeI3j</em></a>; Oliver Nalbach, Elena Arabadzhiyska, Dushyant Mehta, Hans-Peter Seidel, and Tobias Ritschel, “Deep Shading: Convolutional Neural Networks for Screen-Space Shading,” <em>arXiv</em>, 2016, <a href="https://oreil.ly/dSspz"><em class="hyperlink">https://oreil.ly/dSspz</em></a>.</p><p data-type="footnote" id="ch01fn8"><sup><a href="ch01.xhtml#ch01fn8-marker">8</a></sup> “2020 State of Enterprise Machine Learning,” <em>Algorithmia</em>, 2020, <a href="https://oreil.ly/wKMZB"><em class="hyperlink">https://oreil.ly/wKMZB</em></a>.</p><p data-type="footnote" id="ch01fn9"><sup><a href="ch01.xhtml#ch01fn9-marker">9</a></sup> “Average Mobile App User Acquisition Costs Worldwide from September 2018 to August 2019, by User Action and Operating System,” <em>Statista</em>, 2019, <a href="https://oreil.ly/2pTCH"><em class="hyperlink">https://oreil.ly/2pTCH</em></a>.</p><p data-type="footnote" id="ch01fn10"><sup><a href="ch01.xhtml#ch01fn10-marker">10</a></sup> Jeff Henriksen, “Valuing Lyft Requires a Deep Look into Unit Economics,” <em>Forbes</em>, May 17, 2019, <a href="https://oreil.ly/VeSt4"><span class="keep-together"><em class="hyperlink">https://oreil.ly/VeSt4</em></span></a>.</p><p data-type="footnote" id="ch01fn11"><sup><a href="ch01.xhtml#ch01fn11-marker">11</a></sup> David Skok, “Startup Killer: The Cost of Customer Acquisition,” <em>For Entrepreneurs</em>, 2018, <a href="https://oreil.ly/L3tQ7"><span class="keep-together"><em class="hyperlink">https://oreil.ly/L3tQ7</em></span></a>.</p><p data-type="footnote" id="ch01fn12"><sup><a href="ch01.xhtml#ch01fn12-marker">12</a></sup> Amy Gallo, “The Value of Keeping the Right Customers,” <em>Harvard Business Review</em>, October 29, 2014, <a href="https://oreil.ly/OlNkl"><span class="keep-together"><em class="hyperlink">https://oreil.ly/OlNkl</em></span></a>.</p><p data-type="footnote" id="ch01fn13"><sup><a href="ch01.xhtml#ch01fn13-marker">13</a></sup> Marty Swant, “The World’s 20 Most Valuable Brands,” <em>Forbes</em>, 2020, <a href="https://oreil.ly/4uS5i"><em class="hyperlink">https://oreil.ly/4uS5i</em></a>.</p><p data-type="footnote" id="ch01fn15"><sup><a href="ch01.xhtml#ch01fn15-marker">14</a></sup> It’s not unusual for the ML and data science teams to be among the first to go during a company’s mass layoff, as has been reported at <a href="https://oreil.ly/AfUB5">IBM</a>, <a href="https://oreil.ly/t0QpY">Uber</a>, <a href="https://oreil.ly/q4M4E">Airbnb</a>. See also Sejuti Das’s analysis “How Data Scientists Are Also Susceptible to the Layoffs Amid Crisis,” <em>Analytics India Magazine</em>, May 21, 2020, <a href="https://oreil.ly/jobmz"><em class="hyperlink">https://oreil.ly/jobmz</em></a>.</p><p data-type="footnote" id="ch01fn16"><sup><a href="ch01.xhtml#ch01fn16-marker">15</a></sup> Wikipedia, s.v. “Ensemble learning,” <a href="https://oreil.ly/5qkgp"><em class="hyperlink">https://oreil.ly/5qkgp</em></a>.</p><p data-type="footnote" id="ch01fn17"><sup><a href="ch01.xhtml#ch01fn17-marker">16</a></sup> Julia Evans, “Machine Learning Isn’t Kaggle Competitions,” 2014, <a href="https://oreil.ly/p8mZq"><em class="hyperlink">https://oreil.ly/p8mZq</em></a>.</p><p data-type="footnote" id="ch01fn18"><sup><a href="ch01.xhtml#ch01fn18-marker">17</a></sup> Lauren Oakden-Rayner, “AI Competitions Don’t Produce Useful Models,” September 19, 2019, <a href="https://oreil.ly/X6RlT"><span class="keep-together"><em class="hyperlink">https://oreil.ly/X6RlT</em></span></a>.</p><p data-type="footnote" id="ch01fn19"><sup><a href="ch01.xhtml#ch01fn19-marker">18</a></sup> Kawin Ethayarajh and Dan Jurafsky, “Utility Is in the Eye of the User: A Critique of NLP Leaderboards,” EMNLP, 2020, <a href="https://oreil.ly/4Ud8P"><em class="hyperlink">https://oreil.ly/4Ud8P</em></a>.</p><p data-type="footnote" id="custom_ch01fn1"><sup><a href="ch01.xhtml#custom_ch01fn1-marker">19</a></sup> Martin Kleppmann, <a class="orm:hideurl" href="https://oreil.ly/8dzD2"><em>Designing Data-Intensive Applications</em></a> (Sebastopol, CA: O’Reilly, 2017).</p><p data-type="footnote" id="ch01fn20"><sup><a href="ch01.xhtml#ch01fn20-marker">20</a></sup> Akamai Technologies, <em>Akamai Online Retail Performance Report: Milliseconds Are Critical</em>, April 19, 2017, <a href="https://oreil.ly/bEtRu"><em class="hyperlink">https://oreil.ly/bEtRu</em></a>.</p><p data-type="footnote" id="ch01fn21"><sup><a href="ch01.xhtml#ch01fn21-marker">21</a></sup> Lucas Bernardi, Themis Mavridis, and Pablo Estevez, “150 Successful Machine Learning Models: 6 Lessons Learned at Booking.com,” KDD ’19, August 4–8, 2019, Anchorage, AK, <a href="https://oreil.ly/G5QNA"><em class="hyperlink">https://oreil.ly/G5QNA</em></a>.</p><p data-type="footnote" id="ch01fn22"><sup><a href="ch01.xhtml#ch01fn22-marker">22</a></sup> “Consumer Insights,” Think with Google, <a href="https://oreil.ly/JCp6Z"><em class="hyperlink">https://oreil.ly/JCp6Z</em></a>.</p><p data-type="footnote" id="ch01fn23"><sup><a href="ch01.xhtml#ch01fn23-marker">23</a></sup> Kleppmann, <a class="orm:hideurl" href="https://oreil.ly/8dzD2"><em>Designing Data-Intensive Applications</em></a>.</p><p data-type="footnote" id="ch01fn24"><sup><a href="ch01.xhtml#ch01fn24-marker">24</a></sup> Andrej Karpathy, “Building the Software 2.0 Stack,” Spark+AI Summit 2018, video, 17:54, <a href="https://oreil.ly/Z21Oz"><span class="keep-together"><em class="hyperlink">https://oreil.ly/Z21Oz</em></span></a>.</p><p data-type="footnote" id="ch01fn25"><sup><a href="ch01.xhtml#ch01fn25-marker">25</a></sup> Khristopher J. Brooks, “Disparity in Home Lending Costs Minorities Millions, Researchers Find,” <em>CBS News</em>, November 15, 2019, <a href="https://oreil.ly/UiHUB"><em class="hyperlink">https://oreil.ly/UiHUB</em></a>.</p><p data-type="footnote" id="ch01fn26"><sup><a href="ch01.xhtml#ch01fn26-marker">26</a></sup> Cathy O’Neil, <em>Weapons of Math Destruction</em> (New York: Crown Books, 2016).</p><p data-type="footnote" id="ch01fn27"><sup><a href="ch01.xhtml#ch01fn27-marker">27</a></sup> Stanford University Human-Centered Artificial Intelligence (HAI), <em>The 2019 AI Index Report</em>, 2019, <a href="https://oreil.ly/xs8mG"><span class="keep-together"><em class="hyperlink">https://oreil.ly/xs8mG</em></span></a>.</p><p data-type="footnote" id="ch01fn28"><sup><a href="ch01.xhtml#ch01fn28-marker">28</a></sup> Tweet by Geoffrey Hinton (@geoffreyhinton), February 20, 2020, <a href="https://oreil.ly/KdfD8"><em class="hyperlink">https://oreil.ly/KdfD8</em></a>.</p><p data-type="footnote" id="ch01fn29"><sup><a href="ch01.xhtml#ch01fn29-marker">29</a></sup> For certain use cases in certain countries, users have a “right to explanation”: a right to be given an explanation for an output of the algorithm.</p><p data-type="footnote" id="ch01fn30"><sup><a href="ch01.xhtml#ch01fn30-marker">30</a></sup> Stanford HAI, <em>The 2019 AI Index Report</em>.</p><p data-type="footnote" id="ch01fn31"><sup><a href="ch01.xhtml#ch01fn31-marker">31</a></sup> Xinyun Chen, Chang Liu, Bo Li, Kimberly Lu, and Dawn Song, “Targeted Backdoor Attacks on Deep Learning Systems Using Data Poisoning,” <em>arXiv</em>, December 15, 2017, <a href="https://oreil.ly/OkAjb"><em class="hyperlink">https://oreil.ly/OkAjb</em></a>.</p><p data-type="footnote" id="ch01fn32"><sup><a href="ch01.xhtml#ch01fn32-marker">32</a></sup> We’ll cover edge devices in <a data-type="xref" href="ch07.xhtml#model_deployment_and_prediction_service">Chapter 7</a>.</p><p data-type="footnote" id="ch01fn33"><sup><a href="ch01.xhtml#ch01fn33-marker">33</a></sup> Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova, “BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding,” <em>arXiv</em>, October 11, 2018, <a href="https://oreil.ly/TG3ZW"><em class="hyperlink">https://oreil.ly/TG3ZW</em></a>.</p><p data-type="footnote" id="ch01fn34"><sup><a href="ch01.xhtml#ch01fn34-marker">34</a></sup> Google Search On, 2020, <a href="https://oreil.ly/M7YjM"><em class="hyperlink">https://oreil.ly/M7YjM</em></a>.</p></div></div></section></div>
+  </main>
+
+  <footer class="bottom-bar">
+    <span id="pageInfo">Chapter 2</span>
+    <span id="progressPercent">0%</span>
+  </footer>
+
+  <footer class="footer">
+    Exported from MoonReader • Generated 2026-09-10 13:32
+  </footer>
+
+  <script>
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+    });
+
+    function toggleTOC() {
+      const panel = document.getElementById('tocPanel');
+      const overlay = document.getElementById('tocOverlay');
+      panel.classList.toggle('open');
+      overlay.classList.toggle('show');
+    }
+
+    function toggleChapter(event, idx) {
+      event.preventDefault();
+      event.stopPropagation();
+      const arrow = document.getElementById('arrow-' + idx);
+      const subs = document.getElementById('subs-' + idx);
+      if (arrow && subs) {
+        const isOpen = subs.style.display !== 'none';
+        subs.style.display = isOpen ? 'none' : 'block';
+        arrow.classList.toggle('open', !isOpen);
+      }
+    }
+
+    function navigateToChapter(url) {
+      window.location.href = url;
+    }
+
+    function toggleSettings() {
+      alert('Settings panel coming soon');
+    }
+  </script>
+<!--rr-annotate-->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23FAF6EE'/%3E%3Ctext x='16' y='24' font-size='22' text-anchor='middle' fill='%23A34A2E' font-family='Georgia' font-style='italic'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="../../assets/annotate.css?v=16">
+<script type="application/json" id="rr-notes">{}</script>
+<script data-rr-palette="apple" src="../../assets/annotate.js?v=16" data-rr-book="designing-ml-systems" data-rr-page="ch01_reader.html" data-rr-prefix="../../"></script>
+<script src="../../assets/chapter-toc.js?v=16"></script>
+<script>
+(function() {
+  // Single ownership: chapter-toc.js (loaded above) owns window.toggleTheme
+  // (guarded by window.__rrThemeOwned). Standalone fallback applies only if
+  // it failed to load - never wrap the skill's toggleTheme: RAG/DML/agentic
+  // pages never defined one, so the old origTheme() wrapper crashed on click.
+  if (!window.__rrThemeOwned) {
+    window.toggleTheme = function() {
+      var root = document.documentElement;
+      var wasDark = root.getAttribute('data-theme') === 'dark';
+      if (wasDark) root.removeAttribute('data-theme');
+      else root.setAttribute('data-theme', 'dark');
+      try { window.localStorage.setItem('rr-theme', wasDark ? 'light' : 'dark'); } catch (e) {}
+      var tb = document.getElementById('rr-theme-btn');
+      if (tb) tb.textContent = wasDark ? '\u263E dark' : '\u2600 light';
+    };
+    try {
+      if (window.localStorage.getItem('rr-theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        var tb0 = document.getElementById('rr-theme-btn');
+        if (tb0) tb0.textContent = '\u2600 light';
+      }
+    } catch (e) {}
+  }
+  var panel = document.getElementById('tocPanel');
+  var overlay = document.getElementById('tocOverlay');
+  var btn = document.getElementById('rr-toc-btn');
+  function syncBtn() {
+    if (!btn) return;
+    var hidden;
+    if (window.innerWidth <= 900) {
+      hidden = !(panel && panel.classList.contains('open'));
+    } else {
+      hidden = document.body.classList.contains('toc-hidden');
+    }
+    // hamburger (closed) vs close-mark (open) so the button always
+    // tells the reader what the TOC toggle will do
+    btn.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+    btn.innerHTML = hidden ? '\u2630 toc' : '\u2715 toc';
+  }
+  // Single ownership: chapter-toc.js (loaded above) owns window.toggleTOC
+  // (guarded by window.__rrTocOwned). Fallback applies only if it failed.
+  if (!window.__rrTocOwned) {
+    window.toggleTOC = function() {
+      if (window.innerWidth <= 900) {
+        if (panel) panel.classList.toggle('open');
+        if (overlay) overlay.classList.toggle('show');
+      } else {
+        document.body.classList.toggle('toc-hidden');
+        if (panel) {
+          if (document.body.classList.contains('toc-hidden')) panel.classList.add('rr-hidden');
+          else panel.classList.remove('rr-hidden');
+        }
+        if (overlay) overlay.classList.remove('show');
+      }
+      syncBtn();
+    };
+  }
+  // default: TOC visible on desktop, hidden drawer on mobile
+  if (window.innerWidth > 900) {
+    document.body.classList.remove('toc-hidden');
+    if (panel) panel.classList.remove('rr-hidden');
+  } else if (panel) {
+    panel.classList.remove('open');
+  }
+  // auto-expand the current chapter's sub-headings + mark it active
+  try {
+    var cur = (location.pathname.split('/').pop() || '').split('#')[0];
+    document.querySelectorAll('.toc-chapter-wrap').forEach(function(w, idx) {
+      var link = w.querySelector('a.toc-chapter');
+      if (!link) return;
+      var href = (link.getAttribute('href') || '').split('#')[0];
+      if (href === cur) {
+        var subs = document.getElementById('subs-' + idx);
+        var arrow = document.getElementById('arrow-' + idx);
+        if (subs) subs.style.display = 'block';
+        if (arrow) arrow.classList.add('open');
+        link.classList.add('active');
+      }
+    });
+  } catch (e) {}
+  window.addEventListener('resize', syncBtn);
+  syncBtn();
+})();
+</script>
+
+<script src="../../assets/course-theme.js?v=3"></script>
+</body>
+</html>

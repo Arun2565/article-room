@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to use Agentic Coding Tools like Claude Code or Codes Effectively</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css');
+
+    :root {
+      --bg: #FAF6EE;
+      --surface: #FFFFFF;
+      --ink: #2D2522;
+      --ink-2: #6E625B;
+      --accent: #A34A2E;
+      --border: rgba(163,74,46,0.1);
+      --font-reader: 'Newsreader', 'EB Garamond', 'Baskerville', 'Garamond', Georgia, serif;
+      --toc-width: 280px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-reader);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+
+    .top-bar button {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .top-bar button:hover {
+      background: rgba(163,74,46,0.08);
+    }
+
+    .top-bar button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .top-bar-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--ink-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60%;
+    }
+
+    .reader-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 60px 80px;
+    }
+
+    .reader-content h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      line-height: 1.3;
+    }
+
+    .reader-content h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 32px 0 16px;
+    }
+
+    .reader-content h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 24px 0 12px;
+      color: var(--ink-2);
+    }
+
+    .reader-content p {
+      font-size: 1.15rem;
+      line-height: 1.85;
+      margin-bottom: 1.2em;
+      text-align: left;
+    }
+
+    .reader-content blockquote {
+      margin: 20px 0;
+      padding: 16px 20px;
+      border-left: 3px solid var(--accent);
+      background: rgba(163,74,46,0.04);
+      font-style: italic;
+    }
+
+    .reader-content dl {
+      margin: 20px 0;
+    }
+
+    .reader-content dt {
+      font-weight: 600;
+      margin: 16px 0 8px;
+      font-style: italic;
+    }
+
+    .reader-content dd {
+      margin-left: 20px;
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .reader-content table {
+      display: table;
+      width: 100%;
+      margin: 24px 0;
+      border-collapse: collapse;
+      font-size: 1rem;
+      border: 1px solid #c3c3c3;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .reader-content th {
+      display: table-cell;
+      background: #f0f4f8;
+      border-bottom: 2px solid #9d9d9d;
+      padding: 14px 16px;
+      font-weight: 600;
+      text-align: left;
+      font-size: 0.95rem;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td {
+      display: table-cell;
+      padding: 14px 16px;
+      border-bottom: 1px solid #ddd;
+      border-right: 1px solid #eee;
+      vertical-align: top;
+      font-size: 1rem;
+      line-height: 1.7;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td:last-child {
+      border-right: none;
+    }
+
+    .reader-content tr:nth-of-type(even) {
+      background-color: #fafbfd;
+    }
+
+    .reader-content figure,
+    .reader-content .figure {
+      margin: 24px auto;
+      text-align: center;
+    }
+
+    .reader-content img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .reader-content figcaption,
+    .reader-content figure h6,
+    .reader-content .figure h6 {
+      font-size: 0.9rem;
+      font-style: italic;
+      color: var(--ink-2);
+      margin-top: 8px;
+    }
+
+    .reader-content .note,
+    .reader-content [data-type="note"] {
+      margin: 20px 0;
+      padding: 16px 20px;
+      background: #f8f4e8;
+      border: 1px solid #e6d48a;
+      border-radius: 6px;
+    }
+
+    .ann-hl { border-radius: 2px; }
+    .ann-note { border-radius: 2px; }
+
+    pre.code, pre[data-lang], .code {
+      background: #1e1e1e !important;
+      border-radius: 8px !important;
+      padding: 16px 20px !important;
+      margin: 20px 0 !important;
+      overflow-x: auto !important;
+      position: relative !important;
+      border: 1px solid #333 !important;
+    }
+
+    pre.code[data-lang]::before, pre[data-lang]::before {
+      content: attr(data-lang);
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      font-size: 0.7rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace;
+    }
+
+    pre.code code, pre[data-lang] code, .code code {
+      color: #e0e0e0 !important;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace !important;
+      font-size: 0.9rem !important;
+      line-height: 1.6 !important;
+      background: none !important;
+      padding: 0 !important;
+      border: none !important;
+      white-space: pre !important;
+    }
+
+    p code, li code, td code {
+      background: rgba(0,0,0,0.06) !important;
+      padding: 2px 6px !important;
+      border-radius: 4px !important;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace !important;
+      font-size: 0.85em !important;
+    }
+
+    .line-numbers-rows { border-right: 1px solid #444 !important; }
+
+    .progress-bar {
+      position: fixed;
+      top: 52px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 99;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .ann-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent);
+      color: white;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .chapter-title {
+      text-align: center;
+      padding: 40px 20px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chapter-title h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .toc-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--toc-width);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      z-index: 200;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+    }
+
+    .toc-panel.open {
+      transform: translateX(0);
+    }
+
+    .toc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      height: 52px;
+    }
+
+    .toc-header h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .toc-close {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+    }
+
+    .toc-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+
+    .toc-chapter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .toc-chapter:hover {
+      background: rgba(163,74,46,0.06);
+      border-left-color: var(--accent);
+    }
+
+    .toc-arrow {
+      font-size: 0.6rem;
+      color: var(--ink-2);
+      transition: transform 0.2s ease;
+      margin-left: auto;
+    }
+
+    .toc-arrow.open {
+      transform: rotate(90deg);
+    }
+
+    .toc-subs {
+      padding: 4px 0;
+      border-left: 2px solid var(--border);
+      margin-left: 20px;
+    }
+
+    .toc-sub {
+      padding-left: 32px;
+      font-weight: 400;
+    }
+
+    .toc-sub-sub {
+      padding-left: 48px;
+      font-size: 0.75rem;
+    }
+
+    .toc-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 199;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .toc-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--ink-2);
+      z-index: 100;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 60px;
+      border-top: 1px solid var(--border);
+      color: var(--ink-2);
+      font-size: 0.8rem;
+    }
+  </style>
+<link rel="stylesheet" href="../../assets/site.css?v=17">
+<link rel="stylesheet" href="../../assets/course-theme.css?v=3">
+</head>
+<body>
+<button id="rr-toc-btn" onclick="toggleTOC()" title="Table of Contents — show/hide chapters" aria-expanded="true" aria-controls="tocPanel">&#9776; toc</button>
+
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="toc-overlay" id="tocOverlay" onclick="toggleTOC()"></div>
+
+  <div class="toc-panel" id="tocPanel">
+    <div class="toc-header">
+      <h3>Table of Contents</h3>
+      <button class="toc-close" onclick="toggleTOC()">✕</button>
+    </div>
+    <nav class="toc-nav">
+<div class="toc-chapter-wrap" data-chapter="0">
+<a href="chapter01_reader.html" class="toc-chapter" onclick="navigateToChapter('chapter01_reader.html')"><span>How to use Agentic Coding Tools like Claude Code or Codes Effectively</span><span class="toc-ann-count">49</span></a>
+</div>
+</nav>
+  </div>
+
+  <nav class="top-bar">
+    <button onclick="toggleTOC()" title="Table of Contents">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <span class="top-bar-title">How to use Agentic Coding Tools like Claude Code or Codes Effectively</span>
+    <button onclick="toggleSettings()" title="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </nav>
+
+  <main class="reader-content">
+    <div class="chapter-title">
+      <h1 id="rr-h-0">How to use Agentic Coding Tools like Claude Code or Codes Effectively</h1>
+      <span class="ann-badge">📝 71 annotations</span>
+    </div>
+
+
+<h1 id="rr-h-1">How to use Agentic Coding Tools like Claude Code or Codes Effectively</h1>
+<p>
+<em>by  — Artificial Intelligence Made Simple</em>
+<br/>
+<em>Source:  — June 21, 2026</em>
+</p>
+<hr/>
+<div class="body markup" dir="auto">
+<p>
+<strong>(Scroll to the end of the message for the article)</strong>
+</p>
+<p>I keep this short.</p>
+<p>The mission of Chocolate Milk Cult is simple: make the highest level of AI intelligence accessible to everyone. We don’t do hot takes or aggregated headlines. We do actual deep dives built on original research, custom analysis, and technical frameworks you can use.</p>
+<p>The breakdown below is a perfect example of what our open-source research community funds: a premium deep dive on Claude Code built from 300 hours of live deployment testing, exposing concrete structural bottlenecks like the 15-to-20 turn agent degradation cliff. We derived these engineering principles by A/B testing prompt strategies across parallel git worktrees, tracking latency compounding, and forcing multiple team members to run the tool across fundamentally different engineering environments—ranging from legacy backend migrations to fresh frontend builds—to ensure our data didn't overfit for a single workflow or code distribution. </p>
+<p>The result was a guide that helped several people rework their entire operation and maximize a ton of value from Claude Code. </p>
+<div class="captioned-image-container">
+<figure>
+<img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/de017471-acf1-4dcf-97fa-43cd2da01a6d_834x598.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":598,"width":834,"resizeWidth":null,"bytes":98152,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":false,"topImage":true,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/202983074?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fde017471-acf1-4dcf-97fa-43cd2da01a6d_834x598.png","isProcessing":false,"align":null,"offset":false}' fetchpriority="high" height="598" sizes="100vw" src="Images/img_0_c141fd55.png" style="max-width:100%; height:auto;" width="834"/>
+</figure>
+</div>
+<div class="captioned-image-container">
+<figure>
+<img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/6abb51cf-e18e-4c73-920b-df76184ca631_1600x257.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":234,"width":1456,"resizeWidth":null,"bytes":null,"alt":null,"title":null,"type":null,"href":null,"belowTheFold":false,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="234" sizes="100vw" src="Images/img_1_21e9b044.jpg" style="max-width:100%; height:auto;" width="1456"/>
+</figure>
+</div>
+<p>While the model weights have updated since our original publication, these core context orchestration principles still carry over seamlessly; in fact, Anthropic still lists these exact constraints as official developer best practices. This is because our research focuses strictly on the invariant mathematical and systems-level realities of the context window, delivering timeless architectural frameworks that hold true across changing software versions.</p>
+<p>
+<span>But running these experiments, funding infrastructure, and securing access to engineers who build these systems costs us between $17,000 and $20,000 a month. These costs add up quickly, but it is the only way to deliver truly differentiated analysis instead of simply repeating PR cycles.</span>
+</p>
+<p>
+<span>Free subscribers get a lot, and that is intentional. I never want your financial situation to be a barrier to getting the best insights. But paid support is what makes the whole operation possible.</span>
+</p>
+<p>
+<span>We run a </span>
+<strong>
+<span>pay-what-you-can model</span>
+</strong>
+<span> for standard subscriptions so you can contribute whatever matches your budget. </span>
+<strong>
+<span>There are no tiered content walls so any price point you select will get you access to our entire catalogue of deep dives on Substack.</span>
+</strong>
+</p>
+<p>If you think providing actionable, first-principles AI insights to everyone is valuable, please help support the community at whatever level makes sense for you.</p>
+<p>The links for support are below.</p>
+
+
+
+
+
+
+
+
+
+
+<p>Hope to see you among the premium members.</p>
+<p>Thanks for reading either way.</p>
+<p>Dev &lt;3</p>
+<p>
+<span>PS: (</span>
+<em>
+<span>For enterprise operators, builders, and capital deployers who want to fund our high-overhead experiments directly, we also have a </span>
+<strong>Founding Membership</strong>
+<span>. This tier directly supports our primary-source testing infrastructure. In return, founding members get direct access to our proprietary GitHub repository—where we aggregate our raw data, custom insights, and codebase experiments—along with the ability to request custom deep-dive analysis on specific architectures.)</span>
+</em>
+</p>
+<div>
+<hr/>
+</div>
+<p>
+<em>
+<strong>
+<span>Every month, the Chocolate Milk Cult reaches over a million Builders, Startup Founders, Investors, Policy Makers, Leaders, and more.</span>
+<a href="https://docs.google.com/forms/d/e/1FAIpQLScCSWYlzouT8pzhfl0A2xdA0BxAPYg75h9F-WNkN8XuowpstA/viewform?usp=dialog" target="_blank"> </a>
+</strong>
+<a href="https://docs.google.com/forms/d/e/1FAIpQLScCSWYlzouT8pzhfl0A2xdA0BxAPYg75h9F-WNkN8XuowpstA/viewform?usp=dialog" target="_blank">If you’d like to meet other members of our community, please fill out this contact form here (</a>
+<strong>
+<a href="https://docs.google.com/forms/d/e/1FAIpQLScCSWYlzouT8pzhfl0A2xdA0BxAPYg75h9F-WNkN8XuowpstA/viewform?usp=dialog" target="_blank">I will never sell your data nor will I make intros w/o your explicit permission</a>
+</strong>
+<a href="https://docs.google.com/forms/d/e/1FAIpQLScCSWYlzouT8pzhfl0A2xdA0BxAPYg75h9F-WNkN8XuowpstA/viewform?usp=dialog" target="_blank">)</a>
+<span>- </span>
+<a href="https://forms.gle/Pi1pGLuS1FmzXoLr6" target="_blank">https://forms.gle/Pi1pGLuS1FmzXoLr6</a>
+</em>
+</p>
+<div>
+<hr/>
+</div>
+<p>Claude Code is one of the most useful agentic tools on the planet (especially after the release of Opus 4.5). It’s incredibly easy to use (once you can get past the terminal interface), but using it well is another issue altogether. </p>
+<p>Claude Code pairs two very unfamiliar design decisions with each other—</p>
+<ol>
+<li>
+<p>A Command Line Interface reminiscent of a time when the world existed in black and white only. </p>
+</li>
+<li>
+<p>Cutting Edge Agentic systems with deceptively powerful tool-calling abilities, which can compound errors very quickly if not used properly. </p>
+</li>
+</ol>
+<p>
+<span>Learning to navigate both these decisions is very worth it— </span>
+<strong>CC is my favorite AI tool in the market, and it alone justifies my 200 USD Subscription to Anthropic</strong>
+<span> (I even have the extra usage setup and happily pay around 750-1000 USD/month on it; you likely won’t have to). I wrote this article to help you use it better. </span>
+</p>
+<p>Aside from my personal experience, we dug through heaps of user case studies of Claude Code, dug into Anthropic research, ran over 300 hours of experiments in real deployments, and compiled their experiences into the most useful workflows. The guide that follows is the result. <span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">No generic advice like— “Be specific.” “Give examples.” “Break down complex tasks</span>.” This guide will cover:</p>
+<ul>
+<li>
+<span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Why context orchestration matters more than prompt wording—and what that means for your use</span>
+</li>
+<li>
+<p>The terminal-first design philosophy and why it’s a feature, not a limitation</p>
+</li>
+<li>
+<p>Autonomy configuration: permission allowlists, full auto mode, and when each makes sense</p>
+</li>
+<li>
+<p>The ~15-20 turn degradation cliff and how to work around it</p>
+</li>
+<li>
+<p>CLAUDE.md: what belongs, what doesn’t, and why less is more</p>
+</li>
+<li>
+<p>The failure modes you’re probably hitting—and how to actualy fix them. </p>
+</li>
+<li>
+<p>Workflows that actually work: explore→plan→code→commit, TDD loops, parallel instances, writer-reviewer splits</p>
+</li>
+</ul>
+<p>If you’ve been looking to take your Claude Code usage to the next level, then this guide is for you. </p>
+<div class="captioned-image-container">
+<figure>
+<img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/17a2b7d0-2873-476c-9122-12ca5204f566_1216x1140.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":1140,"width":1216,"resizeWidth":null,"bytes":762112,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F17a2b7d0-2873-476c-9122-12ca5204f566_1216x1140.png","isProcessing":false,"align":null,"offset":false}' height="1140" loading="lazy" sizes="100vw" src="Images/img_2_fb018420.jpg" style="max-width:100%; height:auto;" width="1216"/>
+</figure>
+</div>
+
+<ul>
+<li>
+<p>Claude Code is not ChatGPT with file access—it’s an autonomous agent with tools, permissions, and execution authority operating inside a finite context window. Treating it like a chatbot is the root cause of most failures, not prompt quality.</p>
+</li>
+<li>
+Context orchestration is the game, not prompt engineering. Every file, instruction, command output, and conversation turn competes for attention in the same window. <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Polluted context produces garbage regardless of how clever your prompt is; clean context lets mediocre prompts succeed. More context is often worse.</span>
+</li>
+<li>
+<span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">The terminal-first design isn’t a limitation—it’s the point. Running alongside your shell gives Claude access to CLI tools, scripts, CI hooks, parallel worktrees, and headless automation that IDE-embedded assistants physically cannot</span> touch. You trade inline suggestions for system-level composability.
+</li>
+<li>
+<p>Autonomy is a dial. Default permission prompts maximize safety but destroy flow. Custom allowlists or full autonomous mode (with version control as your safety net) restore the agentic value. Productivity scales with autonomy once rollback is cheap.</p>
+</li>
+<li>
+<p>Agent performance degrades after ~15-20 turns—repetition, instruction drift, hallucinated claims. This is a hard limit, not a soft one. Effective users reset context, decompose tasks, or externalize state (commits, checklists) instead of pushing through.</p>
+</li>
+<li>
+<p>CLAUDE.md should be minimal and operational: build commands, critical paths, non-obvious constraints. Bloated instruction files trigger Chekhov’s gun—models try to use everything they’re given, including irrelevant guidance. Less is more.</p>
+</li>
+<li>
+<p>The failure modes are structural, not model-level: premature execution, context contamination, over-specification, permission friction, ignoring terminal feedback. Each has a mechanical fix. If you’re blaming the model, you’re misdiagnosing.</p>
+</li>
+</ul>
+<p>
+<span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">The governing rule:
+ If you don’t control context, you don’t control outcomes. Claude Code doesn’t reward clever prompting. It rewards system design</span>.
+</p>
+<p>
+<em>
+<span>I provide various consulting and advisory services. If you‘d like to explore how we can work together, </span>
+<a href="https://linktr.ee/iseethings404" target="_blank">reach out to me through any of my socials over here</a>
+<span> or reply to this email.</span>
+</em>
+</p>
+
+<p>Most people approach Claude Code like they approach ChatGPT: type a request, get an answer, repeat. This guarantees mediocrity.</p>
+<p>Claude Code isn’t a chatbot that happens to edit files. It’s an autonomous agent operating in your codebase with a constrained set of tools, a limited context window, and permission gates you control. Understanding this shift is key to leveraging this system more effectively.  That’s the difference between CAM McTominay vs CDM McT.   </p>
+
+<p>
+ You may forget your lovers birthday, but never forget this mental model: 
+
+<span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Claude Code is context orchestration. The quality of your outputs is downstream of how well you curate the information space Claude operates in.</span>
+</p>
+<p>Every file you reference, every CLAUDE.md instruction, every conversation turn, every external tool connection—all of it shapes the context window Claude reasons within. Most users optimize their prompts. Power users optimize their context.</p>
+<p>
+<a href="https://www.artificialintelligencemadesimple.com/p/prompting-how-to-become-more-effective?utm_source=publication-search" target="_blank">This parallels how prompting works at a deeper level. In the prompting guide, we discussed “semantic neighborhoods”—how your instructions steer the model toward regions of its latent space where good answers become statistically likely.</a>
+<span> Claude Code adds another layer: you’re not just steering with words, you’re steering with </span>
+<em>what information exists in the context at all</em>
+<span>.</span>
+</p>
+<div class="captioned-image-container">
+<figure>
+<img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/481bec87-f07b-4ac1-a0b4-a5804a0f0bd9_1456x757.webp","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":757,"width":1456,"resizeWidth":null,"bytes":174896,"alt":null,"title":null,"type":"image/webp","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F481bec87-f07b-4ac1-a0b4-a5804a0f0bd9_1456x757.webp","isProcessing":false,"align":null,"offset":false}' height="757" loading="lazy" sizes="100vw" src="Images/img_3_c87375fd.gif" style="max-width:100%; height:auto;" width="1456"/>
+</figure>
+</div>
+<p>A brilliant prompt in a polluted context produces garbage. A mediocre prompt in a well-curated context often produces something usable.</p>
+<p>(<span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">As a fun fact— this is why Claude within Claude Code is so much better than Claude in Cursor and Co.; Claude leverages many tools to ensure that it’s context stays clean</span>). </p>
+<div class="captioned-image-container">
+<figure>
+<img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/739284d5-42e9-453c-9ba3-5d662a8c8fc5_3315x1907.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":838,"width":1456,"resizeWidth":null,"bytes":578536,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F739284d5-42e9-453c-9ba3-5d662a8c8fc5_3315x1907.png","isProcessing":false,"align":null,"offset":false}' height="838" loading="lazy" sizes="100vw" src="Images/img_4_bde0c5eb.jpg" style="max-width:100%; height:auto;" title="" width="1456"/>
+<figcaption class="image-caption">More Context == More Problems. </figcaption>
+</figure>
+</div>
+<p>This is very important to understand for one of the biggest UX shifts that Claude Code users are hit with, especially when you’ve only worked with IDEs (like me).  </p>
+
+<p>The terminal interface throws people off. After years of IDE integrations and inline suggestions, a CLI feels like regression.</p>
+<p>It’s not. It’s a deliberate design choice that unlocks capabilities IDE integrations can’t match. Terminal-first means:</p>
+<ul>
+<li>
+<p>
+<strong>Full access to your environment.</strong>
+<span> Claude inherits your shell, your PATH, your tools. The </span>
+<code>gh</code>
+<span> CLI for GitHub operations, </span>
+<code>jq</code>
+<span> for JSON parsing, </span>
+<code>ripgrep</code>
+<span> for fast code search, </span>
+<code>docker</code>
+<span> for container management, your custom deployment scripts—Claude can use all of them. An IDE assistant sandboxed to the editor can’t run arbitrary commands across your system.</span>
+</p>
+</li>
+<li>
+<span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Scriptability.
+ Claude Code has a headless mode (
+-p
+ flag) that lets you pipe it into CI pipelines, pre-commit hooks, and automation scripts. You can have Claude automatically triage GitHub issues as they come in, run code review on every PR, or generate documentation on commi</span>t. Try doing that with an IDE extension.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</li>
+<li>
+<span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Composability.
+ You can run multiple Claude instances in parallel across git worktrees, each with separate context windows working on independent task</span>s. One instance refactors your authentication system while another builds an unrelated data visualization component. The terminal is the natural interface for this kind of orchestration.
+
+</li>
+<li>
+<p>
+<strong>No vendor lock-in on your editor.</strong>
+<span> Use VS Code, Neovim, JetBrains, whatever. Claude Code operates alongside your tools, not inside them.</span>
+</p>
+</li>
+</ul>
+<p>The tradeoff is real: you lose inline suggestions, visual diffs, and the “code appears as you type” magic. </p>
+<div class="captioned-image-container">
+<figure>
+<img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/746ed49c-8250-4752-8712-279ab331f375_1056x756.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":756,"width":1056,"resizeWidth":null,"bytes":236976,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F746ed49c-8250-4752-8712-279ab331f375_1056x756.png","isProcessing":false,"align":null,"offset":false}' height="756" loading="lazy" sizes="100vw" src="Images/img_6_943cf9c9.jpg" style="max-width:100%; height:auto;" title="" width="1056"/>
+</figure>
+</div>
+<p>If that’s your primary workflow—quick edits, tab completions, surgical changes—something like Cursor or Augment might be the better fit (I haven’t been very excited by Cursor in the past, but their new updates have been pretty good from what I hear). But <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">if you’re doing complex, multi-file work that requires reasoning across a codebase—refactors, migrations, debugging distributed issues—the terminal-native model scales</span> where IDE integrations hit walls.</p>
+
+<p>Out of the box, <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Claude Code asks permission for almost everything: file edits, bash commands, and external tool calls. This is by design—safety-first defaults for an agent that can execute code on your machine.</span></p>
+<p>
+<span>But it creates a workflow problem. You give Claude a task, walk away to check Slack, come back five minutes later, and it’s sitting there waiting for approval to edit a file. The whole point of an agent is that it </span>
+<em>agents</em>
+<span>. Constant permission prompts break that.</span>
+</p>
+<div class="captioned-image-container">
+<figure>
+<img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/6c6b039a-c72b-4618-893d-3fff5bd20f5d_3315x1907.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":838,"width":1456,"resizeWidth":null,"bytes":429147,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6c6b039a-c72b-4618-893d-3fff5bd20f5d_3315x1907.png","isProcessing":false,"align":null,"offset":false}' height="838" loading="lazy" sizes="100vw" src="Images/img_7_3cdeecce.jpg" style="max-width:100%; height:auto;" title="" width="1456"/>
+<figcaption class="image-caption">In my opinion, one of the most useful things about Claude Code has been its ability to run and read terminal outputs (this is what made it my fav actually). I often use it to build and run full-stack UIs around my experiments (helps me test UX, latency, and test more configs myself), but I’m not a good Full Stack SWE. So having CC build the front end  + see what’s going wrong is a huge blessing</figcaption>
+</figure>
+</div>
+<p>You have a dial here, and you need to decide where to set it:</p>
+<p>
+<span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Maximum safety:
+ Default permissions. Claude asks before any mutation. Good for unfamiliar codebases, production environments, or when you’re learning the tool. I personally would almost never recommend it</span>. 
+</p>
+<p>
+<span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Balanced flow:
+ Custom allowlist via 
+.claude/settings.json
+. Permit file edits, common commands like 
+git commit
+ and 
+npm test
+, and trusted external tools. Block destructive operations like 
+rm -rf
+ or database drops. This is where most use</span>rs land.
+</p>
+<p>
+<span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Maximum autonomy:
+ The 
+--dangerously-skip-permissions
+ flag. Claude runs uninterrupted until completion. Despite the scary name, this is the daily driver for many Anthropic engineers. The practical risk is low in a version-controlled codebase where you can revert anything. For true isolation, run it in a Docker container without network access. 
+
+I personally run this as my default, and I’ve never had issue</span>s here.
+
+ 
+</p>
+<p>Many power users create a shell alias: alias cc= “claude --dangerously-skip-permissions”. Type cc, start working, no interruptions.</p>
+<p>
+<span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">There’s no universally correct setting. The right choice depends on your risk tolerance, the task at hand, and whether you’re running Claude in a sandboxed environment. 
+But you need to make the choice consciously rather than accepting the defaults and getting frustrate</span>d.
+</p>
+<div class="captioned-image-container">
+<figure>
+<img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/dc2833aa-bb5b-4729-a2c6-b9b25f0f1a1a_3362x2139.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":926,"width":1456,"resizeWidth":null,"bytes":366936,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fdc2833aa-bb5b-4729-a2c6-b9b25f0f1a1a_3362x2139.png","isProcessing":false,"align":null,"offset":false}' height="926" loading="lazy" sizes="100vw" src="Images/img_8_986382e7.png" style="max-width:100%; height:auto;" title="" width="1456"/>
+</figure>
+</div>
+
+<p>If context orchestration is the game, then your job when using Claude Code is:</p>
+<ol>
+<li>
+<p>
+<strong>Curate what enters context.</strong>
+<span> Be deliberate about which files you reference, what history accumulates, and what persistent instructions you set in CLAUDE.md.</span>
+</p>
+</li>
+<li>
+
+I
+nvest heavily in documentation
+. Tools like Claude Code and Codex can often overlook key details because of incomplete searches. People often think that these CLI tools don’t need documentation because they can search through, but Claude Code uses text/regex-based search; ensuring that your documentation can guide this search better is a must to ensure your product has everything it needs. My recommendation is to use specific “guidance documents” where you map out important pieces of logic so that AI knows where to look. If you have the budget for it (and a very large codebase with no documentation), my recommendation is to <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">use Augment Code CLI to write extensive amounts of documentation that can be used by CC for improvements</span>.  A good rule of thumb is given below—
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</li>
+<li>
+<p>
+<strong>Prune what pollutes context.</strong>
+<span> Clear irrelevant history with </span>
+<code>/clear</code>
+<span>. Reset between unrelated tasks. Don’t let a debugging session contaminate a feature build.</span>
+</p>
+</li>
+<li>
+
+Extend context reach.
+ Connect Claude to external tools—Puppeteer for browser automation and screenshots, Sentry for error monitoring, PostgreSQL for database queries, Slack for team communication. <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Each connection expands what Claude can perceive and act on</span>.
+
+</li>
+<li>
+<span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Set appropriate autonomy.
+ Match permission levels to the task and your risk tolerance. Don’t fight the tool’s safety defaults; configure them to match how you actually wor</span>k.
+
+</li>
+</ol>
+<p>Once we understand this, we can move on. The next section covers the foundational setup—the concrete configuration decisions that shape your context environment before you write a single prompt.</p>
+
+<p>Before you write a single prompt, your configuration decisions shape everything Claude can do. This section covers the concrete setup that separates productive sessions from frustrating ones.</p>
+
+<p>
+<span>CLAUDE.md is a file Claude automatically loads at the start of every session. It’s the highest-leverage configuration point you have—(anecdotally) </span>
+<strong>instructions here get followed more reliably than anything you type in the chat.</strong>
+</p>
+<p>The hierarchy matters:</p>
+<ul>
+<li>
+<p>~/.claude/CLAUDE.md applies to all your projects</p>
+</li>
+<li>
+<p>./CLAUDE.md in repo root is shared with your team via git</p>
+</li>
+<li>
+<p>./CLAUDE.local.md is personal and gitignored</p>
+</li>
+<li>
+<p>Child directories can have their own CLAUDE.md files for specific subsystems</p>
+</li>
+</ul>
+<p>Most people either leave this empty or stuff it with everything they can think of. Both are wrong.</p>
+<p>
+<strong>What to put in CLAUDE.md:</strong>
+</p>
+<ul>
+<li>
+<p>Build and test commands (npm run build, pytest -xvs)</p>
+</li>
+<li>
+<p>Branch naming conventions and merge/rebase preferences</p>
+</li>
+<li>
+<p>Key file locations Claude can’t infer (”authentication logic lives in src/auth/, not src/users/”)</p>
+</li>
+<li>
+<p>Project-specific gotchas (”the legacy API in /v1 is deprecated but still receives traffic”)</p>
+</li>
+<li>
+<p>Environment setup quirks (”use pyenv local 3.11 before running tests”)</p>
+</li>
+</ul>
+<p>
+<strong>What NOT to put in CLAUDE.md:</strong>
+</p>
+<ul>
+<li>
+<p>
+<span>Style guides. </span>
+<strong>Never send an LLM to do a linter’s job</strong>
+<span>. ESLint, Prettier, Black—these are faster, cheaper, and more reliable. Claude will read your existing code and match patterns anyway (this is the benefit of latent space guidance).</span>
+</p>
+</li>
+<li>
+<p>Obvious folder descriptions. If your folder is named components, you don’t need to explain it contains components.</p>
+</li>
+<li>
+<p>Generic instructions like “write clean code” or “follow best practices.” These waste tokens and don’t change behavior.</p>
+</li>
+</ul>
+<p>Here’s the key insight from various research: models are naturally inclined to use all information they’re given, even when it’s irrelevant. <span class="ann-hl" style="background:rgba(102,217,239,0.3); border-bottom:2px solid #2B9BC9; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Anthropic researchers call this the “Chekhov’s gun” effect. A bloated CLAUDE.md doesn’t just waste tokens—it actively degrades performance by introducing distractors</span>.</p>
+<div class="captioned-image-container">
+<figure>
+<img alt="" class="sizing-large" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/7c77526a-2039-4b0d-9bec-085af905a775_2112x838.png","srcNoWatermark":null,"fullscreen":false,"imageSize":"large","height":578,"width":1456,"resizeWidth":1200,"bytes":164973,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F7c77526a-2039-4b0d-9bec-085af905a775_2112x838.png","isProcessing":false,"align":"center","offset":false}' height="476.3736263736264" loading="lazy" sizes="100vw" src="Images/img_10_2a593971.png" style="max-width:100%; height:auto;" width="1200"/>
+<figcaption class="image-caption">
+<em>
+<a href="https://arxiv.org/abs/2410.05258" target="_blank">“Transformer tends to overallocate attention to irrelevant context. In this work, we introduce Diff Transformer, which amplifies attention to the relevant context while canceling noise. Specifically, the differential attention mechanism calculates attention scores as the difference between two separate softmax attention maps. The subtraction cancels noise, promoting the emergence of sparse attention patterns. Experimental results on language modeling show that Diff Transformer outperforms Transformer in various settings of scaling up model size and training tokens. More intriguingly, it offers notable advantages in practical applications, such as long-context modeling, key information retrieval, hallucination mitigation, in-context learning, and reduction of activation outliers. By being less distracted by irrelevant context, Diff Transformer can mitigate hallucination in question answering and text summarization. For in-context learning, Diff Transformer not only enhances accuracy but is also more robust to order permutation, which was considered as a chronic robustness issue. The results position Diff Transformer as a highly effective and promising architecture to advance large language models.”</a>
+</em>
+</figcaption>
+</figure>
+</div>
+<p>Keep it lean. I’ve seen effective CLAUDE.md files under 50 lines. I’ve also seen 500-line monsters that made Claude worse at everything.</p>
+<p>Run /init to generate a starting point, but don’t trust it blindly. Claude will capture obvious patterns but miss your team’s actual conventions. Treat it as a draft to refine, not a finished product.</p>
+
+<p>I covered the autonomy dial in Section 1, but here’s the practical setup.</p>
+<p>Your options for allowing tools:</p>
+<ul>
+<li>
+<p>During session: When Claude asks permission, select “Always allow” for tools you trust</p>
+</li>
+<li>
+<p>Via /permissions command: Add specific tools to your allowlist interactively</p>
+</li>
+<li>
+<p>In .claude/settings.json: Configure once, check into git, share with team</p>
+</li>
+<li>
+<p>CLI flag: --allowedTools for session-specific permissions</p>
+</li>
+</ul>
+<p>A reasonable starting allowlist for most projects includes Edit, Write, and Bash commands for git operations (add, commit, push) and your build/test scripts (npm test, <span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">npm run build). This lets Claude edit files and run your standard workflow without asking. It’ll still prompt for anything outside the list</span>.</p>
+<p>
+<span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">For full autonomous mode, I just use an alias—cc mapped to claude --dangerously-skip-permissions. 
+I work in version-controlled repos (if you’re using ADEs this is a non-negotiable), I commit often, and I can revert anything. The productivity gain is worth it.
+ Your risk tolerance may diffe</span>r.
+</p>
+<div class="captioned-image-container">
+<figure>
+<img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/cf6af83d-7bb7-4e0d-b5e9-faf2239b581a_949x504.webp","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":504,"width":949,"resizeWidth":null,"bytes":33168,"alt":null,"title":null,"type":"image/webp","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fcf6af83d-7bb7-4e0d-b5e9-faf2239b581a_949x504.webp","isProcessing":false,"align":null,"offset":false}' height="504" loading="lazy" sizes="100vw" src="Images/img_11_60f0f335.jpg" style="max-width:100%; height:auto;" width="949"/>
+<figcaption class="image-caption">The plan-generate-review outputs loop is extremely powerful, so use git to track everything and keep things going. </figcaption>
+</figure>
+</div>
+
+<p>MCP (Model Context Protocol) connects Claude to external tools and data sources. Without it, Claude is limited to your filesystem and shell. With it, Claude can query databases, control browsers, post to Slack, read from Notion, and more.</p>
+<p>The MCP servers I actually use:</p>
+<ul>
+<li>
+<p>PostgreSQL/MySQL for database queries. Claude can check schemas, run queries, verify data. Much better than having it guess at your data model.</p>
+</li>
+<li>
+<p>GitHub for complex PR workflows and issue management beyond what the gh CLI offers.</p>
+</li>
+<li>
+<p>Sentry for error monitoring. Claude can pull recent errors, stack traces, and frequency data when debugging production issues.</p>
+</li>
+<li>
+<p>I tried some Codex MCPs for review, but they did not work. I heard really good things about it, so if you have tried it successfully, would love to hear about this. </p>
+</li>
+</ul>
+<p>You configure MCP servers in three places:</p>
+<ul>
+<li>
+<p>.claude.json in your home directory (global)</p>
+</li>
+<li>
+<p>.claude/settings.json in your project (project-scoped)</p>
+</li>
+<li>
+<p>.mcp.json in your repo root (shared with team via git)</p>
+</li>
+</ul>
+<p><span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">A warning: each MCP server adds tool definitions to your context window. If you enable ten servers you’re not using, you’re burning tokens on tool descriptions Claude will never call. Enable what you need, disable what you don’t. You can check what’s consuming your context with /context.</span></p>
+<div class="captioned-image-container">
+<figure>
+<img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/e2013507-df33-4271-a767-f79ff47cbc57_3315x1907.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":838,"width":1456,"resizeWidth":null,"bytes":268553,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe2013507-df33-4271-a767-f79ff47cbc57_3315x1907.png","isProcessing":false,"align":null,"offset":false}' height="838" loading="lazy" sizes="100vw" src="Images/img_12_163330bb.jpg" style="max-width:100%; height:auto;" title="" width="1456"/>
+</figure>
+</div>
+
+<p>Slash commands are reusable prompt templates. Put a markdown file in .claude/commands/, and it becomes available as /project:filename.</p>
+<p>I use these constantly. For example, a fix-<span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">issue.md command that takes an issue number as an argument, runs gh issue view to get details, searches the codebase for relevant files, implements the fix, writes tests if appropriate, and commits with a descriptive message referencing the issue. Now /project:fix-issue 1234 handles the entire workflow.</span></p>
+<p>Same idea for code review—a command that checks for bugs, edge cases, security issues, and performance concerns without the verbose commentary Claude defaults to.</p>
+<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Personal commands go in ~/.claude/commands/ and work across all projects. Project commands in .claude/commands/ get shared with your team when committed</span>.</p>
+<p><span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">The $ARGUMENTS placeholder passes whatever you type after the command name. Simple but powerful</span>.</p>
+
+<p>Three commands you need to internalize:</p>
+<p>/clear wipes conversation history. Use this between unrelated tasks. A debugging session and a feature build shouldn’t share context. I /clear constantly—probably every 20-30 minutes of active work.</p>
+<p>/compact summarizes conversation history to free up tokens while preserving key information. Use this when you’re mid-task but context is getting bloated. Auto-compaction triggers at 95% capacity, but by then you’ve already degraded performance. Compact proactively around 70%.</p>
+<div class="captioned-image-container">
+<figure>
+<img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/e99bde70-202b-4092-b94d-7ba192e1283b_3619x2062.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":830,"width":1456,"resizeWidth":null,"bytes":413290,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe99bde70-202b-4092-b94d-7ba192e1283b_3619x2062.png","isProcessing":false,"align":null,"offset":false}' height="830" loading="lazy" sizes="100vw" src="Images/img_13_6e776208.png" style="max-width:100%; height:auto;" title="" width="1456"/>
+</figure>
+</div>
+<p>/<span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">context shows what’s consuming your context window. Run this when Claude seems slow or unfocused. You’ll often find old tool results, irrelevant file contents, or MCP server definitions eating your token budget.</span></p>
+<p><span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Research on coding agents found that performance craters after roughly 20 iterations. Not 100. Not 50. Twenty</span>. The developers who treat this as a hard limit—resetting context proactively rather than waiting for degradation—get consistently better results.</p>
+<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">My rule: if I’ve been going back and forth with Claude for more than 15-20 turns on a single task, something is wrong. Either the task needs decomposition, or I need to reset and try a different approach. One interesting thing about ADEs is that it can  often be much cheaper to rebuild from scratch than to try to fix what’s broken, so you should not be shy about reverting to the last stable states. This does increase the value of code review, however, because you want to be able to identify the last stable state and see what about it might push an AI in certain directions/what the issue could be</span>. </p>
+
+<p>Before starting a new project with Claude Code:</p>
+<ul>
+<li>
+<p>Run /init to generate starter CLAUDE.md</p>
+</li>
+<li>
+<p>Edit CLAUDE.md down to essentials—build commands, key paths, gotchas</p>
+</li>
+<li>
+<p>Configure permissions in .claude/settings.json</p>
+</li>
+<li>
+<p>Add MCP servers you’ll actually use</p>
+</li>
+<li>
+<p>Create 2-3 slash commands for your common workflows</p>
+</li>
+<li>
+<p>Commit .claude/ directory to share with team</p>
+</li>
+</ul>
+<p>This takes maybe 15 minutes. The productivity difference over a week of work is hours.</p>
+<p>
+<span>Now that </span>
+<strong>your</strong>
+<span> Claude Code is ready to be the CTO of your new AI-based sneaker Recommendation app with an element of gambling, you’re probably ready to start coding. But I would recommend holding your horses, because just as CC can write good code fast, it can also chef up spaghetti fast enough to make Takumi Aldini jealous. </span>
+</p>
+
+<p>We’ve discussed many of these failures at length either in earlier sections or prior deep dives. So I’ll keep this one short and direct, meant more for completeness/to have everything in one place for easy lookup. </p>
+<div class="captioned-image-container">
+<figure>
+<img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/6e249c1f-ae95-474d-a113-834d05b91003_1806x1604.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":1293,"width":1456,"resizeWidth":null,"bytes":196165,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6e249c1f-ae95-474d-a113-834d05b91003_1806x1604.png","isProcessing":false,"align":null,"offset":false}' height="1293" loading="lazy" sizes="100vw" src="Images/img_14_e98230be.jpg" style="max-width:100%; height:auto;" width="1456"/>
+</figure>
+</div>
+
+<p>
+<strong>It is very important for you to break your lifelong commitment to be a two-pump chump when using Claude Code</strong>
+<span>. This is the number one cause of failure with Claude Code. </span>
+</p>
+<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">CC starts coding before understanding the problem. If you’ve given it autonomy, you’ll end up three iterations deep solving the wrong thing or married to the wrong approach</span>.</p>
+<p><span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Fix: explicit staging. “Read the relevant files and understand the current implementation—don’t write code yet.” Then: “Propose a plan.” Only then: “Implement</span>.” The words “think” and “think hard” trigger extended reasoning and actually allocate more compute. Planning mode is a godsend since reading its thoughts is also easier than debugging walls of code flying at you. </p>
+<div class="captioned-image-container">
+<figure>
+<img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/a1cf04db-76ae-4216-87ba-35f7d8b2faad_3433x1907.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":809,"width":1456,"resizeWidth":null,"bytes":226793,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa1cf04db-76ae-4216-87ba-35f7d8b2faad_3433x1907.png","isProcessing":false,"align":null,"offset":false}' height="809" loading="lazy" sizes="100vw" src="Images/img_15_0f7b42c5.jpg" style="max-width:100%; height:auto;" width="1456"/>
+</figure>
+</div>
+
+
+<p>You debug for an hour, then switch to a new feature without clearing context. Claude drags forward assumptions, references, and attention anchors from the debugging session.</p>
+<p>Fix: /clear between unrelated tasks. I clear every 20-30 minutes on heavy usage. The cost of re-establishing context is lower than the cost of degraded performance.</p>
+
+<p>Research shows agent performance craters after ~20 turns. Symptoms: Claude repeats itself, ignores instructions, claims to have done things it didn’t.</p>
+<p>Fix: treat 15-20 turns as a hard limit. If you’re still going, either decompose the task or reset with a fresh summary.</p>
+
+<p>People stuff CLAUDE.md with style guides, ADRs, and API docs. Now every session starts with 1500 tokens of mostly-irrelevant instructions, and Claude tries to use all of it (Chekhov’s gun effect).</p>
+<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Fix: under 50 lines. Point to docs during</span> specific tasks, don’t load them into every session.</p>
+
+<p>Expecting complex tasks to work on the first try. They won’t. Requirements are ambiguous, edge cases emerge during implementation.</p>
+<p>Fix: treat first outputs as drafts. Build in verification—tests, screenshots, behavior checks. Build modularly to ensure that you can make changes easily and regularly think about refactoring code before starting major expansions to capabilities to make sure you firm up the foundations. </p>
+
+<p>500-word prompts specifying exactly how to implement something. You’ve wasted effort on details Claude would figure out, and anchored it to your approach (which might not be best).</p>
+<p><span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Fix: specify the what, be loose on the how. “Add rate limiting—max 5 attempts per 15 minutes” beats a detailed implementation spec.</span></p>
+
+<p>Still manually approving file edits and git commits after a week of use? You’re wasting your own time.</p>
+<p>Fix: configure your allowlist or use --dangerously-skip-permissions.</p>
+
+<p>Claude runs commands, they fail, and Claude struggles. You watch without reading the errors.</p>
+<p>Fix: read the output. You often know things Claude doesn’t—wrong paths, missing env vars, version mismatches. You’d be surprised how often Claude can pick the wrong approach or prioritize the wrong aspects; it helps a lot if you monitor the outcomes on a regular basis. </p>
+<p>
+<strong>Pro tip— if an issue has been a problem for more than one hour, Claude likely has completely misunderstood something. Revert your changes to the last place you understood, and then look through the logs. Then start talking to CC about your speculations on the code-base and what could be causing issues.</strong>
+<span> </span>
+</p>
+
+<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Complex tasks fill your context with research and dead ends. Subagents keep exploration isolated and return only conclusions</span>.</p>
+<p>Fix: “Use a subagent to research how X currently works.” Main context stays clean.</p>
+<p>With all of this covered, we’re now ready to use Claude Code Workflows properly. </p>
+<div class="captioned-image-container">
+<figure>
+<img alt="" class="sizing-large" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/03064304-9b70-4fd3-ba45-53a7e54af5f4_3403x7535.png","srcNoWatermark":null,"fullscreen":false,"imageSize":"large","height":3224,"width":1456,"resizeWidth":1200,"bytes":1306914,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F03064304-9b70-4fd3-ba45-53a7e54af5f4_3403x7535.png","isProcessing":false,"align":"center","offset":false}' height="2657.1428571428573" loading="lazy" sizes="100vw" src="Images/img_16_229eecda.jpg" style="max-width:100%; height:auto;" title="" width="1200"/>
+</figure>
+</div>
+
+<p><span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">These are the patterns that actually work. Not theoretical—these are workflows I use and that Anthropic engineers use internally</span>.</p>
+
+<p>The default workflow for any non-trivial task.</p>
+<ol>
+<li>
+<p>Point Claude at relevant files. “Read src/auth/ and understand how authentication currently works. Don’t write code.”</p>
+</li>
+<li>
+<p>Have it propose a plan. “Now propose how you’d implement OAuth support. Think hard about edge cases.”</p>
+</li>
+<li>
+<p>Review the plan. Push back, ask questions, refine.</p>
+</li>
+<li>
+<p>Execute. “Implement the plan.”</p>
+</li>
+<li>
+<p>Commit. “Commit with a descriptive message.”</p>
+</li>
+</ol>
+<p>The explicit “don’t write code” in step 1 matters. Without it, Claude jumps to implementation. The “think hard” in step 2 allocates more reasoning compute.</p>
+<p>For complex problems, have Claude use subagents during exploration. “<span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Use a subagent to investigate how the session management works” keeps research out of your main context.</span></p>
+<div class="captioned-image-container">
+<figure>
+<img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/523d5252-070f-4aa1-b431-4d234d59f386_1598x592.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":539,"width":1456,"resizeWidth":null,"bytes":58573,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F523d5252-070f-4aa1-b431-4d234d59f386_1598x592.png","isProcessing":false,"align":null,"offset":false}' height="539" loading="lazy" sizes="100vw" src="Images/img_17_9065b89f.jpg" style="max-width:100%; height:auto;" width="1456"/>
+</figure>
+</div>
+<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">This workflow takes longer than just asking Claude to implement something. It also works far more often</span>.</p>
+
+<p>When the success criteria can be expressed as tests.</p>
+<ol>
+<li>
+“<span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Write tests for the feature I’m describing. Cover the happy path and these edge cases: [list]. Don’t implement yet. (Claude has a subagent for planning; spam ts).”</span>
+</li>
+<li>
+“<span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Run the tests, confirm they fail.”</span>
+</li>
+<li>
+<p>“Implement code to make the tests pass. Keep iterating until green.”</p>
+</li>
+<li>
+<p>“Commit tests and implementation separately.”</p>
+</li>
+</ol>
+<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Claude excels when it has a clear target to iterate against. Tests provide that. Each red-to-green cycle gives Claude feedback it can act on.</span></p>
+<div class="captioned-image-container">
+<figure>
+<img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/e4cff16a-55c3-47fb-9751-e5373b6e8c89_3315x1907.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":838,"width":1456,"resizeWidth":null,"bytes":268551,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe4cff16a-55c3-47fb-9751-e5373b6e8c89_3315x1907.png","isProcessing":false,"align":null,"offset":false}' height="838" loading="lazy" sizes="100vw" src="Images/img_18_b0936f89.jpg" style="max-width:100%; height:auto;" width="1456"/>
+</figure>
+</div>
+<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">This also protects you from Claude solving the wrong problem—the tests define what “right” means before implementation start</span>s.</p>
+<p>I use this for any backend logic, API endpoints, data transformations. Less useful for UI work where “correct” is visual.</p>
+
+<p>When success is “it looks right” or “it works in the browser.”</p>
+<ol>
+<li>
+<p>Give Claude a target—screenshot, Figma mock, or verbal description of desired UI.</p>
+</li>
+<li>
+<p>Have Claude implement.</p>
+</li>
+<li>
+<p>Claude takes a screenshot (via Puppeteer MCP or you paste one in).</p>
+</li>
+<li>
+<p>“Compare to the target. What’s different? Fix it.”</p>
+</li>
+<li>
+<p>Iterate until it matches.</p>
+</li>
+</ol>
+<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Claude’s first UI attempt is usually 60-70% right. After 2-3 iterations with visual feedback, it’s usually 95%+. Without the feedback loop, you’re stuck at 60-70% and doing the rest manually</span>.</p>
+<p>Also useful <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">for debugging—”here’s a screenshot of the broken state, here’s what it should look like, fix it.</span>”</p>
+<p>This is one area I’m hearing some comments about, Codex being very good, and Gemini 3.0 has been cleaning house with UI design. On top of this, Cursor dropped an elite update for visual design. This is likely the one area where I expect CC to face the heaviest competition. </p>
+
+<p>When you have independent tasks that don’t need to share context.</p>
+<p>Setup: multiple terminal tabs or VS Code panes, each running a separate Claude instance. Or use git worktrees so each instance works on a separate branch.</p>
+<div class="captioned-image-container">
+<figure>
+<img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/f9c6ef36-b9ee-4df0-973e-0d1255d0e7dd_3315x2139.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":939,"width":1456,"resizeWidth":null,"bytes":285656,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff9c6ef36-b9ee-4df0-973e-0d1255d0e7dd_3315x2139.png","isProcessing":false,"align":null,"offset":false}' height="939" loading="lazy" sizes="100vw" src="Images/img_19_4439486d.jpg" style="max-width:100%; height:auto;" width="1456"/>
+</figure>
+</div>
+<p><span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Instance 1 refactors the auth system. Instance 2 builds a new dashboard component. Instance 3 writes documentation. No shared context, no cross-contamination, 3x throughput</span>.</p>
+<p>The key word is independent. If tasks interact—one depends on the other’s output, they touch the same files—this creates merge conflicts and confusion. For truly parallel work, it’s excellent.</p>
+<p>Git worktrees make this cleaner:</p>
+<ul>
+<li>
+<p>git worktree add ../project-feature-a feature-a</p>
+</li>
+<li>
+<p>Open that directory in a new terminal</p>
+</li>
+<li>
+<p>Run Claude there</p>
+</li>
+<li>
+<p>Repeat for other features</p>
+</li>
+</ul>
+<p>Each worktree is a separate checkout. Claude instances can’t step on each other.</p>
+
+<p>When you want quality control built into the workflow.</p>
+<ol>
+<li>
+<p>Claude A writes the code.</p>
+</li>
+<li>
+<p>/clear or start a fresh Claude instance.</p>
+</li>
+<li>
+<p>Claude B reviews what Claude A wrote—bugs, edge cases, security issues.</p>
+</li>
+<li>
+<p>Take feedback back to Claude A (or a fresh instance) to address issues.</p>
+</li>
+</ol>
+<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Separate context matters here. Claude reviewing its own work in the same session tends to defend its choices. A fresh instance with no investment in the code reviews more critically.</span></p>
+<div class="captioned-image-container">
+<figure>
+<img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/53e29ca7-6314-4551-8c66-24b3f2028237_3315x1907.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":838,"width":1456,"resizeWidth":null,"bytes":230996,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F53e29ca7-6314-4551-8c66-24b3f2028237_3315x1907.png","isProcessing":false,"align":null,"offset":false}' height="838" loading="lazy" sizes="100vw" src="Images/img_20_fa6b4f68.jpg" style="max-width:100%; height:auto;" title="" width="1456"/>
+</figure>
+</div>
+<p><span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">I use this for anything going to production. Overkill for exploratory work.</span></p>
+
+<p>When Claude should run without you.</p>
+<div class="captioned-image-container">
+<figure>
+<img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/20afeb6a-8ebb-4e39-bb4f-9f45092f8ad6_906x844.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":844,"width":906,"resizeWidth":null,"bytes":50645,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F20afeb6a-8ebb-4e39-bb4f-9f45092f8ad6_906x844.png","isProcessing":false,"align":null,"offset":false}' height="844" loading="lazy" sizes="100vw" src="Images/img_21_bcce59c1.png" style="max-width:100%; height:auto;" width="906"/>
+</figure>
+</div>
+<p><span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">The -p flag runs Claude in non-interactive mode. Pipe in a prompt, get output, done</span>.</p>
+<p>Uses I’ve actually set up:</p>
+<ul>
+<li>
+<p>Pre-commit hook that runs Claude on staged files to check for obvious issues</p>
+</li>
+<li>
+<p>GitHub Action that triages new issues with labels</p>
+</li>
+<li>
+<p>PR reviewer that comments on diffs (use /install-github-app to set this up quickly)</p>
+</li>
+<li>
+<p>Script that runs Claude on each file in a migration, one at a time</p>
+</li>
+</ul>
+<p>For batch operations: write a script that loops through items (files, issues, whatever), calls claude -p with a prompt for each, and collects results. Add --output-format json if you need structured output for further processing.</p>
+<p>Combine with --allowedTools to restrict what headless Claude can do. You probably don’t want an automated script running with full permissions.</p>
+
+<p><span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">For large tasks with many steps—migrations, multi-file refactors, launch checklists.</span></p>
+<ol>
+<li>
+<p>Have Claude write a checklist to a markdown file. “Create CHECKLIST.md with every file that needs updating for this migration.”</p>
+</li>
+<li>
+<p>Claude works through items one by one, checking them off.</p>
+</li>
+<li>
+<p>The file serves as progress tracking and recovery point if context resets.</p>
+</li>
+</ol>
+<p>This externalizes state. If Claude hits the 20-iteration cliff and you need to reset, the checklist shows what’s done and what’s left. Paste it into the fresh session and continue.</p>
+<div class="captioned-image-container">
+<figure>
+<img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/96e78951-ca84-4765-a27a-002b2cf80162_1232x774.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":774,"width":1232,"resizeWidth":null,"bytes":69632,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F96e78951-ca84-4765-a27a-002b2cf80162_1232x774.png","isProcessing":false,"align":null,"offset":false}' height="774" loading="lazy" sizes="100vw" src="Images/img_22_afc1faca.png" style="max-width:100%; height:auto;" width="1232"/>
+<figcaption class="image-caption">I like this for research heavy explorations where I can use checklists in different branches to really explore different approaches in depth. The checklists allow me to track evcolution over time and figure out the best final combination of solutions. </figcaption>
+</figure>
+</div>
+
+<p>Also useful for team handoffs—the checklist is documentation of what’s been done.</p>
+
+<p>
+<span>Claude Code isn’t powerful because it writes code quickly. It’s powerful because it lets you externalize cognition into a system you can actually control. Context, autonomy, feedback, and verification aren’t secondary concerns here; they </span>
+<em>are</em>
+<span> the product. Everything else—prompting, clever phrasing, even model choice—is downstream.</span>
+</p>
+<p>Once you internalize this, there’s no going back. Prompting starts to feel like a local optimization. IDE magic feels cosmetic. When something goes wrong, you stop asking why the model “behaved strangely” and start asking what information you gave it, what permissions you allowed, and what feedback loop you failed to close. The mystery evaporates.</p>
+<p>This is where the real split emerges. Most people use Claude Code as a faster pair of hands. <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Operators design environments where failure is hard and success is boringly inevitable. Same tool, completely different outcomes. The difference isn’t intelligence; it’s orchestration.</span></p>
+<p><span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">There’s a simple rule that governs everything you’ve read: if you don’t control context, you don’t control results. Almost every complaint about coding agents—hallucinations, brittleness, wasted time—traces back to violating that rule</span>. Not a bad model. Bad setup.</p>
+<p>Claude Code won’t make you a better engineer. It will make it very obvious whether you already think like one.</p>
+<p>Thank you for being here, and I hope you have a wonderful day,</p>
+<p>Dev &lt;3</p>
+
+<p class="button-wrapper" data-attrs='{"url":"https://www.artificialintelligencemadesimple.com/p/how-to-use-agentic-coding-tools-like?utm_source=substack&amp;utm_medium=email&amp;utm_content=share&amp;action=share","text":"Share","action":null,"class":null}' data-component-name="ButtonCreateButton">
+<a class="button primary" href="https://www.artificialintelligencemadesimple.com/p/how-to-use-agentic-coding-tools-like?utm_source=substack&amp;utm_medium=email&amp;utm_content=share&amp;action=share" target="_blank">
+<span>Share</span>
+</a>
+</p>
+<p>
+<span>That is it for this piece. I appreciate your time. As always, if you’re interested in working with me or checking out my other work, my links will be at the end of this email/post. And if you found value in this write-up, I would appreciate you sharing it with more people. </span>
+<strong>It is word-of-mouth referrals like yours that help me grow. </strong>
+<span>The best way to share testimonials is to share articles and tag me in your post so I can see/share it.</span>
+</p>
+<div class="captioned-image-container">
+<figure>
+<img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/c91d2eca-6a01-45dc-abb2-8d2fbdfceade_412x167.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":167,"width":412,"resizeWidth":null,"bytes":14120,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/179782269?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc91d2eca-6a01-45dc-abb2-8d2fbdfceade_412x167.png","isProcessing":false,"align":null,"offset":false}' height="167" loading="lazy" sizes="100vw" src="Images/img_23_1b5c1a75.png" style="max-width:100%; height:auto;" title="" width="412"/>
+</figure>
+</div>
+
+<p>Use the links below to check out my other content, learn more about tutoring, reach out to me about projects, or just to say hi.</p>
+<p>
+<a href="https://www.instagram.com/yourgodandsavior/" target="_blank">Small Snippets about Tech, AI and Machine Learning over here</a>
+</p>
+
+
+<p>
+<a href="https://open.spotify.com/show/7wZygk3mUUqBaRbBGB1lgh?si=b93afa69de994c88&amp;nd=1&amp;dlsi=ac0f8d9ac35642d5" target="_blank">My (imaginary) sister’s favorite MLOps Podcast-</a>
+</p>
+<p>https://machine-learning-made-simple.medium.com/</p>
+<p>
+<span>My YouTube: </span>
+<a href="https://www.youtube.com/@ChocolateMilkCultLeader/" target="_blank">https://www.youtube.com/@ChocolateMilkCultLeader/</a>
+</p>
+<p>
+<span>Reach out to me on LinkedIn. Let’s connect: </span>
+<a href="https://www.linkedin.com/in/devansh-devansh-516004168/" target="_blank">https://www.linkedin.com/in/devansh-devansh-516004168/</a>
+</p>
+<p>
+<span>My Instagram: </span>
+<a href="https://www.instagram.com/iseethings404/" target="_blank">https://www.instagram.com/iseethings404/</a>
+</p>
+<p>
+<span>My Twitter: </span>
+<a href="https://twitter.com/Machine01776819" target="_blank">https://twitter.com/Machine01776819</a>
+</p>
+
+</div>
+<hr/>
+<p>
+<em>Original: </em>
+</p>
+
+  </main>
+
+  <footer class="bottom-bar">
+    <span id="pageInfo">Chapter 2</span>
+    <span id="progressPercent">0%</span>
+  </footer>
+
+  <footer class="footer">
+    Exported from MoonReader • Generated 2026-09-10 18:34
+  </footer>
+
+  <script>
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+    });
+
+    function toggleTOC() {
+      const panel = document.getElementById('tocPanel');
+      const overlay = document.getElementById('tocOverlay');
+      panel.classList.toggle('open');
+      overlay.classList.toggle('show');
+    }
+
+    function toggleChapter(event, idx) {
+      event.preventDefault();
+      event.stopPropagation();
+      const arrow = document.getElementById('arrow-' + idx);
+      const subs = document.getElementById('subs-' + idx);
+      if (arrow && subs) {
+        const isOpen = subs.style.display !== 'none';
+        subs.style.display = isOpen ? 'none' : 'block';
+        arrow.classList.toggle('open', !isOpen);
+      }
+    }
+
+    function navigateToChapter(url) {
+      window.location.href = url;
+    }
+
+    function toggleSettings() {
+      alert('Settings panel coming soon');
+    }
+  </script>
+  <!--rr-annotate-->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23FAF6EE'/%3E%3Ctext x='16' y='24' font-size='22' text-anchor='middle' fill='%23A34A2E' font-family='Georgia' font-style='italic'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="../../assets/annotate.css?v=16">
+<script type="application/json" id="rr-notes">{}</script>
+<script data-rr-palette="apple" src="../../assets/annotate.js?v=16" data-rr-book="agentic-coding-tools" data-rr-page="chapter01_reader.html" data-rr-prefix="../../"></script>
+<script src="../../assets/chapter-toc.js?v=16"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<script>
+(function() {
+  // Single ownership: chapter-toc.js (loaded above) owns window.toggleTheme
+  // (guarded by window.__rrThemeOwned). Standalone fallback applies only if
+  // it failed to load - never wrap the skill's toggleTheme: RAG/DML/agentic
+  // pages never defined one, so the old origTheme() wrapper crashed on click.
+  if (!window.__rrThemeOwned) {
+    window.toggleTheme = function() {
+      var root = document.documentElement;
+      var wasDark = root.getAttribute('data-theme') === 'dark';
+      if (wasDark) root.removeAttribute('data-theme');
+      else root.setAttribute('data-theme', 'dark');
+      try { window.localStorage.setItem('rr-theme', wasDark ? 'light' : 'dark'); } catch (e) {}
+      var tb = document.getElementById('rr-theme-btn');
+      if (tb) tb.textContent = wasDark ? '\u263E dark' : '\u2600 light';
+    };
+    try {
+      if (window.localStorage.getItem('rr-theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        var tb0 = document.getElementById('rr-theme-btn');
+        if (tb0) tb0.textContent = '\u2600 light';
+      }
+    } catch (e) {}
+  }
+  var panel = document.getElementById('tocPanel');
+  var overlay = document.getElementById('tocOverlay');
+  var btn = document.getElementById('rr-toc-btn');
+  function syncBtn() {
+    if (!btn) return;
+    var hidden;
+    if (window.innerWidth <= 900) {
+      hidden = !(panel && panel.classList.contains('open'));
+    } else {
+      hidden = document.body.classList.contains('toc-hidden');
+    }
+    // hamburger (closed) vs close-mark (open) so the button always
+    // tells the reader what the TOC toggle will do
+    btn.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+    btn.innerHTML = hidden ? '\u2630 toc' : '\u2715 toc';
+  }
+  // Single ownership: chapter-toc.js (loaded above) owns window.toggleTOC
+  // (guarded by window.__rrTocOwned). Fallback applies only if it failed.
+  if (!window.__rrTocOwned) {
+    window.toggleTOC = function() {
+      if (window.innerWidth <= 900) {
+        if (panel) panel.classList.toggle('open');
+        if (overlay) overlay.classList.toggle('show');
+      } else {
+        document.body.classList.toggle('toc-hidden');
+        if (panel) {
+          if (document.body.classList.contains('toc-hidden')) panel.classList.add('rr-hidden');
+          else panel.classList.remove('rr-hidden');
+        }
+        if (overlay) overlay.classList.remove('show');
+      }
+      syncBtn();
+    };
+  }
+  // default: TOC visible on desktop, hidden drawer on mobile
+  if (window.innerWidth > 900) {
+    document.body.classList.remove('toc-hidden');
+    if (panel) panel.classList.remove('rr-hidden');
+  } else if (panel) {
+    panel.classList.remove('open');
+  }
+  // auto-expand the current chapter's sub-headings + mark it active
+  try {
+    var cur = (location.pathname.split('/').pop() || '').split('#')[0];
+    document.querySelectorAll('.toc-chapter-wrap').forEach(function(w, idx) {
+      var link = w.querySelector('a.toc-chapter');
+      if (!link) return;
+      var href = (link.getAttribute('href') || '').split('#')[0];
+      if (href === cur) {
+        var subs = document.getElementById('subs-' + idx);
+        var arrow = document.getElementById('arrow-' + idx);
+        if (subs) subs.style.display = 'block';
+        if (arrow) arrow.classList.add('open');
+        link.classList.add('active');
+      }
+    });
+  } catch (e) {}
+  window.addEventListener('resize', syncBtn);
+  syncBtn();
+})();
+</script>
+
+<script src="../../assets/course-theme.js?v=3"></script>
+</body>
+</html>

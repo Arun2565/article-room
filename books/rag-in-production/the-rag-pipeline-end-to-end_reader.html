@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The RAG Pipeline End to End</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css');
+
+    :root {
+      --bg: #FAF6EE;
+      --surface: #FFFFFF;
+      --ink: #2D2522;
+      --ink-2: #6E625B;
+      --accent: #A34A2E;
+      --border: rgba(163,74,46,0.1);
+      --font-reader: 'Newsreader', 'EB Garamond', 'Baskerville', 'Garamond', Georgia, serif;
+      --toc-width: 280px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-reader);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+
+    .top-bar button {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .top-bar button:hover {
+      background: rgba(163,74,46,0.08);
+    }
+
+    .top-bar button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .top-bar-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--ink-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60%;
+    }
+
+    .reader-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 60px 80px;
+    }
+
+    .reader-content h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      line-height: 1.3;
+    }
+
+    .reader-content h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 32px 0 16px;
+    }
+
+    .reader-content h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 24px 0 12px;
+      color: var(--ink-2);
+    }
+
+    .reader-content p {
+      font-size: 1.15rem;
+      line-height: 1.85;
+      margin-bottom: 1.2em;
+      text-align: left;
+    }
+
+    .reader-content blockquote {
+      margin: 20px 0;
+      padding: 16px 20px;
+      border-left: 3px solid var(--accent);
+      background: rgba(163,74,46,0.04);
+      font-style: italic;
+    }
+
+    .reader-content dl {
+      margin: 20px 0;
+    }
+
+    .reader-content dt {
+      font-weight: 600;
+      margin: 16px 0 8px;
+      font-style: italic;
+    }
+
+    .reader-content dd {
+      margin-left: 20px;
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .reader-content table {
+      display: table;
+      width: 100%;
+      margin: 24px 0;
+      border-collapse: collapse;
+      font-size: 1rem;
+      border: 1px solid #c3c3c3;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .reader-content th {
+      display: table-cell;
+      background: #f0f4f8;
+      border-bottom: 2px solid #9d9d9d;
+      padding: 14px 16px;
+      font-weight: 600;
+      text-align: left;
+      font-size: 0.95rem;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td {
+      display: table-cell;
+      padding: 14px 16px;
+      border-bottom: 1px solid #ddd;
+      border-right: 1px solid #eee;
+      vertical-align: top;
+      font-size: 1rem;
+      line-height: 1.7;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td:last-child {
+      border-right: none;
+    }
+
+    .reader-content tr:nth-of-type(even) {
+      background-color: #fafbfd;
+    }
+
+    .reader-content figure,
+    .reader-content .figure {
+      margin: 24px auto;
+      text-align: center;
+    }
+
+    .reader-content img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .reader-content figcaption,
+    .reader-content figure h6,
+    .reader-content .figure h6 {
+      font-size: 0.9rem;
+      font-style: italic;
+      color: var(--ink-2);
+      margin-top: 8px;
+    }
+
+    .reader-content .note,
+    .reader-content [data-type="note"] {
+      margin: 20px 0;
+      padding: 16px 20px;
+      background: #f8f4e8;
+      border: 1px solid #e6d48a;
+      border-radius: 6px;
+    }
+
+    .ann-hl { border-radius: 2px; }
+    .ann-note { border-radius: 2px; }
+
+    pre.code, pre[data-lang], .code {      background: #1e1e1e !important;      border-radius: 8px !important;      padding: 16px 20px !important;      margin: 20px 0 !important;      overflow-x: auto !important;      position: relative !important;      border: 1px solid #333 !important;    }
+
+    pre.code[data-lang]::before, pre[data-lang]::before {      content: attr(data-lang);      position: absolute;      top: 8px;      right: 12px;      font-size: 0.7rem;      color: #888;      text-transform: uppercase;      letter-spacing: 0.05em;      font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;    }
+
+    pre.code code, pre[data-lang] code, .code code {      color: #e0e0e0 !important;      font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace !important;      font-size: 0.9rem !important;      line-height: 1.6 !important;      background: none !important;      padding: 0 !important;      border: none !important;      white-space: pre !important;    }
+
+    p code, li code, td code {      background: rgba(0,0,0,0.06) !important;      padding: 2px 6px !important;      border-radius: 4px !important;      font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace !important;      font-size: 0.85em !important;    }
+
+    .line-numbers-rows { border-right: 1px solid #444 !important; }
+    .progress-bar {
+      position: fixed;
+      top: 52px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 99;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .ann-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent);
+      color: white;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .chapter-title {
+      text-align: center;
+      padding: 40px 20px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chapter-title h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    /* TOC Panel */
+    .toc-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--toc-width);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      z-index: 200;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+    }
+
+    .toc-panel.open {
+      transform: translateX(0);
+    }
+
+    .toc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      height: 52px;
+    }
+
+    .toc-header h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .toc-close {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+    }
+
+    .toc-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+
+    .toc-chapter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .toc-chapter:hover {
+      background: rgba(163,74,46,0.06);
+      border-left-color: var(--accent);
+    }
+
+    .toc-arrow {
+      font-size: 0.6rem;
+      color: var(--ink-2);
+      transition: transform 0.2s ease;
+      margin-left: auto;
+    }
+
+    .toc-arrow.open {
+      transform: rotate(90deg);
+    }
+
+    .toc-subs {
+      padding: 4px 0;
+      border-left: 2px solid var(--border);
+      margin-left: 20px;
+    }
+
+    .toc-sub {
+      padding-left: 32px;
+      font-weight: 400;
+    }
+
+    .toc-sub-sub {
+      padding-left: 48px;
+      font-size: 0.75rem;
+    }
+
+    .toc-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 199;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .toc-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--ink-2);
+      z-index: 100;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 60px;
+      border-top: 1px solid var(--border);
+      color: var(--ink-2);
+      font-size: 0.8rem;
+    }
+  </style>
+<link rel="stylesheet" href="../../assets/site.css?v=17">
+<link rel="stylesheet" href="../../assets/course-theme.css?v=3">
+</head>
+<body>
+<button id="rr-toc-btn" onclick="toggleTOC()" title="Table of Contents — show/hide chapters" aria-expanded="true" aria-controls="tocPanel">&#9776; toc</button>
+
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="toc-overlay" id="tocOverlay" onclick="toggleTOC()"></div>
+
+  <div class="toc-panel" id="tocPanel">
+    <div class="toc-header">
+      <h3>Table of Contents</h3>
+      <button class="toc-close" onclick="toggleTOC()">✕</button>
+    </div>
+    <nav class="toc-nav">
+<div class="toc-chapter-wrap" data-chapter="0">
+<a href="ingestion-is-the-hard-part_reader.html" class="toc-chapter" onclick="navigateToChapter('ingestion-is-the-hard-part_reader.html')"><span>Ingestion Is the Hard Part</span><span class="toc-ann-count">14</span><span class="toc-arrow" id="arrow-0" onclick="toggleChapter(event, 0)">▶</span></a>
+<div class="toc-subs" id="subs-0" style="display:none">
+<a class="toc-heading toc-sub" href="ingestion-is-the-hard-part_reader.html#what-ingestion-actually-is">What ingestion actually is</a>
+<a class="toc-heading toc-sub" href="ingestion-is-the-hard-part_reader.html#the-rule-that-governs-everything-downstream-garbage-in-garbage-out">The rule that governs everything downstream: garbage in, garbage out</a>
+<a class="toc-heading toc-sub" href="ingestion-is-the-hard-part_reader.html#a-concrete-example-two-columns-one-disaster">A concrete example: two columns, one disaster</a>
+<a class="toc-heading toc-sub" href="ingestion-is-the-hard-part_reader.html#napkin-arithmetic-what-a-small-error-rate-actually-costs">Napkin arithmetic: what a small error rate actually costs</a>
+<a class="toc-heading toc-sub" href="ingestion-is-the-hard-part_reader.html#the-four-failure-families-you-will-actually-hit">The four failure families you will actually hit</a>
+<a class="toc-heading toc-sub" href="ingestion-is-the-hard-part_reader.html#the-quiet-fifth-failure-dropping-the-metadata">The quiet fifth failure: dropping the metadata</a>
+<a class="toc-heading toc-sub" href="ingestion-is-the-hard-part_reader.html#the-minimal-defensive-move-never-trust-the-parse-blindly">The minimal defensive move: never trust the parse blindly</a>
+<a class="toc-heading toc-sub" href="ingestion-is-the-hard-part_reader.html#so-the-key-is-fix-the-text-first">So the key is: fix the text first</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="1">
+<a href="rag-vs-finetuning-vs-long-context_reader.html" class="toc-chapter" onclick="navigateToChapter('rag-vs-finetuning-vs-long-context_reader.html')"><span>RAG vs Fine-tuning vs Long Context</span><span class="toc-ann-count">14</span><span class="toc-arrow" id="arrow-1" onclick="toggleChapter(event, 1)">▶</span></a>
+<div class="toc-subs" id="subs-1" style="display:none">
+<a class="toc-heading toc-sub" href="rag-vs-finetuning-vs-long-context_reader.html#three-knobs-three-different-things-they-change">Three knobs, three different things they change</a>
+<a class="toc-heading toc-sub" href="rag-vs-finetuning-vs-long-context_reader.html#the-napkin-arithmetic-that-settles-why-not-just-paste-everything">The napkin arithmetic that settles &quot;why not just paste everything?&quot;</a>
+<a class="toc-heading toc-sub-sub" href="rag-vs-finetuning-vs-long-context_reader.html#the-pitfall-but-prompt-caching-makes-it-free">The pitfall: &quot;but prompt caching makes it free&quot;</a>
+<a class="toc-heading toc-sub" href="rag-vs-finetuning-vs-long-context_reader.html#so-when-does-each-one-actually-win">So when does each one actually win?</a>
+<a class="toc-heading toc-sub" href="rag-vs-finetuning-vs-long-context_reader.html#the-grown-up-answer-they-compose">The grown-up answer: they compose</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="2">
+<a href="the-rag-pipeline-end-to-end_reader.html" class="toc-chapter" onclick="navigateToChapter('the-rag-pipeline-end-to-end_reader.html')"><span>The RAG Pipeline End to End</span><span class="toc-ann-count">14</span><span class="toc-arrow" id="arrow-2" onclick="toggleChapter(event, 2)">▶</span></a>
+<div class="toc-subs" id="subs-2" style="display:none">
+<a class="toc-heading toc-sub" href="#the-one-split-that-organizes-everything">The one split that organizes everything</a>
+<a class="toc-heading toc-sub" href="#the-worked-example-three-tiny-documents">The worked example: three tiny documents</a>
+<a class="toc-heading toc-sub-sub" href="#stage-1-ingest-turn-raw-sources-into-clean-text">Stage 1 — Ingest: turn raw sources into clean text</a>
+<a class="toc-heading toc-sub-sub" href="#stage-2-chunk-cut-documents-into-retrieval-units">Stage 2 — Chunk: cut documents into retrieval units</a>
+<a class="toc-heading toc-sub-sub" href="#stage-3-embed-turn-each-chunk-into-a-vector">Stage 3 — Embed: turn each chunk into a vector</a>
+<a class="toc-heading toc-sub-sub" href="#stage-4-index-store-vectors-so-you-can-search-them-fast">Stage 4 — Index: store vectors so you can search them fast</a>
+<a class="toc-heading toc-sub" href="#the-online-phase-a-question-arrives">The online phase: a question arrives</a>
+<a class="toc-heading toc-sub-sub" href="#stage-5-retrieve-embed-the-query-pull-the-top-k">Stage 5 — Retrieve: embed the query, pull the top-k</a>
+<a class="toc-heading toc-sub-sub" href="#stage-6-augment-assemble-the-prompt">Stage 6 — Augment: assemble the prompt</a>
+<a class="toc-heading toc-sub-sub" href="#stage-7-generate-the-grounded-answer">Stage 7 — Generate: the grounded answer</a>
+<a class="toc-heading toc-sub" href="#the-takeaway-and-where-each-stage-goes-next">The takeaway, and where each stage goes next</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="3">
+<a href="what-is-retrieval-augmented-generation_reader.html" class="toc-chapter" onclick="navigateToChapter('what-is-retrieval-augmented-generation_reader.html')"><span>What Is Retrieval-Augmented Generation?</span><span class="toc-ann-count">11</span><span class="toc-arrow" id="arrow-3" onclick="toggleChapter(event, 3)">▶</span></a>
+<div class="toc-subs" id="subs-3" style="display:none">
+<a class="toc-heading toc-sub" href="what-is-retrieval-augmented-generation_reader.html#the-one-sentence-definition">The one-sentence definition</a>
+<a class="toc-heading toc-sub" href="what-is-retrieval-augmented-generation_reader.html#the-mechanism-in-three-moves">The mechanism in three moves</a>
+<a class="toc-heading toc-sub" href="what-is-retrieval-augmented-generation_reader.html#a-concrete-pass-with-the-arithmetic">A concrete pass, with the arithmetic</a>
+<a class="toc-heading toc-sub-sub" href="what-is-retrieval-augmented-generation_reader.html#why-the-choice-of-top-k-trips-people-up">Why the choice of top-k trips people up</a>
+<a class="toc-heading toc-sub" href="what-is-retrieval-augmented-generation_reader.html#what-grounded-actually-buys-you">What &quot;grounded&quot; actually buys you</a>
+<a class="toc-heading toc-sub" href="what-is-retrieval-augmented-generation_reader.html#rag-is-not-fine-tuning-and-they-compose">RAG is not fine-tuning (and they compose)</a>
+<a class="toc-heading toc-sub" href="what-is-retrieval-augmented-generation_reader.html#the-takeaway-and-where-we-go-next">The takeaway, and where we go next</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="4">
+<a href="why-rag-exists_reader.html" class="toc-chapter" onclick="navigateToChapter('why-rag-exists_reader.html')"><span>Why RAG Exists</span><span class="toc-ann-count">10</span><span class="toc-arrow" id="arrow-4" onclick="toggleChapter(event, 4)">▶</span></a>
+<div class="toc-subs" id="subs-4" style="display:none">
+<a class="toc-heading toc-sub" href="why-rag-exists_reader.html#the-model-is-a-snapshot-and-the-world-keeps-moving">The model is a snapshot, and the world keeps moving</a>
+<a class="toc-heading toc-sub" href="why-rag-exists_reader.html#the-model-hallucinates-and-it-hallucinates-most-where-you-can-least-afford-it">The model hallucinates, and it hallucinates most where you can least afford it</a>
+<a class="toc-heading toc-sub" href="why-rag-exists_reader.html#the-model-can-t-show-its-work-and-unverifiable-is-unusable">The model can&#x27;t show its work, and unverifiable is unusable</a>
+<a class="toc-heading toc-sub" href="why-rag-exists_reader.html#retrieval-is-the-one-fix-that-lands-on-all-three">Retrieval is the one fix that lands on all three</a>
+<a class="toc-heading toc-sub" href="why-rag-exists_reader.html#the-honest-caveat-so-you-don-t-oversell-it">The honest caveat, so you don&#x27;t oversell it</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="5">
+<a href="your-first-minimal-rag_reader.html" class="toc-chapter" onclick="navigateToChapter('your-first-minimal-rag_reader.html')"><span>Your First Minimal RAG</span><span class="toc-ann-count">9</span><span class="toc-arrow" id="arrow-5" onclick="toggleChapter(event, 5)">▶</span></a>
+<div class="toc-subs" id="subs-5" style="display:none">
+<a class="toc-heading toc-sub" href="your-first-minimal-rag_reader.html#the-puzzle-in-three-sentences">The puzzle, in three sentences</a>
+<a class="toc-heading toc-sub" href="your-first-minimal-rag_reader.html#a-corpus-of-three-sentences">A corpus of three sentences</a>
+<a class="toc-heading toc-sub" href="your-first-minimal-rag_reader.html#stage-by-stage-in-the-smallest-possible-code">Stage by stage, in the smallest possible code</a>
+<a class="toc-heading toc-sub" href="your-first-minimal-rag_reader.html#the-whole-thing-once-in-one-place">The whole thing, once, in one place</a>
+<a class="toc-heading toc-sub" href="your-first-minimal-rag_reader.html#the-takeaway">The takeaway</a>
+</div>
+</div>
+</nav>
+  </div>
+
+  <nav class="top-bar">
+    <button onclick="toggleTOC()" title="Table of Contents">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <span class="top-bar-title">The RAG Pipeline End to End</span>
+    <button onclick="toggleSettings()" title="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </nav>
+
+  <main class="reader-content">
+    <div class="chapter-title">
+      <h1 id="rr-h-0">The RAG Pipeline End to End</h1>
+      <span class="ann-badge">📝 33 annotations</span>
+    </div>
+
+
+<h1 id="rr-h-1">The RAG Pipeline End to End</h1>
+<p>In the last chapter we defined the idea: <a href="what-is-retrieval-augmented-generation.html" rel="noopener" target="_blank">retrieval-augmented generation</a> means the model answers from context you <em>fetch at query time</em> instead of from the frozen facts baked into its weights. That is the thesis. This chapter is the machine that makes the thesis true. Because "retrieve some context and put it in the prompt" hides a surprising amount of engineering, and if you cannot draw the whole path from a raw PDF to a grounded answer, you cannot debug it when — and it is when, not if — it returns confident nonsense.</p>
+<p>So let me build the pipeline the way I actually build it: as one diagram I can point at, split cleanly into two halves that run at completely different times, on completely different hardware, for completely different reasons. Once that split is in your bones, every later chapter in this book slots into exactly one box.</p>
+<h2 id="the-one-split-that-organizes-everything">The one split that organizes everything</h2>
+<p>Here is the single most useful fact about a RAG system, and almost every beginner mistake comes from missing it: <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">the pipeline runs in two phases that happen at different times</span>.</p>
+<p>The first phase is indexing — sometimes called the build or offline phase. You take your documents, chew them into vectors, and load them into a searchable index. <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">This happens before any user shows up. It can take hours. It runs on a batch job, a nightly cron, an ingestion worker — nobody is waiting on a spinner.</span></p>
+<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">The second phase is retrieval and generation — the query or online phase.</span> A user types a question, and you have maybe a second or two to embed it, search the index, stuff the winners into a prompt, and stream back an answer. Someone is watching the spinner. Every millisecond is felt.</p>
+<figure class="fig"><div class="fig-frame"><img alt="The seven stages split into an offline build phase (ingest, chunk, embed, index) and an online query phase (retrieve, au" src="Images/the-rag-pipeline-end-to-end-1.png"/><span class="fig-ph">figure rendering · The seven stages split into an offline build phase (ingest, chunk, emb</span></div><figcaption>The seven stages split into an offline build phase (ingest, chunk, embed, index) and an online query phase (retrieve, augment, generate). The index is the handoff between them.</figcaption></figure>
+<p>Why does this split matter so much? Because it tells you where your costs and your latency live. Embedding a million chunks is expensive, but you pay it once, offline, and amortize <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">it forever</span>. Embedding one query is cheap, but you pay it on every single request, so it sits on your latency budget. Confuse the two and you will either try to re-index the whole corpus on every query (slow and broke) or forget that the query itself needs embedding (broken retrieval). Keep them separate and the seven stages line up in order. Let me walk each one with a concrete example small enough to hold in your head.</p>
+<p>There is one trap hiding in that same split, and it is the failure that catches almost every team the second time. Because the index is built once and then frozen, it quietly goes stale: the moment your documents change, the index no longer reflects them, and it will keep confidently serving the old world. Someone edits the refund policy from thirty days to sixty, the wiki page updates, and your RAG system keeps answering "thirty" for weeks, because nobody re-ran the offline phase. The pipeline has no way to notice on its own. This is why index freshness becomes a first-class production concern (covered in Shipping RAG to Production): you need an ingestion job that re-embeds and re-indexes changed documents on a schedule, or a change feed that does it incrementally. The napkin version of the tradeoff is stark. Suppose re-embedding your whole corpus costs a few dollars and an hour of batch time; running it nightly is trivial, running it on every query is insane, and running it never is the silent bug. <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">The right cadence lives somewhere between "hourly cron" and "event-driven on document change", and choosing it is the same offline/online reasoning applied to when, not just where</span>.</p>
+<figure class="fig"><div class="fig-frame"><img alt="When a source document changes, the frozen index keeps serving the old answer until an ingestion job re-embeds and re-in" src="Images/the-rag-pipeline-end-to-end-2.png"/><span class="fig-ph">figure rendering · When a source document changes, the frozen index keeps serving the old</span></div><figcaption>When a source document changes, the frozen index keeps serving the old answer until an ingestion job re-embeds and re-indexes it. Index freshness is a scheduling decision the pipeline will not make for you.</figcaption></figure>
+<h2 id="the-worked-example-three-tiny-documents">The worked example: three tiny documents</h2>
+<p>Forget a million PDFs. Imagine your entire knowledge base is three sentences, sitting in a support wiki:</p>
+<ul><li><code>D1</code>: "The Model X battery lasts 400 kilometres on a full charge."</li><li><code>D2</code>: "To reset the Model X, hold the power button for ten seconds."</li><li><code>D3</code>: "Our refund window is thirty days from delivery."</li></ul>
+<p>A user asks: <strong>"how far can the car go?"</strong> Watch that question travel through all seven stages. Nowhere in the documents do the words "how far" or "car" appear — <code>D1</code> says "kilometres" and "Model X". A keyword search would return nothing. RAG will still find <code>D1</code>, and the reason it can is the whole point of stages 3 through 5.</p>
+<h3 id="stage-1-ingest-turn-raw-sources-into-clean-text">Stage 1 — Ingest: turn raw sources into clean text</h3>
+<p>Real documents do not arrive as tidy sentences. They arrive as PDFs with two-column layouts, HTML wrapped in navigation menus, scanned images that need OCR, DOCX files with tracked changes.11 This stage is deceptively hard and gets its own whole section later — see Ingestion Is the Hard Part. A brochure PDF where columns interleave into word-salad will silently poison every downstream stage, and no amount of clever retrieval recovers from garbage text. <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Ingestion parses each source into plain text plus metadata — the source filename, page number, a URL, a timestamp</span>. That metadata rides along with the text forever, so that at the very end the model can cite "from manual.pdf, page 12." For our toy example the text is already clean, so D1, D2, D3 pass through untouched, each carrying a tiny tag like {source: "wiki", id: "D1"}.</p>
+<h3 id="stage-2-chunk-cut-documents-into-retrieval-units">Stage 2 — Chunk: cut documents into retrieval units</h3>
+<p>You do not retrieve whole documents and you do not retrieve single sentences — you retrieve chunks, and the chunk is the atomic unit of retrieval. Everything you fetch is a whole chunk; nothing smaller ever comes back. <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Our documents are one sentence each, so each is already its own chunk. But a 40-page manual would be split into passages of, say, a few hundred tokens each, usually with a little overlap between neighbours so an idea straddling a boundary is not sliced in half.</span></p>
+<p>The size of that chunk is a genuine tradeoff, and it is worth stating now because it echoes through the rest of the book. Too large, and the chunk's vector becomes a blurry average of several topics — its meaning gets diluted and you waste context tokens on irrelevant text. Too small, and you sever the context a sentence needs to make sense, fragmenting the answer. And <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">the right size is not absolute — it is chosen relative to the embedding model's context window,</span> since a model that reads only 256 tokens will silently truncate a 1,000-token chunk. A whole section, Chunking, is devoted to getting this knob right.</p>
+<figure class="fig"><div class="fig-frame"><img alt="Chunk size is a tradeoff: too big dilutes the vector, too small severs context. A small overlap keeps ideas from being c" src="Images/the-rag-pipeline-end-to-end-3.png"/><span class="fig-ph">figure rendering · Chunk size is a tradeoff: too big dilutes the vector, too small severs</span></div><figcaption>Chunk size is a tradeoff: too big dilutes the vector, too small severs context. A small overlap keeps ideas from being cut at boundaries.</figcaption></figure>
+<h3 id="stage-3-embed-turn-each-chunk-into-a-vector">Stage 3 — Embed: turn each chunk into a vector</h3>
+<p>Now the magic step. An embedding model reads a chunk and emits a fixed-length dense vector — a list of, say, 1,536 floating-point numbers — that encodes the chunk's meaning.22 1,536 is the dimensionality of OpenAI's text-embedding-3-small; text-embedding-3-large gives 3,072, and the tiny Sentence-Transformers all-MiniLM-L6-v2 gives 384. Higher dimension is not automatically better — it is a cost/accuracy tradeoff we unpack in Choosing an Embedding Model. <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">The defining property is that semantic similarity becomes geometric closeness: chunks that mean similar things land near each other in this high-dimensional space, even when they share no words.</span></p>
+<p>To keep the arithmetic visible, pretend our embedding model outputs just two dimensions instead of 1,536 — a "distance/range" axis and a "device-action" axis:</p>
+<ul><li><code>D1</code> "battery lasts 400 km" → <code>[0.9, 0.1]</code> (all about range, no action)</li><li><code>D2</code> "hold power button to reset" → <code>[0.1, 0.9]</code> (all action, no range)</li><li><code>D3</code> "refund within thirty days" → <code>[0.2, 0.2]</code> (neither)</li></ul>
+<p>These vectors are computed offline, once, and stored. Note the iron rule that appears everywhere in RAG: you must embed queries and documents with the same model. <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Embed your documents with one model and your queries with another and their vectors live in incompatible spaces — the geometry is meaningless and retrieval collapses</span>.</p>
+<h3 id="stage-4-index-store-vectors-so-you-can-search-them-fast">Stage 4 — Index: store vectors so you can search them fast</h3>
+<p>You now have a pile of vectors. At query time you will need to find the ones nearest a query vector — but a brute-force scan comparing the query against every stored vector is O(N) per query, which is fine for our three documents and hopeless for ten million. That is why production systems reach for Approximate Nearest Neighbor (ANN) indexes like HNSW (a navigable graph) or IVF (cluster-then-search), which trade a sliver of recall for orders-of-magnitude speed — the whole story is in Vector Indexes and ANN Search. So you load the vectors into a vector index — often inside a vector database like FAISS, Chroma, Qdrant, Pinecone, or <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">pgvector — which builds a data structure that answers "give me the closest vectors" in milliseconds instead of a full scan. This index is the frozen output of the offline phase and the input to everything that follows. Build it once; query it</span> forever.</p>
+<p>That completes indexing. Our three vectors now sit in the index, waiting. The offline phase is done.</p>
+<h2 id="the-online-phase-a-question-arrives">The online phase: a question arrives</h2>
+<h3 id="stage-5-retrieve-embed-the-query-pull-the-top-k">Stage 5 — Retrieve: embed the query, pull the top-k</h3>
+<p>The user asks "how far can the car go?" The very first thing we do is run that question through the same embedding model from stage 3. In our two-dimensional cartoon, "how far / range" maps to something like [0.85, 0.15] — heavy on the distance axis, light on action. Now we compare it against the three stored vectors using a similarity metric, most commonly cosine similarity — the cosine of the angle between two vectors, which for normalized vectors equals their dot product and ranges from −1 to 1, where 1 means identical direction.33 <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Cosine is the default for text because it ignores vector length and cares only about direction — meaning</span>. Dot product and Euclidean distance are the other options; when and why to pick each is Similarity Metrics: Cosine, Dot, Euclidean. Doing the napkin math on the dot products:</p>
+<ul><li>query · <code>D1</code> = 0.85·0.9 + 0.15·0.1 = <strong>0.78</strong> ← highest</li><li>query · <code>D2</code> = 0.85·0.1 + 0.15·0.9 = 0.22</li><li>query · <code>D3</code> = 0.85·0.2 + 0.15·0.2 = 0.20</li></ul>
+<p>D1 wins decisively, even though the query and D1 share not a single word. That is why RAG beats keyword search: it matches on meaning, not spelling. <span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">We keep the top-k results — here k = 1, in practice usually 3 to 10 — and hand them forward.</span></p>
+<figure class="fig"><div class="fig-frame"><img alt="The query is embedded and placed in the same space as the chunks; the top-k nearest vectors — by cosine similarity — are" src="Images/the-rag-pipeline-end-to-end-4.png"/><span class="fig-ph">figure rendering · The query is embedded and placed in the same space as the chunks; the </span></div><figcaption>The query is embedded and placed in the same space as the chunks; the top-k nearest vectors — by cosine similarity — are pulled back, matching on meaning rather than exact words.</figcaption></figure>
+<h3 id="stage-6-augment-assemble-the-prompt">Stage 6 — Augment: assemble the prompt</h3>
+<p>Retrieval handed us <code>D1</code>. Now we <strong>augment</strong> — we build the actual prompt the LLM will see by weaving the retrieved chunk into a template. Concretely, it looks like this:</p>
+<pre class="line-numbers language-text"><code class="language-text">System: Answer ONLY using the context below. If the answer is
+not in the context, say "I don't know." Cite the source id.
+
+Context:
+[D1 | source: wiki] The Model X battery lasts 400 kilometres on a full charge.
+
+Question: how far can the car go?</code></pre>
+<p>This assembly step is where two production realities bite. First, the context window is a finite budget: the system prompt, every retrieved chunk, and the question all have to fit, so a large k can blow the budget or, worse, bury the good chunk in noise.44 <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">There is a documented failure called "lost in the middle" — models attend best to the start and end of a long context and worst to the middle. Where a chunk sits in the assembled prompt genuinely affects whether the model uses it</span>. That shapes Prompt Augmentation and Context Assembly. Second, that "answer ONLY using the context / say I don't know" instruction is not decoration — it is the grounding contract that keeps the model from wandering back into its parametric memory and inventing an answer.</p>
+<h3 id="stage-7-generate-the-grounded-answer">Stage 7 — Generate: the grounded answer</h3>
+<p>Finally the assembled prompt goes to the <strong>generation model</strong> — a normal LLM, and crucially <em>a different model from the embedding model</em>.<label class="sn-ref" for="sn-the-rag-pipeline-end-to-end-5">5</label><input class="sn-toggle" id="sn-the-rag-pipeline-end-to-end-5" type="checkbox"/><span class="sidenote"><sup>5</sup> This is a common beginner conflation: the <strong>embedding model</strong> encodes text into vectors for search; the <strong>generation model</strong> writes the prose answer. They are almost always separate models with separate jobs, separate costs, and separate failure modes. Do not mix them up.</span> It reads the context and produces:</p>
+<blockquote>"The Model X can travel 400 kilometres on a full charge. [source: wiki/D1]"</blockquote>
+<p>Grounded in a real document, traceable to its source, and — because we told it to say "I don't know" — safely silent if the retrieval had missed. That is a complete RAG round-trip: seven stages, one honest, cited answer.</p>
+<figure class="fig"><div class="fig-frame"><img alt="The complete pipeline in one view: four offline stages build the index, three online stages answer the query, and the sa" src="Images/the-rag-pipeline-end-to-end-5.png"/><span class="fig-ph">figure rendering · The complete pipeline in one view: four offline stages build the index</span></div><figcaption>The complete pipeline in one view: four offline stages build the index, three online stages answer the query, and the same embedding model bridges them.</figcaption></figure>
+<h2 id="the-takeaway-and-where-each-stage-goes-next">The takeaway, and where each stage goes next</h2>
+<p>If you remember one thing, remember the shape: <strong>RAG is seven stages in two phases — ingest, chunk, embed, index run offline to build the vector index; retrieve, augment, generate run online to answer each query — and the embedding model is the bridge that must be identical on both sides.</strong> Every chapter that follows is a deep zoom into exactly one of these seven boxes. When retrieval returns garbage, you now have a checklist: was the <em>ingestion</em> clean, were the <em>chunks</em> the right size, did you <em>embed</em> the query with the same model, is the <em>index</em> fresh, is <code>k</code> sane, did <em>augmentation</em> bury the chunk, did <em>generation</em> ignore its grounding instruction? A vague "the RAG is bad" becomes a specific stage you can fix.</p>
+<p>So the key is: <strong>once you can name the stage, you can fix the failure.</strong> In the next chapter we stop drawing boxes and make all seven fire at once — we build <a href="your-first-minimal-rag.html" rel="noopener" target="_blank">your first minimal RAG</a> in a handful of lines, so you can watch a real question travel this exact path and come back grounded.</p>
+
+  </main>
+
+  <footer class="bottom-bar">
+    <span id="pageInfo">Chapter 3</span>
+    <span id="progressPercent">0%</span>
+  </footer>
+
+  <footer class="footer">
+    Exported from MoonReader • Generated 2026-09-10 17:24
+  </footer>
+
+  <script>
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+    });
+
+    function toggleTOC() {
+      const panel = document.getElementById('tocPanel');
+      const overlay = document.getElementById('tocOverlay');
+      panel.classList.toggle('open');
+      overlay.classList.toggle('show');
+    }
+
+    function toggleChapter(event, idx) {
+      event.preventDefault();
+      event.stopPropagation();
+      const arrow = document.getElementById('arrow-' + idx);
+      const subs = document.getElementById('subs-' + idx);
+      if (arrow && subs) {
+        const isOpen = subs.style.display !== 'none';
+        subs.style.display = isOpen ? 'none' : 'block';
+        arrow.classList.toggle('open', !isOpen);
+      }
+    }
+
+    function navigateToChapter(url) {
+      window.location.href = url;
+    }
+
+    function toggleSettings() {
+      alert('Settings panel coming soon');
+    }
+  </script>
+  <!--rr-annotate-->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23FAF6EE'/%3E%3Ctext x='16' y='24' font-size='22' text-anchor='middle' fill='%23A34A2E' font-family='Georgia' font-style='italic'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="../../assets/annotate.css?v=16">
+<script type="application/json" id="rr-notes">{}</script>
+<script data-rr-palette="apple" src="../../assets/annotate.js?v=16" data-rr-book="rag-in-production" data-rr-page="the-rag-pipeline-end-to-end_reader.html" data-rr-prefix="../../"></script>
+<script src="../../assets/chapter-toc.js?v=16"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<script>
+(function() {
+  // Single ownership: chapter-toc.js (loaded above) owns window.toggleTheme
+  // (guarded by window.__rrThemeOwned). Standalone fallback applies only if
+  // it failed to load - never wrap the skill's toggleTheme: RAG/DML/agentic
+  // pages never defined one, so the old origTheme() wrapper crashed on click.
+  if (!window.__rrThemeOwned) {
+    window.toggleTheme = function() {
+      var root = document.documentElement;
+      var wasDark = root.getAttribute('data-theme') === 'dark';
+      if (wasDark) root.removeAttribute('data-theme');
+      else root.setAttribute('data-theme', 'dark');
+      try { window.localStorage.setItem('rr-theme', wasDark ? 'light' : 'dark'); } catch (e) {}
+      var tb = document.getElementById('rr-theme-btn');
+      if (tb) tb.textContent = wasDark ? '\u263E dark' : '\u2600 light';
+    };
+    try {
+      if (window.localStorage.getItem('rr-theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        var tb0 = document.getElementById('rr-theme-btn');
+        if (tb0) tb0.textContent = '\u2600 light';
+      }
+    } catch (e) {}
+  }
+  var panel = document.getElementById('tocPanel');
+  var overlay = document.getElementById('tocOverlay');
+  var btn = document.getElementById('rr-toc-btn');
+  function syncBtn() {
+    if (!btn) return;
+    var hidden;
+    if (window.innerWidth <= 900) {
+      hidden = !(panel && panel.classList.contains('open'));
+    } else {
+      hidden = document.body.classList.contains('toc-hidden');
+    }
+    // hamburger (closed) vs close-mark (open) so the button always
+    // tells the reader what the TOC toggle will do
+    btn.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+    btn.innerHTML = hidden ? '\u2630 toc' : '\u2715 toc';
+  }
+  // Single ownership: chapter-toc.js (loaded above) owns window.toggleTOC
+  // (guarded by window.__rrTocOwned). Fallback applies only if it failed.
+  if (!window.__rrTocOwned) {
+    window.toggleTOC = function() {
+      if (window.innerWidth <= 900) {
+        if (panel) panel.classList.toggle('open');
+        if (overlay) overlay.classList.toggle('show');
+      } else {
+        document.body.classList.toggle('toc-hidden');
+        if (panel) {
+          if (document.body.classList.contains('toc-hidden')) panel.classList.add('rr-hidden');
+          else panel.classList.remove('rr-hidden');
+        }
+        if (overlay) overlay.classList.remove('show');
+      }
+      syncBtn();
+    };
+  }
+  // default: TOC visible on desktop, hidden drawer on mobile
+  if (window.innerWidth > 900) {
+    document.body.classList.remove('toc-hidden');
+    if (panel) panel.classList.remove('rr-hidden');
+  } else if (panel) {
+    panel.classList.remove('open');
+  }
+  // auto-expand the current chapter's sub-headings + mark it active
+  try {
+    var cur = (location.pathname.split('/').pop() || '').split('#')[0];
+    document.querySelectorAll('.toc-chapter-wrap').forEach(function(w, idx) {
+      var link = w.querySelector('a.toc-chapter');
+      if (!link) return;
+      var href = (link.getAttribute('href') || '').split('#')[0];
+      if (href === cur) {
+        var subs = document.getElementById('subs-' + idx);
+        var arrow = document.getElementById('arrow-' + idx);
+        if (subs) subs.style.display = 'block';
+        if (arrow) arrow.classList.add('open');
+        link.classList.add('active');
+      }
+    });
+  } catch (e) {}
+  window.addEventListener('resize', syncBtn);
+  syncBtn();
+})();
+</script>
+
+<script src="../../assets/course-theme.js?v=3"></script>
+</body>
+</html>

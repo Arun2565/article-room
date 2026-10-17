@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAG vs Fine-tuning vs Long Context</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css');
+
+    :root {
+      --bg: #FAF6EE;
+      --surface: #FFFFFF;
+      --ink: #2D2522;
+      --ink-2: #6E625B;
+      --accent: #A34A2E;
+      --border: rgba(163,74,46,0.1);
+      --font-reader: 'Newsreader', 'EB Garamond', 'Baskerville', 'Garamond', Georgia, serif;
+      --toc-width: 280px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-reader);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+
+    .top-bar button {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .top-bar button:hover {
+      background: rgba(163,74,46,0.08);
+    }
+
+    .top-bar button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .top-bar-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--ink-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60%;
+    }
+
+    .reader-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 60px 80px;
+    }
+
+    .reader-content h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      line-height: 1.3;
+    }
+
+    .reader-content h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 32px 0 16px;
+    }
+
+    .reader-content h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 24px 0 12px;
+      color: var(--ink-2);
+    }
+
+    .reader-content p {
+      font-size: 1.15rem;
+      line-height: 1.85;
+      margin-bottom: 1.2em;
+      text-align: left;
+    }
+
+    .reader-content blockquote {
+      margin: 20px 0;
+      padding: 16px 20px;
+      border-left: 3px solid var(--accent);
+      background: rgba(163,74,46,0.04);
+      font-style: italic;
+    }
+
+    .reader-content dl {
+      margin: 20px 0;
+    }
+
+    .reader-content dt {
+      font-weight: 600;
+      margin: 16px 0 8px;
+      font-style: italic;
+    }
+
+    .reader-content dd {
+      margin-left: 20px;
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .reader-content table {
+      display: table;
+      width: 100%;
+      margin: 24px 0;
+      border-collapse: collapse;
+      font-size: 1rem;
+      border: 1px solid #c3c3c3;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .reader-content th {
+      display: table-cell;
+      background: #f0f4f8;
+      border-bottom: 2px solid #9d9d9d;
+      padding: 14px 16px;
+      font-weight: 600;
+      text-align: left;
+      font-size: 0.95rem;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td {
+      display: table-cell;
+      padding: 14px 16px;
+      border-bottom: 1px solid #ddd;
+      border-right: 1px solid #eee;
+      vertical-align: top;
+      font-size: 1rem;
+      line-height: 1.7;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td:last-child {
+      border-right: none;
+    }
+
+    .reader-content tr:nth-of-type(even) {
+      background-color: #fafbfd;
+    }
+
+    .reader-content figure,
+    .reader-content .figure {
+      margin: 24px auto;
+      text-align: center;
+    }
+
+    .reader-content img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .reader-content figcaption,
+    .reader-content figure h6,
+    .reader-content .figure h6 {
+      font-size: 0.9rem;
+      font-style: italic;
+      color: var(--ink-2);
+      margin-top: 8px;
+    }
+
+    .reader-content .note,
+    .reader-content [data-type="note"] {
+      margin: 20px 0;
+      padding: 16px 20px;
+      background: #f8f4e8;
+      border: 1px solid #e6d48a;
+      border-radius: 6px;
+    }
+
+    .ann-hl { border-radius: 2px; }
+    .ann-note { border-radius: 2px; }
+
+    pre.code, pre[data-lang], .code {      background: #1e1e1e !important;      border-radius: 8px !important;      padding: 16px 20px !important;      margin: 20px 0 !important;      overflow-x: auto !important;      position: relative !important;      border: 1px solid #333 !important;    }
+
+    pre.code[data-lang]::before, pre[data-lang]::before {      content: attr(data-lang);      position: absolute;      top: 8px;      right: 12px;      font-size: 0.7rem;      color: #888;      text-transform: uppercase;      letter-spacing: 0.05em;      font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;    }
+
+    pre.code code, pre[data-lang] code, .code code {      color: #e0e0e0 !important;      font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace !important;      font-size: 0.9rem !important;      line-height: 1.6 !important;      background: none !important;      padding: 0 !important;      border: none !important;      white-space: pre !important;    }
+
+    p code, li code, td code {      background: rgba(0,0,0,0.06) !important;      padding: 2px 6px !important;      border-radius: 4px !important;      font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace !important;      font-size: 0.85em !important;    }
+
+    .line-numbers-rows { border-right: 1px solid #444 !important; }
+    .progress-bar {
+      position: fixed;
+      top: 52px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 99;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .ann-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent);
+      color: white;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .chapter-title {
+      text-align: center;
+      padding: 40px 20px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chapter-title h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    /* TOC Panel */
+    .toc-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--toc-width);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      z-index: 200;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+    }
+
+    .toc-panel.open {
+      transform: translateX(0);
+    }
+
+    .toc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      height: 52px;
+    }
+
+    .toc-header h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .toc-close {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+    }
+
+    .toc-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+
+    .toc-chapter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .toc-chapter:hover {
+      background: rgba(163,74,46,0.06);
+      border-left-color: var(--accent);
+    }
+
+    .toc-arrow {
+      font-size: 0.6rem;
+      color: var(--ink-2);
+      transition: transform 0.2s ease;
+      margin-left: auto;
+    }
+
+    .toc-arrow.open {
+      transform: rotate(90deg);
+    }
+
+    .toc-subs {
+      padding: 4px 0;
+      border-left: 2px solid var(--border);
+      margin-left: 20px;
+    }
+
+    .toc-sub {
+      padding-left: 32px;
+      font-weight: 400;
+    }
+
+    .toc-sub-sub {
+      padding-left: 48px;
+      font-size: 0.75rem;
+    }
+
+    .toc-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 199;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .toc-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--ink-2);
+      z-index: 100;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 60px;
+      border-top: 1px solid var(--border);
+      color: var(--ink-2);
+      font-size: 0.8rem;
+    }
+  </style>
+<link rel="stylesheet" href="../../assets/site.css?v=17">
+<link rel="stylesheet" href="../../assets/course-theme.css?v=3">
+</head>
+<body>
+<button id="rr-toc-btn" onclick="toggleTOC()" title="Table of Contents — show/hide chapters" aria-expanded="true" aria-controls="tocPanel">&#9776; toc</button>
+
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="toc-overlay" id="tocOverlay" onclick="toggleTOC()"></div>
+
+  <div class="toc-panel" id="tocPanel">
+    <div class="toc-header">
+      <h3>Table of Contents</h3>
+      <button class="toc-close" onclick="toggleTOC()">✕</button>
+    </div>
+    <nav class="toc-nav">
+<div class="toc-chapter-wrap" data-chapter="0">
+<a href="ingestion-is-the-hard-part_reader.html" class="toc-chapter" onclick="navigateToChapter('ingestion-is-the-hard-part_reader.html')"><span>Ingestion Is the Hard Part</span><span class="toc-ann-count">14</span><span class="toc-arrow" id="arrow-0" onclick="toggleChapter(event, 0)">▶</span></a>
+<div class="toc-subs" id="subs-0" style="display:none">
+<a class="toc-heading toc-sub" href="ingestion-is-the-hard-part_reader.html#what-ingestion-actually-is">What ingestion actually is</a>
+<a class="toc-heading toc-sub" href="ingestion-is-the-hard-part_reader.html#the-rule-that-governs-everything-downstream-garbage-in-garbage-out">The rule that governs everything downstream: garbage in, garbage out</a>
+<a class="toc-heading toc-sub" href="ingestion-is-the-hard-part_reader.html#a-concrete-example-two-columns-one-disaster">A concrete example: two columns, one disaster</a>
+<a class="toc-heading toc-sub" href="ingestion-is-the-hard-part_reader.html#napkin-arithmetic-what-a-small-error-rate-actually-costs">Napkin arithmetic: what a small error rate actually costs</a>
+<a class="toc-heading toc-sub" href="ingestion-is-the-hard-part_reader.html#the-four-failure-families-you-will-actually-hit">The four failure families you will actually hit</a>
+<a class="toc-heading toc-sub" href="ingestion-is-the-hard-part_reader.html#the-quiet-fifth-failure-dropping-the-metadata">The quiet fifth failure: dropping the metadata</a>
+<a class="toc-heading toc-sub" href="ingestion-is-the-hard-part_reader.html#the-minimal-defensive-move-never-trust-the-parse-blindly">The minimal defensive move: never trust the parse blindly</a>
+<a class="toc-heading toc-sub" href="ingestion-is-the-hard-part_reader.html#so-the-key-is-fix-the-text-first">So the key is: fix the text first</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="1">
+<a href="rag-vs-finetuning-vs-long-context_reader.html" class="toc-chapter" onclick="navigateToChapter('rag-vs-finetuning-vs-long-context_reader.html')"><span>RAG vs Fine-tuning vs Long Context</span><span class="toc-ann-count">14</span><span class="toc-arrow" id="arrow-1" onclick="toggleChapter(event, 1)">▶</span></a>
+<div class="toc-subs" id="subs-1" style="display:none">
+<a class="toc-heading toc-sub" href="#three-knobs-three-different-things-they-change">Three knobs, three different things they change</a>
+<a class="toc-heading toc-sub" href="#the-napkin-arithmetic-that-settles-why-not-just-paste-everything">The napkin arithmetic that settles &quot;why not just paste everything?&quot;</a>
+<a class="toc-heading toc-sub-sub" href="#the-pitfall-but-prompt-caching-makes-it-free">The pitfall: &quot;but prompt caching makes it free&quot;</a>
+<a class="toc-heading toc-sub" href="#so-when-does-each-one-actually-win">So when does each one actually win?</a>
+<a class="toc-heading toc-sub" href="#the-grown-up-answer-they-compose">The grown-up answer: they compose</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="2">
+<a href="the-rag-pipeline-end-to-end_reader.html" class="toc-chapter" onclick="navigateToChapter('the-rag-pipeline-end-to-end_reader.html')"><span>The RAG Pipeline End to End</span><span class="toc-ann-count">14</span><span class="toc-arrow" id="arrow-2" onclick="toggleChapter(event, 2)">▶</span></a>
+<div class="toc-subs" id="subs-2" style="display:none">
+<a class="toc-heading toc-sub" href="the-rag-pipeline-end-to-end_reader.html#the-one-split-that-organizes-everything">The one split that organizes everything</a>
+<a class="toc-heading toc-sub" href="the-rag-pipeline-end-to-end_reader.html#the-worked-example-three-tiny-documents">The worked example: three tiny documents</a>
+<a class="toc-heading toc-sub-sub" href="the-rag-pipeline-end-to-end_reader.html#stage-1-ingest-turn-raw-sources-into-clean-text">Stage 1 — Ingest: turn raw sources into clean text</a>
+<a class="toc-heading toc-sub-sub" href="the-rag-pipeline-end-to-end_reader.html#stage-2-chunk-cut-documents-into-retrieval-units">Stage 2 — Chunk: cut documents into retrieval units</a>
+<a class="toc-heading toc-sub-sub" href="the-rag-pipeline-end-to-end_reader.html#stage-3-embed-turn-each-chunk-into-a-vector">Stage 3 — Embed: turn each chunk into a vector</a>
+<a class="toc-heading toc-sub-sub" href="the-rag-pipeline-end-to-end_reader.html#stage-4-index-store-vectors-so-you-can-search-them-fast">Stage 4 — Index: store vectors so you can search them fast</a>
+<a class="toc-heading toc-sub" href="the-rag-pipeline-end-to-end_reader.html#the-online-phase-a-question-arrives">The online phase: a question arrives</a>
+<a class="toc-heading toc-sub-sub" href="the-rag-pipeline-end-to-end_reader.html#stage-5-retrieve-embed-the-query-pull-the-top-k">Stage 5 — Retrieve: embed the query, pull the top-k</a>
+<a class="toc-heading toc-sub-sub" href="the-rag-pipeline-end-to-end_reader.html#stage-6-augment-assemble-the-prompt">Stage 6 — Augment: assemble the prompt</a>
+<a class="toc-heading toc-sub-sub" href="the-rag-pipeline-end-to-end_reader.html#stage-7-generate-the-grounded-answer">Stage 7 — Generate: the grounded answer</a>
+<a class="toc-heading toc-sub" href="the-rag-pipeline-end-to-end_reader.html#the-takeaway-and-where-each-stage-goes-next">The takeaway, and where each stage goes next</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="3">
+<a href="what-is-retrieval-augmented-generation_reader.html" class="toc-chapter" onclick="navigateToChapter('what-is-retrieval-augmented-generation_reader.html')"><span>What Is Retrieval-Augmented Generation?</span><span class="toc-ann-count">11</span><span class="toc-arrow" id="arrow-3" onclick="toggleChapter(event, 3)">▶</span></a>
+<div class="toc-subs" id="subs-3" style="display:none">
+<a class="toc-heading toc-sub" href="what-is-retrieval-augmented-generation_reader.html#the-one-sentence-definition">The one-sentence definition</a>
+<a class="toc-heading toc-sub" href="what-is-retrieval-augmented-generation_reader.html#the-mechanism-in-three-moves">The mechanism in three moves</a>
+<a class="toc-heading toc-sub" href="what-is-retrieval-augmented-generation_reader.html#a-concrete-pass-with-the-arithmetic">A concrete pass, with the arithmetic</a>
+<a class="toc-heading toc-sub-sub" href="what-is-retrieval-augmented-generation_reader.html#why-the-choice-of-top-k-trips-people-up">Why the choice of top-k trips people up</a>
+<a class="toc-heading toc-sub" href="what-is-retrieval-augmented-generation_reader.html#what-grounded-actually-buys-you">What &quot;grounded&quot; actually buys you</a>
+<a class="toc-heading toc-sub" href="what-is-retrieval-augmented-generation_reader.html#rag-is-not-fine-tuning-and-they-compose">RAG is not fine-tuning (and they compose)</a>
+<a class="toc-heading toc-sub" href="what-is-retrieval-augmented-generation_reader.html#the-takeaway-and-where-we-go-next">The takeaway, and where we go next</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="4">
+<a href="why-rag-exists_reader.html" class="toc-chapter" onclick="navigateToChapter('why-rag-exists_reader.html')"><span>Why RAG Exists</span><span class="toc-ann-count">10</span><span class="toc-arrow" id="arrow-4" onclick="toggleChapter(event, 4)">▶</span></a>
+<div class="toc-subs" id="subs-4" style="display:none">
+<a class="toc-heading toc-sub" href="why-rag-exists_reader.html#the-model-is-a-snapshot-and-the-world-keeps-moving">The model is a snapshot, and the world keeps moving</a>
+<a class="toc-heading toc-sub" href="why-rag-exists_reader.html#the-model-hallucinates-and-it-hallucinates-most-where-you-can-least-afford-it">The model hallucinates, and it hallucinates most where you can least afford it</a>
+<a class="toc-heading toc-sub" href="why-rag-exists_reader.html#the-model-can-t-show-its-work-and-unverifiable-is-unusable">The model can&#x27;t show its work, and unverifiable is unusable</a>
+<a class="toc-heading toc-sub" href="why-rag-exists_reader.html#retrieval-is-the-one-fix-that-lands-on-all-three">Retrieval is the one fix that lands on all three</a>
+<a class="toc-heading toc-sub" href="why-rag-exists_reader.html#the-honest-caveat-so-you-don-t-oversell-it">The honest caveat, so you don&#x27;t oversell it</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="5">
+<a href="your-first-minimal-rag_reader.html" class="toc-chapter" onclick="navigateToChapter('your-first-minimal-rag_reader.html')"><span>Your First Minimal RAG</span><span class="toc-ann-count">9</span><span class="toc-arrow" id="arrow-5" onclick="toggleChapter(event, 5)">▶</span></a>
+<div class="toc-subs" id="subs-5" style="display:none">
+<a class="toc-heading toc-sub" href="your-first-minimal-rag_reader.html#the-puzzle-in-three-sentences">The puzzle, in three sentences</a>
+<a class="toc-heading toc-sub" href="your-first-minimal-rag_reader.html#a-corpus-of-three-sentences">A corpus of three sentences</a>
+<a class="toc-heading toc-sub" href="your-first-minimal-rag_reader.html#stage-by-stage-in-the-smallest-possible-code">Stage by stage, in the smallest possible code</a>
+<a class="toc-heading toc-sub" href="your-first-minimal-rag_reader.html#the-whole-thing-once-in-one-place">The whole thing, once, in one place</a>
+<a class="toc-heading toc-sub" href="your-first-minimal-rag_reader.html#the-takeaway">The takeaway</a>
+</div>
+</div>
+</nav>
+  </div>
+
+  <nav class="top-bar">
+    <button onclick="toggleTOC()" title="Table of Contents">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <span class="top-bar-title">RAG vs Fine-tuning vs Long Context</span>
+    <button onclick="toggleSettings()" title="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </nav>
+
+  <main class="reader-content">
+    <div class="chapter-title">
+      <h1 id="rr-h-0">RAG vs Fine-tuning vs Long Context</h1>
+      <span class="ann-badge">📝 23 annotations</span>
+    </div>
+
+
+<h1 id="rr-h-1">RAG vs Fine-tuning vs Long Context</h1>
+<p>The last chapter, what is retrieval-augmented generation, promised that RAG and fine-tuning are different knobs and left the full tradeoff for here. But there is a third knob that has quietly grown into the room, and it changes the whole conversation: long context. Context windows that were 4,000 tokens in 2022 are now hundreds of thousands, and a few models advertise a million or more. So a fair question — one I get in every workshop — is: <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">if I can just paste all my documents into the prompt, why build a retrieval pipeline at all?</span></p>
+<p>This chapter is the honest answer. Three options, one decision. I want to give you a way to reason about it that survives contact with a real budget, a real latency SLA, and a real corpus that will not fit anywhere. So let me define the three knobs precisely, then run the napkin arithmetic that usually settles the argument, then show why the grown-up answer is almost never "pick one."</p>
+<h2 id="three-knobs-three-different-things-they-change">Three knobs, three different things they change</h2>
+<p>Line the three up and notice they act on completely different parts of the system.</p>
+<p>Fine-tuning changes the weights. You take a base model and keep training it on your own examples so it internalizes a skill, a format, or a style — how to speak like your support team, how to always emit valid JSON, how to reason through your kind of problem.11 In practice almost nobody does full fine-tuning anymore. The standard is parameter-efficient fine-tuning, usually LoRA (Low-Rank Adaptation), which freezes the base weights and trains a tiny pair of low-rank matrices — often under 1% of the parameters. It is dramatically cheaper and the adapter is a small file you can swap in and out. When I say "fine-tune" in this chapter, assume LoRA unless noted. <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">It is a build-time investment: slow, you need a dataset, and once it is done the knowledge is baked in and frozen until you retrain</span>.</p>
+<p><span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Long context changes how much you can stuff into one prompt. You do not touch the weights and you do not build an index — you just paste the relevant documents directly into the context window and let the model read all of it, every single query. It is the brute-force option, and its appeal is that there is almost nothing to build.</span></p>
+<p>RAG changes what you put into the prompt each query, selectively. <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Instead of pasting everything, you retrieve the handful of chunks that matter for this question and paste only those. It is the middle path: an index you build once offline, then a cheap lookup at query time</span>.</p>
+<figure class="fig"><div class="fig-frame"><img alt="The three approaches act on different layers: fine-tuning edits the weights, long context enlarges what you paste, RAG s" src="Images/rag-vs-finetuning-vs-long-context-1.png"/><span class="fig-ph">figure rendering · The three approaches act on different layers: fine-tuning edits the we</span></div><figcaption>The three approaches act on different layers: fine-tuning edits the weights, long context enlarges what you paste, RAG selects what you paste.</figcaption></figure>
+<p>The one-line separator to carry: <strong>fine-tune to change how the model behaves; use context (long or retrieved) to change what it knows.</strong> Fine-tuning is about <em>skill</em>; long context and RAG are both about <em>knowledge</em> — and the choice between those two is mostly an economics problem. Which is exactly where the argument gets decided.</p>
+<h2 id="the-napkin-arithmetic-that-settles-why-not-just-paste-everything">The napkin arithmetic that settles "why not just paste everything?"</h2>
+<p>Let me make the long-context temptation concrete and then watch it fall apart on cost. Suppose your knowledge base is a product manual: <strong>200,000 tokens</strong> total.<label class="sn-ref" for="sn-rag-vs-finetuning-vs-long-context-2">2</label><input class="sn-toggle" id="sn-rag-vs-finetuning-vs-long-context-2" type="checkbox"/><span class="sidenote"><sup>2</sup> A rough conversion to keep in your head: <strong>1 token ≈ 0.75 English words</strong>, so 200,000 tokens is roughly 150,000 words — a 500-ish page book. The exact ratio depends on the tokenizer and drifts higher for code, non-English text, and rare words.</span> It fits inside a modern long-context model, so the naive plan is: paste all 200,000 tokens in front of every user question and let the model find the answer itself.</p>
+<p>Now price one query. Say input tokens cost <strong>$3 per million</strong> — a representative mid-tier rate. Pasting the whole manual is 200,000 input tokens per question:</p>
+<pre class="line-numbers language-text"><code class="language-text">long-context cost per query = 200,000 tokens × ($3 / 1,000,000) = $0.60</code></pre>
+<p>Sixty cents a question, <em>before</em> the model writes a single word of output. Ten thousand questions a day is <strong>$6,000 a day</strong> just to re-read the same manual over and over.</p>
+<p>Now the RAG version. You embed the manual once offline, and at query time you retrieve, say, the <strong>top-5 chunks</strong> of 400 tokens each — 2,000 tokens of context — plus a ~500-token prompt scaffold. That is ~2,500 input tokens per query:</p>
+<pre class="line-numbers language-text"><code class="language-text">RAG cost per query = 2,500 tokens × ($3 / 1,000,000) = $0.0075</code></pre>
+<p>Three-quarters of a cent. Same model, same question, 80× cheaper — because you stopped paying to re-read 197,500 tokens the question never needed.33 <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">The one-time indexing cost is real but small and amortized: embedding 200,000 tokens with an embedding model at, say, $0.02 per million tokens is about $0.004 — once, ever, until the manual changes. Compare that to $0.60 per query. The build cost is a rounding error against the query savings.</span></p>
+<figure class="fig"><div class="fig-frame"><img alt="Pasting the full manual costs $0.60 a query and scales linearly with traffic; retrieving the top-5 chunks costs under a " src="Images/rag-vs-finetuning-vs-long-context-2.png"/><span class="fig-ph">figure rendering · Pasting the full manual costs $0.60 a query and scales linearly with t</span></div><figcaption>Pasting the full manual costs $0.60 a query and scales linearly with traffic; retrieving the top-5 chunks costs under a cent — the same answer, 80× cheaper.</figcaption></figure>
+<p>And cost is not even the worst of it. Two more problems bite the paste-everything plan.</p>
+<p><span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">First, latency and the quadratic cost of attention. Attention compares every token to every other token, so its cost grows with the square of the sequence length</span>.44 This is why "the model supports 1M tokens" and "you should send it 1M tokens" are different claims. Most long-context APIs do not charge you quadratically — they price input linearly per token — but the underlying compute and wall-clock latency still balloon with length, which is why a 200k-token prompt can take many seconds to first token while a 2.5k-token prompt returns almost instantly. Double the pasted context and you roughly quadruple that part of the work. A 2,500-token RAG prompt returns in a blink; a 200,000-token prompt makes the user wait.</p>
+<p>Second — and this is the one people underestimate — more context does not mean more accuracy. Models attend worst to material buried in the middle of a long window, a well-documented failure called "lost in the middle." Paste 200 pages and the one relevant paragraph on page 143 can be effectively invisible, while a focused 5-chunk prompt puts the answer right where the model reads best. <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Retrieval is not just cheaper; it often answers better by getting the noise out of the way</span>.</p>
+<p>So the takeaway that decides the default: paste-everything is a demo strategy, not a production one. <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">It is genuinely the right call for a one-off analysis of a single document you already have in hand — but the moment there is repeated traffic, a corpus bigger than the window, or a latency budget, retrieval wins on every axis at once</span>.</p>
+<h3 id="the-pitfall-but-prompt-caching-makes-it-free">The pitfall: "but prompt caching makes it free"</h3>
+<p>Here is where the sharpest people in the room push back, and it is worth answering head-on because it trips up almost everyone who has read the pricing page. Prompt caching lets a provider store the tokens at the front of your prompt and charge a fraction (often around 10%) to re-read them on the next call. So the argument goes: cache the 200,000-token manual once, and paste-everything becomes nearly as cheap as RAG. It is a real feature and a real saving, but it does not rescue the plan, for two reasons the napkin makes obvious. First, caching only discounts the stable prefix. Run the manual at a cached rate of $0.30 per million tokens and you still pay 200,000 × ($0.30 / 1,000,000) = $0.06 per query, which is $600 a day at 10,000 queries and still 8× more expensive than RAG's three-quarters of a cent. Second, and more decisively, caching does nothing about the two problems that were never about money: the prompt is still 200,000 tokens long, so latency and "lost in the middle" are exactly as bad as before (the model still reads and attends over every cached token). Caching shaves the price of <span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">re-reading; it does not shave the cost of having read too much.</span> The instant your corpus outgrows the window, caching is moot anyway, because the whole thing no longer fits. Caching optimizes the wrong plan; retrieval fixes the plan.</p>
+<figure class="fig"><div class="fig-frame"><img alt="Prompt caching lowers the token price of the pasted manual but leaves it long, slow, and noise-filled, so retrieval stil" src="Images/rag-vs-finetuning-vs-long-context-3.png"/><span class="fig-ph">figure rendering · Prompt caching lowers the token price of the pasted manual but leaves </span></div><figcaption>Prompt caching lowers the token price of the pasted manual but leaves it long, slow, and noise-filled, so retrieval still wins on cost, latency, and accuracy at once.</figcaption></figure>
+<h2 id="so-when-does-each-one-actually-win">So when does each one actually win?</h2>
+<p>Cost knocks out "always paste everything," but it does not make RAG universal. Each knob has a home. Here is how I decide, and the questions are almost mechanical.</p>
+<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Reach for long context when the relevant material is small, changes every query, and precision on this exact document matters — summarize this contract, answer questions about this one PDF the user just uploaded, reason across a codebase small enough to fit. There is nothing to index because there is nothing reused; the document lives and dies with the request</span>. If it fits and you will not ask about it again, retrieval is over-engineering.</p>
+<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Reach for RAG when the knowledge base is large, shared across many queries, and updated often — the entire product-docs site, a support knowledge base, a legal corpus, anything too big for the window or too costly to re-read. This is the overwhelming majority of production systems, which is why this book exists</span>.</p>
+<p>Reach for fine-tuning when the problem is behavior, not facts — <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">the model needs to adopt a house style, always produce a strict output format, follow a domain-specific reasoning pattern, or handle jargon it fumbles out of the box. Fine-tuning is a bad and expensive way to inject facts (they go stale the instant your data changes, and you cannot cite them), but an excellent way to teach a durable skill</span>.</p>
+<figure class="fig"><div class="fig-frame"><img alt="A two-question flowchart: is the gap skill or knowledge, and if knowledge, does it fit and stay one-off? Skill routes to" src="Images/rag-vs-finetuning-vs-long-context-4.png"/><span class="fig-ph">figure rendering · A two-question flowchart: is the gap skill or knowledge, and if knowle</span></div><figcaption>A two-question flowchart: is the gap skill or knowledge, and if knowledge, does it fit and stay one-off? Skill routes to fine-tuning, small one-off to long context, everything else to RAG.</figcaption></figure>
+<p>Notice the flowchart's first split is the load-bearing one. Almost every "should I fine-tune?" question I hear is really a <em>knowledge</em> problem in disguise — someone wants the model to know their company's facts, reaches for fine-tuning because it sounds powerful, and ends up with a model that memorized last quarter's data, cannot cite anything, and needs a full retrain to fix a typo. That is RAG's job, done the hard way. <strong>Fine-tuning teaches skills; it is the wrong tool for facts.</strong></p>
+<h2 id="the-grown-up-answer-they-compose">The grown-up answer: they compose</h2>
+<p>Here is the part the "RAG vs fine-tuning vs long context" framing hides by putting <em>vs</em> between them. They are not mutually exclusive. The best production systems stack them, because each fixes a different weakness.</p>
+<p>Picture a customer-support assistant. You fine-tune the base model so it always answers in your brand's clipped, friendly tone and emits a structured ticket object — that is the skill, and it never changes per query, so baking it into the weights is exactly right. You wrap it in RAG so every answer is grounded in today's help-center articles and the customer's own account history — that is the knowledge, fresh and citable, which must never be frozen into weights. And you lean on long context in the one spot it shines: <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">when a single support thread has grown to fifty messages, you paste the whole thread in rather than trying to retrieve from it, because it is small, wholly relevant, and specific to this one conversation</span>.</p>
+<figure class="fig"><div class="fig-frame"><img alt="A production assistant fine-tunes for tone and format, retrieves for fresh facts, and pastes the current conversation wh" src="Images/rag-vs-finetuning-vs-long-context-5.png"/><span class="fig-ph">figure rendering · A production assistant fine-tunes for tone and format, retrieves for f</span></div><figcaption>A production assistant fine-tunes for tone and format, retrieves for fresh facts, and pastes the current conversation whole — each knob covering a weakness the others cannot.</figcaption></figure>
+<p>That is the mental model to leave with. The word versus is a trap; the real skill is knowing which weakness each knob fixes so you can turn the right ones together. <span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Fine-tuning fixes behavior. RAG fixes stale, unattributable knowledge at scale. Long context fixes this one big blob that is wholly relevant right now</span>. Reach for the tool whose job matches the gap, and do not pay to re-read a manual the question never asked about.</p>
+<p>So the single line for the whole chapter: <strong>skill → fine-tune, facts-at-scale → RAG, one big relevant blob → long context — and a serious system uses all three at once.</strong> Since RAG carries the heaviest load in almost every real deployment, the rest of this book earns its keep on the retrieval side. And retrieval quality, as the last chapter warned, is decided long before any query arrives — in how you turn messy source documents into clean, chunkable text. That unglamorous first step is where most RAG systems quietly fail, so it is where we go next: <a href="ingestion-is-the-hard-part.html" rel="noopener" target="_blank">ingestion is the hard part</a>.</p>
+
+  </main>
+
+  <footer class="bottom-bar">
+    <span id="pageInfo">Chapter 5</span>
+    <span id="progressPercent">0%</span>
+  </footer>
+
+  <footer class="footer">
+    Exported from MoonReader • Generated 2026-09-10 17:24
+  </footer>
+
+  <script>
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+    });
+
+    function toggleTOC() {
+      const panel = document.getElementById('tocPanel');
+      const overlay = document.getElementById('tocOverlay');
+      panel.classList.toggle('open');
+      overlay.classList.toggle('show');
+    }
+
+    function toggleChapter(event, idx) {
+      event.preventDefault();
+      event.stopPropagation();
+      const arrow = document.getElementById('arrow-' + idx);
+      const subs = document.getElementById('subs-' + idx);
+      if (arrow && subs) {
+        const isOpen = subs.style.display !== 'none';
+        subs.style.display = isOpen ? 'none' : 'block';
+        arrow.classList.toggle('open', !isOpen);
+      }
+    }
+
+    function navigateToChapter(url) {
+      window.location.href = url;
+    }
+
+    function toggleSettings() {
+      alert('Settings panel coming soon');
+    }
+  </script>
+  <!--rr-annotate-->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23FAF6EE'/%3E%3Ctext x='16' y='24' font-size='22' text-anchor='middle' fill='%23A34A2E' font-family='Georgia' font-style='italic'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="../../assets/annotate.css?v=16">
+<script type="application/json" id="rr-notes">{}</script>
+<script data-rr-palette="apple" src="../../assets/annotate.js?v=16" data-rr-book="rag-in-production" data-rr-page="rag-vs-finetuning-vs-long-context_reader.html" data-rr-prefix="../../"></script>
+<script src="../../assets/chapter-toc.js?v=16"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<script>
+(function() {
+  // Single ownership: chapter-toc.js (loaded above) owns window.toggleTheme
+  // (guarded by window.__rrThemeOwned). Standalone fallback applies only if
+  // it failed to load - never wrap the skill's toggleTheme: RAG/DML/agentic
+  // pages never defined one, so the old origTheme() wrapper crashed on click.
+  if (!window.__rrThemeOwned) {
+    window.toggleTheme = function() {
+      var root = document.documentElement;
+      var wasDark = root.getAttribute('data-theme') === 'dark';
+      if (wasDark) root.removeAttribute('data-theme');
+      else root.setAttribute('data-theme', 'dark');
+      try { window.localStorage.setItem('rr-theme', wasDark ? 'light' : 'dark'); } catch (e) {}
+      var tb = document.getElementById('rr-theme-btn');
+      if (tb) tb.textContent = wasDark ? '\u263E dark' : '\u2600 light';
+    };
+    try {
+      if (window.localStorage.getItem('rr-theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        var tb0 = document.getElementById('rr-theme-btn');
+        if (tb0) tb0.textContent = '\u2600 light';
+      }
+    } catch (e) {}
+  }
+  var panel = document.getElementById('tocPanel');
+  var overlay = document.getElementById('tocOverlay');
+  var btn = document.getElementById('rr-toc-btn');
+  function syncBtn() {
+    if (!btn) return;
+    var hidden;
+    if (window.innerWidth <= 900) {
+      hidden = !(panel && panel.classList.contains('open'));
+    } else {
+      hidden = document.body.classList.contains('toc-hidden');
+    }
+    // hamburger (closed) vs close-mark (open) so the button always
+    // tells the reader what the TOC toggle will do
+    btn.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+    btn.innerHTML = hidden ? '\u2630 toc' : '\u2715 toc';
+  }
+  // Single ownership: chapter-toc.js (loaded above) owns window.toggleTOC
+  // (guarded by window.__rrTocOwned). Fallback applies only if it failed.
+  if (!window.__rrTocOwned) {
+    window.toggleTOC = function() {
+      if (window.innerWidth <= 900) {
+        if (panel) panel.classList.toggle('open');
+        if (overlay) overlay.classList.toggle('show');
+      } else {
+        document.body.classList.toggle('toc-hidden');
+        if (panel) {
+          if (document.body.classList.contains('toc-hidden')) panel.classList.add('rr-hidden');
+          else panel.classList.remove('rr-hidden');
+        }
+        if (overlay) overlay.classList.remove('show');
+      }
+      syncBtn();
+    };
+  }
+  // default: TOC visible on desktop, hidden drawer on mobile
+  if (window.innerWidth > 900) {
+    document.body.classList.remove('toc-hidden');
+    if (panel) panel.classList.remove('rr-hidden');
+  } else if (panel) {
+    panel.classList.remove('open');
+  }
+  // auto-expand the current chapter's sub-headings + mark it active
+  try {
+    var cur = (location.pathname.split('/').pop() || '').split('#')[0];
+    document.querySelectorAll('.toc-chapter-wrap').forEach(function(w, idx) {
+      var link = w.querySelector('a.toc-chapter');
+      if (!link) return;
+      var href = (link.getAttribute('href') || '').split('#')[0];
+      if (href === cur) {
+        var subs = document.getElementById('subs-' + idx);
+        var arrow = document.getElementById('arrow-' + idx);
+        if (subs) subs.style.display = 'block';
+        if (arrow) arrow.classList.add('open');
+        link.classList.add('active');
+      }
+    });
+  } catch (e) {}
+  window.addEventListener('resize', syncBtn);
+  syncBtn();
+})();
+</script>
+
+<script src="../../assets/course-theme.js?v=3"></script>
+</body>
+</html>

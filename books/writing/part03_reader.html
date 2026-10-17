@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>300K Subs Special: How I Write AI Made Simple.</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css');
+
+    :root {
+      --bg: #FAF6EE;
+      --surface: #FFFFFF;
+      --ink: #2D2522;
+      --ink-2: #6E625B;
+      --accent: #A34A2E;
+      --border: rgba(163,74,46,0.1);
+      --font-reader: 'Newsreader', 'EB Garamond', 'Baskerville', 'Garamond', Georgia, serif;
+      --toc-width: 280px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #1a1a1a;
+      --surface: #2d2d2d;
+      --ink: #e0e0e0;
+      --ink-2: #a0a0a0;
+      --accent: #E28C68;
+      --border: rgba(243,239,233,0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-reader);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+
+    .top-bar button {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .top-bar button:hover {
+      background: rgba(163,74,46,0.08);
+    }
+
+    .top-bar button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .top-bar-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--ink-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60%;
+    }
+
+    .reader-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 60px 80px;
+    }
+
+    .reader-content h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      line-height: 1.3;
+    }
+
+    .reader-content h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 32px 0 16px;
+    }
+
+    .reader-content h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 24px 0 12px;
+      color: var(--ink-2);
+    }
+
+    .reader-content p {
+      font-size: 1.15rem;
+      line-height: 1.85;
+      margin-bottom: 1.2em;
+      text-align: left;
+    }
+
+    .reader-content blockquote {
+      margin: 20px 0;
+      padding: 16px 20px;
+      border-left: 3px solid var(--accent);
+      background: rgba(163,74,46,0.04);
+      font-style: italic;
+    }
+
+    .reader-content dl {
+      margin: 20px 0;
+    }
+
+    .reader-content dt {
+      font-weight: 600;
+      margin: 16px 0 8px;
+      font-style: italic;
+    }
+
+    .reader-content dd {
+      margin-left: 20px;
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .reader-content table {
+      display: table;
+      width: 100%;
+      margin: 24px 0;
+      border-collapse: collapse;
+      font-size: 1rem;
+      border: 1px solid #c3c3c3;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .reader-content th {
+      display: table-cell;
+      background: #f0f4f8;
+      border-bottom: 2px solid #9d9d9d;
+      padding: 14px 16px;
+      font-weight: 600;
+      text-align: left;
+      font-size: 0.95rem;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td {
+      display: table-cell;
+      padding: 14px 16px;
+      border-bottom: 1px solid #ddd;
+      border-right: 1px solid #eee;
+      vertical-align: top;
+      font-size: 1rem;
+      line-height: 1.7;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td:last-child {
+      border-right: none;
+    }
+
+    .reader-content tr:nth-of-type(even) {
+      background-color: #fafbfd;
+    }
+
+    .reader-content figure,
+    .reader-content .figure {
+      margin: 24px auto;
+      text-align: center;
+    }
+
+    .reader-content img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .reader-content figcaption,
+    .reader-content figure h6,
+    .reader-content .figure h6 {
+      font-size: 0.9rem;
+      font-style: italic;
+      color: var(--ink-2);
+      margin-top: 8px;
+    }
+
+    .reader-content .note,
+    .reader-content [data-type="note"] {
+      margin: 20px 0;
+      padding: 16px 20px;
+      background: #f8f4e8;
+      border: 1px solid #e6d48a;
+      border-radius: 6px;
+    }
+
+    .ann-hl { border-radius: 2px; }
+    .ann-note { border-radius: 2px; }
+
+    pre.code, pre[data-lang], .code {
+      background: #1e1e1e !important;
+      border-radius: 8px !important;
+      padding: 16px 20px !important;
+      margin: 20px 0 !important;
+      overflow-x: auto !important;
+      position: relative !important;
+      border: 1px solid #333 !important;
+    }
+
+    pre.code[data-lang]::before, pre[data-lang]::before {
+      content: attr(data-lang);
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      font-size: 0.7rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace;
+    }
+
+    pre.code code, pre[data-lang] code, .code code {
+      color: #e0e0e0 !important;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace !important;
+      font-size: 0.9rem !important;
+      line-height: 1.6 !important;
+      background: none !important;
+      padding: 0 !important;
+      border: none !important;
+      white-space: pre !important;
+    }
+
+    p code, li code, td code {
+      background: rgba(0,0,0,0.06) !important;
+      padding: 2px 6px !important;
+      border-radius: 4px !important;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace !important;
+      font-size: 0.85em !important;
+    }
+
+    .line-numbers-rows { border-right: 1px solid #444 !important; }
+
+    .progress-bar {
+      position: fixed;
+      top: 52px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 99;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .ann-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent);
+      color: white;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .chapter-title {
+      text-align: center;
+      padding: 40px 20px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chapter-title h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .toc-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--toc-width);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      z-index: 200;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+    }
+
+    .toc-panel.open {
+      transform: translateX(0);
+    }
+
+    .toc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      height: 52px;
+    }
+
+    .toc-header h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .toc-close {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+    }
+
+    .toc-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+
+    .toc-chapter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .toc-chapter:hover {
+      background: rgba(163,74,46,0.06);
+      border-left-color: var(--accent);
+    }
+
+    .toc-arrow {
+      font-size: 0.6rem;
+      color: var(--ink-2);
+      transition: transform 0.2s ease;
+      margin-left: auto;
+    }
+
+    .toc-arrow.open {
+      transform: rotate(90deg);
+    }
+
+    .toc-subs {
+      padding: 4px 0;
+      border-left: 2px solid var(--border);
+      margin-left: 20px;
+    }
+
+    .toc-sub {
+      padding-left: 32px;
+      font-weight: 400;
+    }
+
+    .toc-sub-sub {
+      padding-left: 48px;
+      font-size: 0.75rem;
+    }
+
+    .toc-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 199;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .toc-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--ink-2);
+      z-index: 100;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 60px;
+      border-top: 1px solid var(--border);
+      color: var(--ink-2);
+      font-size: 0.8rem;
+    }
+  </style>
+<link rel="stylesheet" href="../../assets/site.css?v=17">
+<link rel="stylesheet" href="../../assets/course-theme.css?v=3">
+</head>
+<body>
+<button id="rr-toc-btn" onclick="toggleTOC()" title="Table of Contents — show/hide chapters" aria-expanded="true" aria-controls="tocPanel">&#9776; toc</button>
+
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="toc-overlay" id="tocOverlay" onclick="toggleTOC()"></div>
+
+  <div class="toc-panel" id="tocPanel">
+    <div class="toc-header">
+      <h3>Table of Contents</h3>
+      <button class="toc-close" onclick="toggleTOC()">✕</button>
+    </div>
+    <nav class="toc-nav">
+<div class="toc-chapter-wrap" data-chapter="0">
+<a href="part01_reader.html" class="toc-chapter" onclick="navigateToChapter('part01_reader.html')"><span>Why Is AI Bad at Writing?</span><span class="toc-ann-count">11</span><span class="toc-arrow" id="arrow-0" onclick="toggleChapter(event, 0)">▶</span></a>
+<div class="toc-subs" id="subs-0" style="display:none">
+<a class="toc-heading toc-sub" href="part01_reader.html#rr-h-2">What is it about AI writing exactly?</a>
+<a class="toc-heading toc-sub" href="part01_reader.html#rr-h-3">What it is not</a>
+<a class="toc-heading toc-sub" href="part01_reader.html#rr-h-4">What it is—at least for now</a>
+<a class="toc-heading toc-sub" href="part01_reader.html#rr-h-5">Why Does it Matter?</a>
+<a class="toc-heading toc-sub" href="part01_reader.html#rr-h-6">Who is the Author, Exactly?</a>
+<a class="toc-heading toc-sub" href="part01_reader.html#rr-h-7">AI Watermarks</a>
+<a class="toc-heading toc-sub" href="part01_reader.html#rr-h-8">In the Longer Term</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="1">
+<a href="part02_reader.html" class="toc-chapter" onclick="navigateToChapter('part02_reader.html')"><span>Why AI writing is mid</span><span class="toc-ann-count">4</span></a>
+</div>
+<div class="toc-chapter-wrap" data-chapter="2">
+<a href="part03_reader.html" class="toc-chapter" onclick="navigateToChapter('part03_reader.html')"><span>300K Subs Special: How I Write AI Made Simple.</span><span class="toc-ann-count">2</span><span class="toc-arrow" id="arrow-2" onclick="toggleChapter(event, 2)">▶</span></a>
+<div class="toc-subs" id="subs-2" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-2">How I Started Writing</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">Phase 1: Writing Research Breakdowns (late 2020—mid 2023)</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Phase 2: Going Deeper (Mid-Late 2023 to Now)</a>
+<a class="toc-heading toc-sub" href="#rr-h-5">The Chocolate Milk Cult Writing Philosophy</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Why no ads or sponsorships</a>
+<a class="toc-heading toc-sub" href="#rr-h-7">Operational Mechanics</a>
+<a class="toc-heading toc-sub-sub" href="#rr-h-8">Information Intake</a>
+<a class="toc-heading toc-sub-sub" href="#rr-h-9">Choosing Topics &amp; Validation</a>
+<a class="toc-heading toc-sub-sub" href="#rr-h-10">The Actual Writing</a>
+<a class="toc-heading toc-sub" href="#rr-h-11">Where This Goes Next</a>
+</div>
+</div>
+</nav>
+  </div>
+
+  <nav class="top-bar">
+    <button onclick="toggleTOC()" title="Table of Contents">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <span class="top-bar-title">300K Subs Special: How I Write AI Made Simple.</span>
+    <button onclick="toggleTheme()" title="Toggle theme">
+      <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    </button>
+  </nav>
+
+  <main class="reader-content">
+    <div class="chapter-title">
+      <h1 id="rr-h-0">300K Subs Special: How I Write AI Made Simple.</h1>
+      <span class="ann-badge">📝 3 annotations</span>
+    </div>
+
+<h1 id="rr-h-1">300K Subs Special: How I Write AI Made Simple.</h1>
+<p class="subtitle">How I created one of the world's largest open source AI Research Communities</p>
+<p class="author">Devansh · Artificial Intelligence Made Simple · Dec 2, 2025</p>
+<p>We recently crossed 300K subscribers across my writing platforms (240K on Substack; ~70K on Medium across the followers and mail lists). I did this with no ads, no institutional backing, and without ever going "viral" or having to rely on fishing trends/engagement bait style content.</p>
+<p>In this article, I'll give you an inside look at how I write this newsletter, end to end.</p>
+<div class="image-container">
+<img alt="Executive Highlights" src="Images/executive-highlights.png"/>
+<p class="image-caption">Executive Highlights — TL;DR of the article</p>
+</div>
+<h2 id="rr-h-2">How I Started Writing</h2>
+<p>I never planned to become a writer. The newsletter started as a credentialing hack.</p>
+<p>In 2017, I was part of a three-person team that beat Apple in Parkinson's disease detection on real time voice calls in low resource environments. The algorithm was patented and later even commercially licensed by a good tech company for their use. This should have opened doors to other entry-level AI positions. It didn't—I had no degree, so I was getting auto-screened before a human ever saw my application.</p>
+<p>So I made a plan: <strong>get a PhD directly. Skip the Master's (couldn't afford it), convince someone to bet on me.</strong></p>
+<p>Also around this time (June 2020), I landed a state government project modeling healthcare policy for <strong>300 million people</strong>—decisions that would affect infant mortality, maternal health, and resource allocation for decades. I was terrified of being the first person to commit mass murder via bad Machine Learning Models, so I started reading research obsessively. Five papers a day, sometimes more.</p>
+<p>My supervisor for the project came in with the best advice I've ever gotten: "You're doing amazing work reading papers, but when this engagement ends, nobody will know how much you did. Start documenting what you read somewhere. It will help with your PhD apps."</p>
+<h2 id="rr-h-3">Phase 1: Writing Research Breakdowns (late 2020—mid 2023)</h2>
+<p>Plan was simple. <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Break down papers publicly, build a repository of my thinking, show PhD programs I could do the work</span>. No expectations of becoming famous or having any audience.</p>
+<p>However, things started taking a different turn. My writing started to hit a dedicated base of readers pretty soon. And this base was very different from what I expected: my work regularly reached senior investors, researchers, some founders, and managers.</p>
+<p>I got lucky with a few factors in my favor:</p>
+<ul>
+<li>I thought about AI economically (years of building under resource constraints will do that).</li>
+<li>I wrote simply—no PhD jargon. Saved everyone time.</li>
+<li>By and large, AI commentary was split in 2 types: sources that summarized news and very jargony articles written for other researchers. No one was really looking at cutting-edge AI and trying to explain the "so what" to people. I had literally no competition.</li>
+</ul>
+<div class="image-container">
+<img alt="Communication framework" src="Images/communication-framework.png"/>
+<p class="image-caption">My refined communication framework after talking to this cohort</p>
+</div>
+<p>Seeing my growth, I launched AI Made Simple in January 2023 w/ a list of 10K subs. By graduation in May, my roster was up to 30K with some very sexy names. The PhD plan died. I was building something better—and I didn't mind.</p>
+<h2 id="rr-h-4">Phase 2: Going Deeper (Mid-Late 2023 to Now)</h2>
+<p>Due to injuries, I had to stop fighting. That's when I started writing more and on more difficult topics. Writing was my crutch, my way of getting my mind to shut up.</p>
+<p><em>The truth isn't so much that I like writing; after fighting, this is the only other thing that comes close to shutting out my brain.</em></p>
+<div class="image-container">
+<img alt="Bridge climbing in crocs" src="Images/bridge-climbing.png"/>
+<p class="image-caption">Stupid thing I did recently—climbed a big bridge in crocs + w/ a bad back</p>
+</div>
+<p>This was also where I shifted my writing with a stronger investor focus. I started reading more financial analysis in AI, which exposed me to very new mental models, analysis patterns, etc.</p>
+<p>That's where the newsletter sits now: analysis of cutting-edge research that will reshape AI and capital markets, written by someone who actively builds AI products and validates their predictions on the ground.</p>
+<div class="image-container">
+<img alt="Inception Labs prediction" src="Images/inception-labs.png"/>
+<p class="image-caption">This is an idea we called out months ago — the same Inception Labs that just raised a 50M Seed round</p>
+</div>
+<h2 id="rr-h-5">The Chocolate Milk Cult Writing Philosophy</h2>
+<p>At my core, I'm motivated by being the best at something. Expressing my Will to Power. When all is said and done, I will be the best AI analyst of all time—far enough ahead that there's no clear second place.</p>
+<p><strong>How I try to get there:</strong> bridging gaps. Research, engineering, finance—these worlds don't talk to each other well. Most people are excellent in their silo. I want to be the person threading them together, translating insights across boundaries.</p>
+<p>That shapes what I write about. Every piece has to pass two filters:</p>
+<ol>
+<li><strong>I have to find it genuinely interesting.</strong> If I'm not curious about it (or don't have anything meaningful to say), I won't write about it—even if it's trending, even if it would get clicks.</li>
+<li><strong>It has to matter.</strong> People need to know this, and knowing it will change how they operate.</li>
+</ol>
+<p>This comes from a core belief: tech works best when it's democratized. The more people who genuinely understand what's happening, the more people can build on it, and the better the outcomes for everyone.</p>
+<div class="image-container">
+<img alt="Plans for every budget" src="Images/plans-for-every-budget.png"/>
+<p class="image-caption">We have plans for every budget here</p>
+</div>
+<h2 id="rr-h-6">Why no ads or sponsorships</h2>
+<p>I get asked this a lot. Three reasons.</p>
+<ol>
+<li><strong>It would skew my takes.</strong> Once you start taking sponsorship money, big names come knocking. And once they're paying you, there are things you can't say anymore—even if you don't explicitly agree to that.</li>
+<li><strong>I'm selling information and insights.</strong> If I also run ads, every piece I write gets a shadow of doubt. Warren Buffett's 10USD/month subscription to this newsletter is worth much more than 100K from some AI startup trying to buy street cred.</li>
+<li><strong>Ads are ugly.</strong> There are way too many of them on the internet already.</li>
+</ol>
+<h2 id="rr-h-7">Operational Mechanics</h2>
+<h3 id="rr-h-8">Information Intake</h3>
+<p>I spend a lot of time reading. Research papers, market reports, thought pieces. One rule I don't break: the first 1–2 passes are always manual. No AI summaries. I want to be exposed to different writing styles, ideas, and framings before I store anything for later analysis.</p>
+<div class="image-container">
+<img alt="Information intake sources" src="Images/information-intake.png"/>
+<p class="image-caption">Information intake — sources and methods</p>
+</div>
+<p>For passive learning, I run voice mode or lectures while doing chores, playing video games, whatever. Just talking to AI about ideas or letting lectures play in the background.</p>
+<p>I mentioned the consultant army earlier—I place technical consultants into organizations at cost. The goal isn't to profit on the consulting; it's to gather ground-level data on what's actually happening across the industry.</p>
+<h3 id="rr-h-9">Choosing Topics &amp; Validation</h3>
+<p>Based on what I'm reading and hearing, I'll form a few theses or experiment ideas. Then I test them:</p>
+<ul>
+<li>Float to my open source community, gather feedback</li>
+<li>Run by my developers, see what resonates or gets pushback</li>
+<li>Build things myself to validate on the ground</li>
+</ul>
+<p>The newsletter becomes mass distribution for these refined ideas. <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Once something's out, I get to test my thinking against thousands of readers.</span></p>
+<h3 id="rr-h-10">The Actual Writing</h3>
+<p>I don't work from detailed outlines. Usually just a rough idea of what I want to cover and why it matters. Then I sit down and write until it's done. No breaks, no pauses.</p>
+<p>Typical session: Most articles take around 8–10 hours. The longest one ever was 18 hours non-stop. During those stretches, I don't eat—just water or milk—because I find food very distracting. Hammer it out to completion.</p>
+<p>I don't do much editing after. By the end I'm tired, and I'm confident that everything I write elite so a few minor typos or dangling thoughts are an acceptable tradeoff.</p>
+<div class="image-container">
+<img alt="How to Stay Sharp on AI" src="Images/how-to-stay-sharp.png"/>
+<p class="image-caption">How to Stay Sharp on AI Without Burning Out</p>
+</div>
+<h2 id="rr-h-11">Where This Goes Next</h2>
+<p>The independent media landscape is shifting fast. Traditional outlets are hollowing out. AI is flooding the zone with content that's technically competent but soulless.</p>
+<ul>
+<li><strong>Credentialing has inverted.</strong> It used to be: get credentials → get platform → build audience. Now it's: build audience → that becomes the credential.</li>
+<li><strong>Most AI coverage is structurally broken.</strong> The people who understand AI deeply are building, not writing. The people writing full-time often don't understand deeply enough.</li>
+<li><strong>Attention is the wrong metric.</strong> Everyone optimizes for it, but you want the <em>right</em> attention. 1,000 readers who make decisions are worth more than 100,000 who scroll past.</li>
+</ul>
+<p>And that's still the plan.</p>
+<p>Thanks for reading. If you've been here since the early days, I appreciate you. If you're new, welcome—there's a lot more coming.</p>
+  </main>
+
+  <footer class="bottom-bar">
+    <span id="pageInfo">Chapter 4</span>
+    <span id="progressPercent">0%</span>
+  </footer>
+
+  <footer class="footer">
+    Exported from MoonReader • Generated 2026-09-29 21:45
+  </footer>
+
+  <script>
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+    });
+
+    function toggleTOC() {
+      const panel = document.getElementById('tocPanel');
+      const overlay = document.getElementById('tocOverlay');
+      panel.classList.toggle('open');
+      overlay.classList.toggle('show');
+    }
+
+    function toggleChapter(event, idx) {
+      event.preventDefault();
+      event.stopPropagation();
+      const arrow = document.getElementById('arrow-' + idx);
+      const subs = document.getElementById('subs-' + idx);
+      if (arrow && subs) {
+        const isOpen = subs.style.display !== 'none';
+        subs.style.display = isOpen ? 'none' : 'block';
+        arrow.classList.toggle('open', !isOpen);
+      }
+    }
+
+    function navigateToChapter(url) {
+      window.location.href = url;
+    }
+
+    function toggleTheme() {
+      const root = document.documentElement;
+      const isDark = root.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        root.removeAttribute('data-theme');
+        document.getElementById('theme-icon').innerHTML = '<circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+      } else {
+        root.setAttribute('data-theme', 'dark');
+        document.getElementById('theme-icon').innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+      }
+    }
+  </script>
+  <!--rr-annotate-->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23FAF6EE'/%3E%3Ctext x='16' y='24' font-size='22' text-anchor='middle' fill='%23A34A2E' font-family='Georgia' font-style='italic'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="../../assets/annotate.css?v=16">
+<script type="application/json" id="rr-notes">{}</script>
+<script data-rr-palette="apple" src="../../assets/annotate.js?v=16" data-rr-book="writing" data-rr-page="part03_reader.html" data-rr-prefix="../../"></script>
+<script src="../../assets/chapter-toc.js?v=16"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<script>
+(function() {
+  // Single ownership: chapter-toc.js (loaded above) owns window.toggleTheme
+  // (guarded by window.__rrThemeOwned). Standalone fallback applies only if
+  // it failed to load - never wrap the skill's toggleTheme: RAG/DML/agentic
+  // pages never defined one, so the old origTheme() wrapper crashed on click.
+  if (!window.__rrThemeOwned) {
+    window.toggleTheme = function() {
+      var root = document.documentElement;
+      var wasDark = root.getAttribute('data-theme') === 'dark';
+      if (wasDark) root.removeAttribute('data-theme');
+      else root.setAttribute('data-theme', 'dark');
+      try { window.localStorage.setItem('rr-theme', wasDark ? 'light' : 'dark'); } catch (e) {}
+      var tb = document.getElementById('rr-theme-btn');
+      if (tb) tb.textContent = wasDark ? '\u263E dark' : '\u2600 light';
+    };
+    try {
+      if (window.localStorage.getItem('rr-theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        var tb0 = document.getElementById('rr-theme-btn');
+        if (tb0) tb0.textContent = '\u2600 light';
+      }
+    } catch (e) {}
+  }
+  var panel = document.getElementById('tocPanel');
+  var overlay = document.getElementById('tocOverlay');
+  var btn = document.getElementById('rr-toc-btn');
+  function syncBtn() {
+    if (!btn) return;
+    var hidden;
+    if (window.innerWidth <= 900) {
+      hidden = !(panel && panel.classList.contains('open'));
+    } else {
+      hidden = document.body.classList.contains('toc-hidden');
+    }
+    // hamburger (closed) vs close-mark (open) so the button always
+    // tells the reader what the TOC toggle will do
+    btn.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+    btn.innerHTML = hidden ? '\u2630 toc' : '\u2715 toc';
+  }
+  // Single ownership: chapter-toc.js (loaded above) owns window.toggleTOC
+  // (guarded by window.__rrTocOwned). Fallback applies only if it failed.
+  if (!window.__rrTocOwned) {
+    window.toggleTOC = function() {
+      if (window.innerWidth <= 900) {
+        if (panel) panel.classList.toggle('open');
+        if (overlay) overlay.classList.toggle('show');
+      } else {
+        document.body.classList.toggle('toc-hidden');
+        if (panel) {
+          if (document.body.classList.contains('toc-hidden')) panel.classList.add('rr-hidden');
+          else panel.classList.remove('rr-hidden');
+        }
+        if (overlay) overlay.classList.remove('show');
+      }
+      syncBtn();
+    };
+  }
+  // default: TOC visible on desktop, hidden drawer on mobile
+  if (window.innerWidth > 900) {
+    document.body.classList.remove('toc-hidden');
+    if (panel) panel.classList.remove('rr-hidden');
+  } else if (panel) {
+    panel.classList.remove('open');
+  }
+  // auto-expand the current chapter's sub-headings + mark it active
+  try {
+    var cur = (location.pathname.split('/').pop() || '').split('#')[0];
+    document.querySelectorAll('.toc-chapter-wrap').forEach(function(w, idx) {
+      var link = w.querySelector('a.toc-chapter');
+      if (!link) return;
+      var href = (link.getAttribute('href') || '').split('#')[0];
+      if (href === cur) {
+        var subs = document.getElementById('subs-' + idx);
+        var arrow = document.getElementById('arrow-' + idx);
+        if (subs) subs.style.display = 'block';
+        if (arrow) arrow.classList.add('open');
+        link.classList.add('active');
+      }
+    });
+  } catch (e) {}
+  window.addEventListener('resize', syncBtn);
+  syncBtn();
+})();
+</script>
+
+<script src="../../assets/course-theme.js?v=3"></script>
+</body>
+</html>

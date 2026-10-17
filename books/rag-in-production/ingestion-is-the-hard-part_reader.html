@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ingestion Is the Hard Part</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css');
+
+    :root {
+      --bg: #FAF6EE;
+      --surface: #FFFFFF;
+      --ink: #2D2522;
+      --ink-2: #6E625B;
+      --accent: #A34A2E;
+      --border: rgba(163,74,46,0.1);
+      --font-reader: 'Newsreader', 'EB Garamond', 'Baskerville', 'Garamond', Georgia, serif;
+      --toc-width: 280px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-reader);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+
+    .top-bar button {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .top-bar button:hover {
+      background: rgba(163,74,46,0.08);
+    }
+
+    .top-bar button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .top-bar-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--ink-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60%;
+    }
+
+    .reader-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 60px 80px;
+    }
+
+    .reader-content h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      line-height: 1.3;
+    }
+
+    .reader-content h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 32px 0 16px;
+    }
+
+    .reader-content h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 24px 0 12px;
+      color: var(--ink-2);
+    }
+
+    .reader-content p {
+      font-size: 1.15rem;
+      line-height: 1.85;
+      margin-bottom: 1.2em;
+      text-align: left;
+    }
+
+    .reader-content blockquote {
+      margin: 20px 0;
+      padding: 16px 20px;
+      border-left: 3px solid var(--accent);
+      background: rgba(163,74,46,0.04);
+      font-style: italic;
+    }
+
+    .reader-content dl {
+      margin: 20px 0;
+    }
+
+    .reader-content dt {
+      font-weight: 600;
+      margin: 16px 0 8px;
+      font-style: italic;
+    }
+
+    .reader-content dd {
+      margin-left: 20px;
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .reader-content table {
+      display: table;
+      width: 100%;
+      margin: 24px 0;
+      border-collapse: collapse;
+      font-size: 1rem;
+      border: 1px solid #c3c3c3;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .reader-content th {
+      display: table-cell;
+      background: #f0f4f8;
+      border-bottom: 2px solid #9d9d9d;
+      padding: 14px 16px;
+      font-weight: 600;
+      text-align: left;
+      font-size: 0.95rem;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td {
+      display: table-cell;
+      padding: 14px 16px;
+      border-bottom: 1px solid #ddd;
+      border-right: 1px solid #eee;
+      vertical-align: top;
+      font-size: 1rem;
+      line-height: 1.7;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td:last-child {
+      border-right: none;
+    }
+
+    .reader-content tr:nth-of-type(even) {
+      background-color: #fafbfd;
+    }
+
+    .reader-content figure,
+    .reader-content .figure {
+      margin: 24px auto;
+      text-align: center;
+    }
+
+    .reader-content img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .reader-content figcaption,
+    .reader-content figure h6,
+    .reader-content .figure h6 {
+      font-size: 0.9rem;
+      font-style: italic;
+      color: var(--ink-2);
+      margin-top: 8px;
+    }
+
+    .reader-content .note,
+    .reader-content [data-type="note"] {
+      margin: 20px 0;
+      padding: 16px 20px;
+      background: #f8f4e8;
+      border: 1px solid #e6d48a;
+      border-radius: 6px;
+    }
+
+    .ann-hl { border-radius: 2px; }
+    .ann-note { border-radius: 2px; }
+
+    pre.code, pre[data-lang], .code {      background: #1e1e1e !important;      border-radius: 8px !important;      padding: 16px 20px !important;      margin: 20px 0 !important;      overflow-x: auto !important;      position: relative !important;      border: 1px solid #333 !important;    }
+
+    pre.code[data-lang]::before, pre[data-lang]::before {      content: attr(data-lang);      position: absolute;      top: 8px;      right: 12px;      font-size: 0.7rem;      color: #888;      text-transform: uppercase;      letter-spacing: 0.05em;      font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;    }
+
+    pre.code code, pre[data-lang] code, .code code {      color: #e0e0e0 !important;      font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace !important;      font-size: 0.9rem !important;      line-height: 1.6 !important;      background: none !important;      padding: 0 !important;      border: none !important;      white-space: pre !important;    }
+
+    p code, li code, td code {      background: rgba(0,0,0,0.06) !important;      padding: 2px 6px !important;      border-radius: 4px !important;      font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace !important;      font-size: 0.85em !important;    }
+
+    .line-numbers-rows { border-right: 1px solid #444 !important; }
+    .progress-bar {
+      position: fixed;
+      top: 52px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 99;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .ann-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent);
+      color: white;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .chapter-title {
+      text-align: center;
+      padding: 40px 20px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chapter-title h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    /* TOC Panel */
+    .toc-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--toc-width);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      z-index: 200;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+    }
+
+    .toc-panel.open {
+      transform: translateX(0);
+    }
+
+    .toc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      height: 52px;
+    }
+
+    .toc-header h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .toc-close {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+    }
+
+    .toc-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+
+    .toc-chapter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .toc-chapter:hover {
+      background: rgba(163,74,46,0.06);
+      border-left-color: var(--accent);
+    }
+
+    .toc-arrow {
+      font-size: 0.6rem;
+      color: var(--ink-2);
+      transition: transform 0.2s ease;
+      margin-left: auto;
+    }
+
+    .toc-arrow.open {
+      transform: rotate(90deg);
+    }
+
+    .toc-subs {
+      padding: 4px 0;
+      border-left: 2px solid var(--border);
+      margin-left: 20px;
+    }
+
+    .toc-sub {
+      padding-left: 32px;
+      font-weight: 400;
+    }
+
+    .toc-sub-sub {
+      padding-left: 48px;
+      font-size: 0.75rem;
+    }
+
+    .toc-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 199;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .toc-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--ink-2);
+      z-index: 100;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 60px;
+      border-top: 1px solid var(--border);
+      color: var(--ink-2);
+      font-size: 0.8rem;
+    }
+  </style>
+<link rel="stylesheet" href="../../assets/site.css?v=17">
+<link rel="stylesheet" href="../../assets/course-theme.css?v=3">
+</head>
+<body>
+<button id="rr-toc-btn" onclick="toggleTOC()" title="Table of Contents — show/hide chapters" aria-expanded="true" aria-controls="tocPanel">&#9776; toc</button>
+
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="toc-overlay" id="tocOverlay" onclick="toggleTOC()"></div>
+
+  <div class="toc-panel" id="tocPanel">
+    <div class="toc-header">
+      <h3>Table of Contents</h3>
+      <button class="toc-close" onclick="toggleTOC()">✕</button>
+    </div>
+    <nav class="toc-nav">
+<div class="toc-chapter-wrap" data-chapter="0">
+<a href="ingestion-is-the-hard-part_reader.html" class="toc-chapter" onclick="navigateToChapter('ingestion-is-the-hard-part_reader.html')"><span>Ingestion Is the Hard Part</span><span class="toc-ann-count">14</span><span class="toc-arrow" id="arrow-0" onclick="toggleChapter(event, 0)">▶</span></a>
+<div class="toc-subs" id="subs-0" style="display:none">
+<a class="toc-heading toc-sub" href="#what-ingestion-actually-is">What ingestion actually is</a>
+<a class="toc-heading toc-sub" href="#the-rule-that-governs-everything-downstream-garbage-in-garbage-out">The rule that governs everything downstream: garbage in, garbage out</a>
+<a class="toc-heading toc-sub" href="#a-concrete-example-two-columns-one-disaster">A concrete example: two columns, one disaster</a>
+<a class="toc-heading toc-sub" href="#napkin-arithmetic-what-a-small-error-rate-actually-costs">Napkin arithmetic: what a small error rate actually costs</a>
+<a class="toc-heading toc-sub" href="#the-four-failure-families-you-will-actually-hit">The four failure families you will actually hit</a>
+<a class="toc-heading toc-sub" href="#the-quiet-fifth-failure-dropping-the-metadata">The quiet fifth failure: dropping the metadata</a>
+<a class="toc-heading toc-sub" href="#the-minimal-defensive-move-never-trust-the-parse-blindly">The minimal defensive move: never trust the parse blindly</a>
+<a class="toc-heading toc-sub" href="#so-the-key-is-fix-the-text-first">So the key is: fix the text first</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="1">
+<a href="rag-vs-finetuning-vs-long-context_reader.html" class="toc-chapter" onclick="navigateToChapter('rag-vs-finetuning-vs-long-context_reader.html')"><span>RAG vs Fine-tuning vs Long Context</span><span class="toc-ann-count">14</span><span class="toc-arrow" id="arrow-1" onclick="toggleChapter(event, 1)">▶</span></a>
+<div class="toc-subs" id="subs-1" style="display:none">
+<a class="toc-heading toc-sub" href="rag-vs-finetuning-vs-long-context_reader.html#three-knobs-three-different-things-they-change">Three knobs, three different things they change</a>
+<a class="toc-heading toc-sub" href="rag-vs-finetuning-vs-long-context_reader.html#the-napkin-arithmetic-that-settles-why-not-just-paste-everything">The napkin arithmetic that settles &quot;why not just paste everything?&quot;</a>
+<a class="toc-heading toc-sub-sub" href="rag-vs-finetuning-vs-long-context_reader.html#the-pitfall-but-prompt-caching-makes-it-free">The pitfall: &quot;but prompt caching makes it free&quot;</a>
+<a class="toc-heading toc-sub" href="rag-vs-finetuning-vs-long-context_reader.html#so-when-does-each-one-actually-win">So when does each one actually win?</a>
+<a class="toc-heading toc-sub" href="rag-vs-finetuning-vs-long-context_reader.html#the-grown-up-answer-they-compose">The grown-up answer: they compose</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="2">
+<a href="the-rag-pipeline-end-to-end_reader.html" class="toc-chapter" onclick="navigateToChapter('the-rag-pipeline-end-to-end_reader.html')"><span>The RAG Pipeline End to End</span><span class="toc-ann-count">14</span><span class="toc-arrow" id="arrow-2" onclick="toggleChapter(event, 2)">▶</span></a>
+<div class="toc-subs" id="subs-2" style="display:none">
+<a class="toc-heading toc-sub" href="the-rag-pipeline-end-to-end_reader.html#the-one-split-that-organizes-everything">The one split that organizes everything</a>
+<a class="toc-heading toc-sub" href="the-rag-pipeline-end-to-end_reader.html#the-worked-example-three-tiny-documents">The worked example: three tiny documents</a>
+<a class="toc-heading toc-sub-sub" href="the-rag-pipeline-end-to-end_reader.html#stage-1-ingest-turn-raw-sources-into-clean-text">Stage 1 — Ingest: turn raw sources into clean text</a>
+<a class="toc-heading toc-sub-sub" href="the-rag-pipeline-end-to-end_reader.html#stage-2-chunk-cut-documents-into-retrieval-units">Stage 2 — Chunk: cut documents into retrieval units</a>
+<a class="toc-heading toc-sub-sub" href="the-rag-pipeline-end-to-end_reader.html#stage-3-embed-turn-each-chunk-into-a-vector">Stage 3 — Embed: turn each chunk into a vector</a>
+<a class="toc-heading toc-sub-sub" href="the-rag-pipeline-end-to-end_reader.html#stage-4-index-store-vectors-so-you-can-search-them-fast">Stage 4 — Index: store vectors so you can search them fast</a>
+<a class="toc-heading toc-sub" href="the-rag-pipeline-end-to-end_reader.html#the-online-phase-a-question-arrives">The online phase: a question arrives</a>
+<a class="toc-heading toc-sub-sub" href="the-rag-pipeline-end-to-end_reader.html#stage-5-retrieve-embed-the-query-pull-the-top-k">Stage 5 — Retrieve: embed the query, pull the top-k</a>
+<a class="toc-heading toc-sub-sub" href="the-rag-pipeline-end-to-end_reader.html#stage-6-augment-assemble-the-prompt">Stage 6 — Augment: assemble the prompt</a>
+<a class="toc-heading toc-sub-sub" href="the-rag-pipeline-end-to-end_reader.html#stage-7-generate-the-grounded-answer">Stage 7 — Generate: the grounded answer</a>
+<a class="toc-heading toc-sub" href="the-rag-pipeline-end-to-end_reader.html#the-takeaway-and-where-each-stage-goes-next">The takeaway, and where each stage goes next</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="3">
+<a href="what-is-retrieval-augmented-generation_reader.html" class="toc-chapter" onclick="navigateToChapter('what-is-retrieval-augmented-generation_reader.html')"><span>What Is Retrieval-Augmented Generation?</span><span class="toc-ann-count">11</span><span class="toc-arrow" id="arrow-3" onclick="toggleChapter(event, 3)">▶</span></a>
+<div class="toc-subs" id="subs-3" style="display:none">
+<a class="toc-heading toc-sub" href="what-is-retrieval-augmented-generation_reader.html#the-one-sentence-definition">The one-sentence definition</a>
+<a class="toc-heading toc-sub" href="what-is-retrieval-augmented-generation_reader.html#the-mechanism-in-three-moves">The mechanism in three moves</a>
+<a class="toc-heading toc-sub" href="what-is-retrieval-augmented-generation_reader.html#a-concrete-pass-with-the-arithmetic">A concrete pass, with the arithmetic</a>
+<a class="toc-heading toc-sub-sub" href="what-is-retrieval-augmented-generation_reader.html#why-the-choice-of-top-k-trips-people-up">Why the choice of top-k trips people up</a>
+<a class="toc-heading toc-sub" href="what-is-retrieval-augmented-generation_reader.html#what-grounded-actually-buys-you">What &quot;grounded&quot; actually buys you</a>
+<a class="toc-heading toc-sub" href="what-is-retrieval-augmented-generation_reader.html#rag-is-not-fine-tuning-and-they-compose">RAG is not fine-tuning (and they compose)</a>
+<a class="toc-heading toc-sub" href="what-is-retrieval-augmented-generation_reader.html#the-takeaway-and-where-we-go-next">The takeaway, and where we go next</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="4">
+<a href="why-rag-exists_reader.html" class="toc-chapter" onclick="navigateToChapter('why-rag-exists_reader.html')"><span>Why RAG Exists</span><span class="toc-ann-count">10</span><span class="toc-arrow" id="arrow-4" onclick="toggleChapter(event, 4)">▶</span></a>
+<div class="toc-subs" id="subs-4" style="display:none">
+<a class="toc-heading toc-sub" href="why-rag-exists_reader.html#the-model-is-a-snapshot-and-the-world-keeps-moving">The model is a snapshot, and the world keeps moving</a>
+<a class="toc-heading toc-sub" href="why-rag-exists_reader.html#the-model-hallucinates-and-it-hallucinates-most-where-you-can-least-afford-it">The model hallucinates, and it hallucinates most where you can least afford it</a>
+<a class="toc-heading toc-sub" href="why-rag-exists_reader.html#the-model-can-t-show-its-work-and-unverifiable-is-unusable">The model can&#x27;t show its work, and unverifiable is unusable</a>
+<a class="toc-heading toc-sub" href="why-rag-exists_reader.html#retrieval-is-the-one-fix-that-lands-on-all-three">Retrieval is the one fix that lands on all three</a>
+<a class="toc-heading toc-sub" href="why-rag-exists_reader.html#the-honest-caveat-so-you-don-t-oversell-it">The honest caveat, so you don&#x27;t oversell it</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="5">
+<a href="your-first-minimal-rag_reader.html" class="toc-chapter" onclick="navigateToChapter('your-first-minimal-rag_reader.html')"><span>Your First Minimal RAG</span><span class="toc-ann-count">9</span><span class="toc-arrow" id="arrow-5" onclick="toggleChapter(event, 5)">▶</span></a>
+<div class="toc-subs" id="subs-5" style="display:none">
+<a class="toc-heading toc-sub" href="your-first-minimal-rag_reader.html#the-puzzle-in-three-sentences">The puzzle, in three sentences</a>
+<a class="toc-heading toc-sub" href="your-first-minimal-rag_reader.html#a-corpus-of-three-sentences">A corpus of three sentences</a>
+<a class="toc-heading toc-sub" href="your-first-minimal-rag_reader.html#stage-by-stage-in-the-smallest-possible-code">Stage by stage, in the smallest possible code</a>
+<a class="toc-heading toc-sub" href="your-first-minimal-rag_reader.html#the-whole-thing-once-in-one-place">The whole thing, once, in one place</a>
+<a class="toc-heading toc-sub" href="your-first-minimal-rag_reader.html#the-takeaway">The takeaway</a>
+</div>
+</div>
+</nav>
+  </div>
+
+  <nav class="top-bar">
+    <button onclick="toggleTOC()" title="Table of Contents">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <span class="top-bar-title">Ingestion Is the Hard Part</span>
+    <button onclick="toggleSettings()" title="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </nav>
+
+  <main class="reader-content">
+    <div class="chapter-title">
+      <h1 id="rr-h-0">Ingestion Is the Hard Part</h1>
+      <span class="ann-badge">📝 22 annotations</span>
+    </div>
+
+
+<h1 id="rr-h-1">Ingestion Is the Hard Part</h1>
+<p>In the last chapter we chose our tool: RAG over fine-tuning over long context, because we want fresh, private, citable facts fed in at query time. That decision made, the fantasy sets in — the fantasy that the interesting work is the clever prompt, the exotic re-ranker, the vector database with the coolest logo. Let me spoil the ending of this whole section right now: none of that will save you if the text going into your index is garbage. The single most reliable predictor of whether a production RAG system works is not the model and not the prompt. It is <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">whether ingestion — the unglamorous act of turning a real PDF into clean, correctly-ordered text — was done well.</span></p>
+<p>I have watched a team spend three weeks tuning retrieval on a corpus of engineering manuals, only to discover the manuals had been parsed column-first, so every sentence was interleaved word-salad. No embedding model can rescue meaning that was destroyed before it ever became a vector. So let me build the intuition for <em>why</em> this stage dominates, with a concrete example small enough to hold in your head, and then state the rule I now refuse to break.</p>
+<h2 id="what-ingestion-actually-is">What ingestion actually is</h2>
+<p>Ingestion — also called loading or parsing — is stage one of the pipeline: take a raw source (a PDF, an HTML page, a DOCX, a scanned image) and produce two things: clean text and metadata.11 The pipeline is seven stages — ingest, chunk, embed, index, retrieve, augment, generate — and we mapped the whole thing in The RAG Pipeline End to End. Ingestion is stage one, and it runs offline, once, before any user shows up. That "once" is exactly why teams under-invest in it and pay forever. <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">The clean text is what will be chunked, embedded, and retrieved. The metadata — source filename, page number, URL, timestamp, section heading — rides along with every chunk so that, seven stages later, the model can answer "from manual.pdf</span>, page 12" instead of "trust me."</p>
+<p>That sounds like plumbing. It sounds like the part you glue together in an afternoon with a library call. And for a clean corpus it <em>is</em>. The trouble is that production corpora are never clean. They are a <strong>document zoo</strong>: a thousand PDFs where three hundred are scanned images of faxes, two-column academic layouts, spreadsheets exported to PDF, slide decks, HTML pages buried in navigation chrome, and the one <code>.docx</code> your legal team swears is "basically final." Ingestion is the stage that has to survive that zoo, and survival is harder than it looks.</p>
+<h2 id="the-rule-that-governs-everything-downstream-garbage-in-garbage-out">The rule that governs everything downstream: garbage in, garbage out</h2>
+<p>Here is the thesis, and it is worth stating as bluntly as possible: every later stage of RAG can only preserve or lose information — none of them can add it back. Chunking splits your text; it cannot un-scramble a sentence. Embedding encodes your text into a vector; if the text is "lasts charge full a on 400 battery", the vector faithfully encodes nonsense, because the embedding model has no idea a parser reordered the words. Retrieval finds the nearest vectors; it cannot know they point at rubble. <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">The LLM generates from what it is handed; hand it garbage and it will fluently, confidently hallucinate around it</span>.</p>
+<p>Ingestion is the only stage that touches the raw source. <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">It is the one and only place where information is either captured faithfully or lost forever</span>. Everything after it is downstream of a decision that was already made.</p>
+<figure class="fig"><div class="fig-frame"><img alt="Ingestion is the single point where raw text is captured faithfully or corrupted. Every later stage can only preserve or" src="Images/ingestion-is-the-hard-part-1.png"/><span class="fig-ph">figure rendering · Ingestion is the single point where raw text is captured faithfully or</span></div><figcaption>Ingestion is the single point where raw text is captured faithfully or corrupted. Every later stage can only preserve or lose that information, never recreate it — so garbage in is garbage out, permanently.</figcaption></figure>
+<p>Notice why this is so insidious in practice. A parsing bug does not throw an error. There is no stack trace for "the columns interleaved." The pipeline runs green, the index builds, retrieval returns something, the model answers fluently — and the answer is subtly, confidently wrong. <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">The damage happened at stage one and is invisible everywhere it shows up. That is why I now treat ingestion as the highest-leverage stage in the entire system.</span></p>
+<h2 id="a-concrete-example-two-columns-one-disaster">A concrete example: two columns, one disaster</h2>
+<p>Let me make it tangible with the classic failure. Imagine one page of a product manual laid out in two columns. The left column reads top to bottom:</p>
+<blockquote>The Model X battery lasts 400 kilometres on a full charge.</blockquote>
+<p>And the right column, beside it, reads:</p>
+<blockquote>To reset the device, hold the power button for ten seconds.</blockquote>
+<p>A human reads this correctly without a thought: left column fully, then right column fully. But a <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">naive PDF text extractor does not see "columns." It sees a page as a stream of positioned text fragments, and many extractors emit them roughly in the order they were written to the file — which, for a two-column layout, is often left-fragment, right-fragment, left-fragment, right-fragment, reading straight across the visual gutter.</span> The extracted text comes out as:</p>
+<blockquote>The Model X battery lasts To reset the device, hold 400 kilometres on a full the power button for ten charge. seconds.</blockquote>
+<p>Read that aloud. Two perfectly good sentences have been zippered into a sentence that means nothing. And here is the part that should worry you: this text will chunk fine, embed fine, index fine, and retrieve fine. Nothing errors. A user asks "how far can the Model X go?" and the chunk that should have answered — "battery lasts 400 kilometres on a full charge" — no longer exists as a coherent unit anywhere in your index. The number 400 is now marooned three words from "To reset the device". Retrieval may still surface this chunk on vector similarity, and the model will dutifully try to reason over word-salad, most likely by inventing a clean-sounding answer that is not grounded in anything real.22 This is the quiet link between bad ingestion and hallucination. A model instructed to "answer only from context" behaves well when the context is coherent. <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Feed it scrambled context and grounding becomes impossible — there is no faithful answer to extract, so the model fills the gap</span>. The faithfulness failure looks like a generation bug; its root cause is three stages upstream.</p>
+<figure class="fig"><div class="fig-frame"><img alt="A human reads each column fully in turn; a naive extractor reads straight across the gutter, interleaving the two column" src="Images/ingestion-is-the-hard-part-2.png"/><span class="fig-ph">figure rendering · A human reads each column fully in turn; a naive extractor reads strai</span></div><figcaption>A human reads each column fully in turn; a naive extractor reads straight across the gutter, interleaving the two columns into meaningless text. The key fact is destroyed before it is ever embedded.</figcaption></figure>
+<h2 id="napkin-arithmetic-what-a-small-error-rate-actually-costs">Napkin arithmetic: what a small error rate actually costs</h2>
+<p>"Fine," you might say, "columns are a known trap, and a decent parser handles them. How bad can the residual really be?" Let me do the arithmetic, because the numbers are more brutal than intuition suggests.</p>
+<p>Suppose you ingest a modest corpus of <strong>10,000 pages</strong>. Suppose your parser is <em>good</em> — it corrupts only <strong>2%</strong> of pages (interleaved columns it misreads, tables flattened into gibberish, headers glued onto body text, ligatures like <code>ﬁ</code> dropped). Two percent sounds negligible. But 2% of 10,000 pages is <strong>200 corrupted pages</strong>. If each page yields roughly <strong>3 chunks</strong>, that is <strong>600 poisoned chunks</strong> silently sitting in your index, indistinguishable from good ones until a query lands on one.</p>
+<p>Now walk it forward to the thing you actually get judged on. Say <strong>15%</strong> of user questions happen to depend on a fact that lives on one of those corrupted pages — because corruption is not random, it clusters on exactly the dense, high-value pages (spec tables, multi-column reference sheets) that users ask about most. That is roughly <strong>1 in 7 questions</strong> where the <em>correct</em> answer was destroyed at ingestion and cannot be retrieved no matter how good your retriever is. You will see it in evaluation as a retrieval or faithfulness failure, you will spend days tuning <code>top-k</code> and re-rankers, and none of it will help — because the fix was three stages upstream, in a parser you assumed was fine.</p>
+<figure class="fig"><div class="fig-frame"><img alt="Napkin math: a mere 2% page-parse error on a 10,000-page corpus becomes 600 silent poisoned chunks and, because corrupti" src="Images/ingestion-is-the-hard-part-3.png"/><span class="fig-ph">figure rendering · Napkin math: a mere 2% page-parse error on a 10,000-page corpus become</span></div><figcaption>Napkin math: a mere 2% page-parse error on a 10,000-page corpus becomes 600 silent poisoned chunks and, because corruption clusters on high-value pages, roughly one in seven questions users cannot get answered.</figcaption></figure>
+<p>The bold takeaway I want you to carry out of this chapter: <span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">a small ingestion error rate is never a small quality hit.</span> Errors concentrate on the structured, information-dense pages — the tables, the multi-column specs, the very pages your users query — so a 2% corruption rate does far more than 2% of the damage. This is why ingestion, not prompting, decides whether the system works.</p>
+<h2 id="the-four-failure-families-you-will-actually-hit">The four failure families you will actually hit</h2>
+<p><span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Across real corpora, the mess sorts into four recurring families. It helps to name them so you can hunt them deliberately.</span></p>
+<p>First, layout scrambling: multi-column interleaving (the example above), tables flattened into a stream where a cell's number loses its row and header, and reading-order confusion on slides and forms. Second, format diversity: PDFs, HTML, DOCX, PPTX, CSV, Markdown, and images each need a different loader, and a pipeline that assumes everything is a well-behaved PDF quietly drops the rest. Third, scanned and image-only documents: a PDF that is really a photograph of a page has zero extractable text — you need OCR (Optical Character Recognition) to get any text at all, and OCR brings its own error rate.33 A fast test worth building into your ingestion job: after parsing, measure extracted characters per page. A born-digital text page yields hundreds to thousands of characters; a scanned image yields near zero. Pages that come back nearly empty are your OCR candidates — route them to a different loader instead of silently indexing blank chunks. We build these loaders concretely in the next chapter. <span class="ann-hl" style="background:rgba(102,217,239,0.3); border-bottom:2px solid #2B9BC9; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Fourth, boilerplate and noise: HTML nav bars, cookie banners, repeated page headers and footers, and PDF watermarks that, if not stripped, get chunked and embedded as if they were content — so every chunk looks a little bit like every other chunk and retrieval loses precision</span>.</p>
+<figure class="fig"><div class="fig-frame"><img alt="The four failure families of ingestion: layout scrambling, format diversity, scanned image-only documents, and boilerpla" src="Images/ingestion-is-the-hard-part-4.png"/><span class="fig-ph">figure rendering · The four failure families of ingestion: layout scrambling, format dive</span></div><figcaption>The four failure families of ingestion: layout scrambling, format diversity, scanned image-only documents, and boilerplate noise. None of them raise an error, so you have to go looking for each one.</figcaption></figure>
+<h2 id="the-quiet-fifth-failure-dropping-the-metadata">The quiet fifth failure: dropping the metadata</h2>
+<p>There is a fifth failure that hides behind the four, because it corrupts nothing you can see: losing the metadata. Remember that <span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">ingestion is supposed to emit two things, clean text and metadata</span>, and it is tempting to treat the second as optional. It is not. The metadata (source filename, page number, URL, section heading, timestamp) is what rides along with every chunk so that, six stages later, the generator can say "from manual.pdf, page 12" instead of "trust me." Citations are one of the three reasons we reached for RAG in the first place. If you concatenate every parsed page into one giant string and then chunk it, you have thrown that provenance away, and no clever prompt at generation time can invent it back. The text is perfect and the system still cannot cite.</p>
+<p>Put a number on it. Say your corpus is 500 PDFs and a user asks a question whose answer lives on one page of one file. Retrieval hands the generator a chunk of clean text, and the user, quite reasonably, asks "where did that come from?" <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">If you attached the (filename, page) pair at ingestion, the answer is one lookup.</span> If you dropped it, the honest answer is that the fact could be on any of roughly 500 files times an average of, say, 20 pages each, so about 10,000 pages, and you cannot point at one. The information was captured faithfully and made unusable in the same breath, which is exactly the ingestion failure mode this chapter is about, just applied to the metadata half instead of the text half.</p>
+<figure class="fig"><div class="fig-frame"><img alt="Ingestion must emit clean text and metadata together. Concatenating pages before chunking destroys the page-and-file pro" src="Images/ingestion-is-the-hard-part-5.png"/><span class="fig-ph">figure rendering · Ingestion must emit clean text and metadata together. Concatenating pa</span></div><figcaption>Ingestion must emit clean text and metadata together. Concatenating pages before chunking destroys the page-and-file provenance, so a faithful fact can no longer be cited; carrying the metadata through keeps citation one lookup away.</figcaption></figure>
+<p>We build these metadata tags concretely, and the cleaning that goes with them, in <a href="cleaning-normalizing-and-metadata.html" rel="noopener" target="_blank">Cleaning, Normalizing, and Metadata</a>. For now the point is only that the metadata is not optional plumbing, it is half of what ingestion exists to produce.</p>
+<h2 id="the-minimal-defensive-move-never-trust-the-parse-blindly">The minimal defensive move: never trust the parse blindly</h2>
+<p>You do not fix ingestion with a bigger model. <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">You fix it by inspecting the output of the parser before you trust it — treating the extracted text as suspect until proven clean</span>. The cheapest, highest-value habit is a sanity check that runs on every ingested page. Here is the smallest version that has caught real bugs for me:</p>
+<pre class="line-numbers language-python"><code class="language-python">def sanity_check_page(text: str, page_num: int) -&gt; list[str]:
+    """Flag pages whose extracted text looks corrupt, before indexing."""
+    warnings = []
+    n_chars = len(text.strip())
+
+    # Near-empty page → almost certainly a scanned image needing OCR.
+    if n_chars &lt; 50:
+        warnings.append(f"page {page_num}: {n_chars} chars — likely scanned image, route to OCR")
+
+    # Very high non-alphanumeric ratio → flattened table or decode garbage.
+    if n_chars &gt; 0:
+        symbols = sum(1 for c in text if not (c.isalnum() or c.isspace()))
+        if symbols / n_chars &gt; 0.30:
+            warnings.append(f"page {page_num}: {symbols/n_chars:.0%} symbols — possible table/decode garbage")
+
+    # Broken words per line hint at column interleaving (very short 'words').
+    tokens = text.split()
+    if tokens:
+        tiny = sum(1 for t in tokens if len(t) &lt;= 2)
+        if tiny / len(tokens) &gt; 0.40:
+            warnings.append(f"page {page_num}: {tiny/len(tokens):.0%} tiny tokens — possible column scramble")
+
+    return warnings</code></pre>
+<p>This is not clever. <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">It is three cheap heuristics — character count, symbol ratio, tiny-token ratio — run over the parser's output. But it converts silent corruption into a loud warning you can act on: route near-empty pages to OCR, re-parse symbol-heavy pages with a table-aware loader, and eyeball the column-scramble flag</span>s. The point is the posture, not the specific thresholds: assume the parser lied, and prove it did not.44 In practice you tune these thresholds to your corpus by hand-labelling a few dozen pages as clean/corrupt and picking cutoffs that separate them. The exact numbers here are illustrative, not universal — a corpus full of code or chemical formulae will legitimately trip the symbol-ratio check, so calibrate before you trust it.</p>
+<h2 id="so-the-key-is-fix-the-text-first">So the key is: fix the text first</h2>
+<p>Let me land the plane. RAG is a pipeline, and a pipeline is only as good as its most upstream loss. Ingestion is that upstream stage — the single place where the raw source is read, and therefore the single place where meaning is captured faithfully or destroyed silently. No re-ranker, no query rewrite, no larger context window can reconstruct a fact that a parser zippered into nonsense at stage one. The clever prompt gets the glory; the boring loader decides the outcome.</p>
+<p>So the discipline is simple to state and hard to practise: <strong>spend your first units of effort on the text, not the prompt.</strong> Get faithful text and correct reading order out of your messy sources, attach the metadata retrieval will later filter on, and inspect the parser's output before you ever embed it. Do that, and every downstream chapter in this book has something real to work with. Skip it, and you will tune retrieval for weeks against a corpus that was broken before it began.</p>
+<p>In the next chapter we get our hands dirty and actually build the loaders — <a href="loading-documents-pdf-html-and-beyond.html" rel="noopener" target="_blank">Loading Documents: PDF, HTML, and Beyond</a> — parsing each format in the zoo, handling two columns correctly, and reaching for OCR when the page is really a photograph.</p>
+
+  </main>
+
+  <footer class="bottom-bar">
+    <span id="pageInfo">Chapter 6</span>
+    <span id="progressPercent">0%</span>
+  </footer>
+
+  <footer class="footer">
+    Exported from MoonReader • Generated 2026-09-10 17:24
+  </footer>
+
+  <script>
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+    });
+
+    function toggleTOC() {
+      const panel = document.getElementById('tocPanel');
+      const overlay = document.getElementById('tocOverlay');
+      panel.classList.toggle('open');
+      overlay.classList.toggle('show');
+    }
+
+    function toggleChapter(event, idx) {
+      event.preventDefault();
+      event.stopPropagation();
+      const arrow = document.getElementById('arrow-' + idx);
+      const subs = document.getElementById('subs-' + idx);
+      if (arrow && subs) {
+        const isOpen = subs.style.display !== 'none';
+        subs.style.display = isOpen ? 'none' : 'block';
+        arrow.classList.toggle('open', !isOpen);
+      }
+    }
+
+    function navigateToChapter(url) {
+      window.location.href = url;
+    }
+
+    function toggleSettings() {
+      alert('Settings panel coming soon');
+    }
+  </script>
+  <!--rr-annotate-->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23FAF6EE'/%3E%3Ctext x='16' y='24' font-size='22' text-anchor='middle' fill='%23A34A2E' font-family='Georgia' font-style='italic'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="../../assets/annotate.css?v=16">
+<script type="application/json" id="rr-notes">{}</script>
+<script data-rr-palette="apple" src="../../assets/annotate.js?v=16" data-rr-book="rag-in-production" data-rr-page="ingestion-is-the-hard-part_reader.html" data-rr-prefix="../../"></script>
+<script src="../../assets/chapter-toc.js?v=16"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<script>
+(function() {
+  // Single ownership: chapter-toc.js (loaded above) owns window.toggleTheme
+  // (guarded by window.__rrThemeOwned). Standalone fallback applies only if
+  // it failed to load - never wrap the skill's toggleTheme: RAG/DML/agentic
+  // pages never defined one, so the old origTheme() wrapper crashed on click.
+  if (!window.__rrThemeOwned) {
+    window.toggleTheme = function() {
+      var root = document.documentElement;
+      var wasDark = root.getAttribute('data-theme') === 'dark';
+      if (wasDark) root.removeAttribute('data-theme');
+      else root.setAttribute('data-theme', 'dark');
+      try { window.localStorage.setItem('rr-theme', wasDark ? 'light' : 'dark'); } catch (e) {}
+      var tb = document.getElementById('rr-theme-btn');
+      if (tb) tb.textContent = wasDark ? '\u263E dark' : '\u2600 light';
+    };
+    try {
+      if (window.localStorage.getItem('rr-theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        var tb0 = document.getElementById('rr-theme-btn');
+        if (tb0) tb0.textContent = '\u2600 light';
+      }
+    } catch (e) {}
+  }
+  var panel = document.getElementById('tocPanel');
+  var overlay = document.getElementById('tocOverlay');
+  var btn = document.getElementById('rr-toc-btn');
+  function syncBtn() {
+    if (!btn) return;
+    var hidden;
+    if (window.innerWidth <= 900) {
+      hidden = !(panel && panel.classList.contains('open'));
+    } else {
+      hidden = document.body.classList.contains('toc-hidden');
+    }
+    // hamburger (closed) vs close-mark (open) so the button always
+    // tells the reader what the TOC toggle will do
+    btn.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+    btn.innerHTML = hidden ? '\u2630 toc' : '\u2715 toc';
+  }
+  // Single ownership: chapter-toc.js (loaded above) owns window.toggleTOC
+  // (guarded by window.__rrTocOwned). Fallback applies only if it failed.
+  if (!window.__rrTocOwned) {
+    window.toggleTOC = function() {
+      if (window.innerWidth <= 900) {
+        if (panel) panel.classList.toggle('open');
+        if (overlay) overlay.classList.toggle('show');
+      } else {
+        document.body.classList.toggle('toc-hidden');
+        if (panel) {
+          if (document.body.classList.contains('toc-hidden')) panel.classList.add('rr-hidden');
+          else panel.classList.remove('rr-hidden');
+        }
+        if (overlay) overlay.classList.remove('show');
+      }
+      syncBtn();
+    };
+  }
+  // default: TOC visible on desktop, hidden drawer on mobile
+  if (window.innerWidth > 900) {
+    document.body.classList.remove('toc-hidden');
+    if (panel) panel.classList.remove('rr-hidden');
+  } else if (panel) {
+    panel.classList.remove('open');
+  }
+  // auto-expand the current chapter's sub-headings + mark it active
+  try {
+    var cur = (location.pathname.split('/').pop() || '').split('#')[0];
+    document.querySelectorAll('.toc-chapter-wrap').forEach(function(w, idx) {
+      var link = w.querySelector('a.toc-chapter');
+      if (!link) return;
+      var href = (link.getAttribute('href') || '').split('#')[0];
+      if (href === cur) {
+        var subs = document.getElementById('subs-' + idx);
+        var arrow = document.getElementById('arrow-' + idx);
+        if (subs) subs.style.display = 'block';
+        if (arrow) arrow.classList.add('open');
+        link.classList.add('active');
+      }
+    });
+  } catch (e) {}
+  window.addEventListener('resize', syncBtn);
+  syncBtn();
+})();
+</script>
+
+<script src="../../assets/course-theme.js?v=3"></script>
+</body>
+</html>

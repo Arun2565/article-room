@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Why Is AI Bad at Writing?</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css');
+
+    :root {
+      --bg: #FAF6EE;
+      --surface: #FFFFFF;
+      --ink: #2D2522;
+      --ink-2: #6E625B;
+      --accent: #A34A2E;
+      --border: rgba(163,74,46,0.1);
+      --font-reader: 'Newsreader', 'EB Garamond', 'Baskerville', 'Garamond', Georgia, serif;
+      --toc-width: 280px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #1a1a1a;
+      --surface: #2d2d2d;
+      --ink: #e0e0e0;
+      --ink-2: #a0a0a0;
+      --accent: #E28C68;
+      --border: rgba(243,239,233,0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-reader);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+
+    .top-bar button {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .top-bar button:hover {
+      background: rgba(163,74,46,0.08);
+    }
+
+    .top-bar button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .top-bar-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--ink-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60%;
+    }
+
+    .reader-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 60px 80px;
+    }
+
+    .reader-content h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      line-height: 1.3;
+    }
+
+    .reader-content h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 32px 0 16px;
+    }
+
+    .reader-content h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 24px 0 12px;
+      color: var(--ink-2);
+    }
+
+    .reader-content p {
+      font-size: 1.15rem;
+      line-height: 1.85;
+      margin-bottom: 1.2em;
+      text-align: left;
+    }
+
+    .reader-content blockquote {
+      margin: 20px 0;
+      padding: 16px 20px;
+      border-left: 3px solid var(--accent);
+      background: rgba(163,74,46,0.04);
+      font-style: italic;
+    }
+
+    .reader-content dl {
+      margin: 20px 0;
+    }
+
+    .reader-content dt {
+      font-weight: 600;
+      margin: 16px 0 8px;
+      font-style: italic;
+    }
+
+    .reader-content dd {
+      margin-left: 20px;
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .reader-content table {
+      display: table;
+      width: 100%;
+      margin: 24px 0;
+      border-collapse: collapse;
+      font-size: 1rem;
+      border: 1px solid #c3c3c3;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .reader-content th {
+      display: table-cell;
+      background: #f0f4f8;
+      border-bottom: 2px solid #9d9d9d;
+      padding: 14px 16px;
+      font-weight: 600;
+      text-align: left;
+      font-size: 0.95rem;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td {
+      display: table-cell;
+      padding: 14px 16px;
+      border-bottom: 1px solid #ddd;
+      border-right: 1px solid #eee;
+      vertical-align: top;
+      font-size: 1rem;
+      line-height: 1.7;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td:last-child {
+      border-right: none;
+    }
+
+    .reader-content tr:nth-of-type(even) {
+      background-color: #fafbfd;
+    }
+
+    .reader-content figure,
+    .reader-content .figure {
+      margin: 24px auto;
+      text-align: center;
+    }
+
+    .reader-content img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .reader-content figcaption,
+    .reader-content figure h6,
+    .reader-content .figure h6 {
+      font-size: 0.9rem;
+      font-style: italic;
+      color: var(--ink-2);
+      margin-top: 8px;
+    }
+
+    .reader-content .note,
+    .reader-content [data-type="note"] {
+      margin: 20px 0;
+      padding: 16px 20px;
+      background: #f8f4e8;
+      border: 1px solid #e6d48a;
+      border-radius: 6px;
+    }
+
+    .ann-hl { border-radius: 2px; }
+    .ann-note { border-radius: 2px; }
+
+    pre.code, pre[data-lang], .code {
+      background: #1e1e1e !important;
+      border-radius: 8px !important;
+      padding: 16px 20px !important;
+      margin: 20px 0 !important;
+      overflow-x: auto !important;
+      position: relative !important;
+      border: 1px solid #333 !important;
+    }
+
+    pre.code[data-lang]::before, pre[data-lang]::before {
+      content: attr(data-lang);
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      font-size: 0.7rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace;
+    }
+
+    pre.code code, pre[data-lang] code, .code code {
+      color: #e0e0e0 !important;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace !important;
+      font-size: 0.9rem !important;
+      line-height: 1.6 !important;
+      background: none !important;
+      padding: 0 !important;
+      border: none !important;
+      white-space: pre !important;
+    }
+
+    p code, li code, td code {
+      background: rgba(0,0,0,0.06) !important;
+      padding: 2px 6px !important;
+      border-radius: 4px !important;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace !important;
+      font-size: 0.85em !important;
+    }
+
+    .line-numbers-rows { border-right: 1px solid #444 !important; }
+
+    .progress-bar {
+      position: fixed;
+      top: 52px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 99;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .ann-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent);
+      color: white;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .chapter-title {
+      text-align: center;
+      padding: 40px 20px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chapter-title h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .toc-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--toc-width);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      z-index: 200;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+    }
+
+    .toc-panel.open {
+      transform: translateX(0);
+    }
+
+    .toc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      height: 52px;
+    }
+
+    .toc-header h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .toc-close {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+    }
+
+    .toc-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+
+    .toc-chapter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .toc-chapter:hover {
+      background: rgba(163,74,46,0.06);
+      border-left-color: var(--accent);
+    }
+
+    .toc-arrow {
+      font-size: 0.6rem;
+      color: var(--ink-2);
+      transition: transform 0.2s ease;
+      margin-left: auto;
+    }
+
+    .toc-arrow.open {
+      transform: rotate(90deg);
+    }
+
+    .toc-subs {
+      padding: 4px 0;
+      border-left: 2px solid var(--border);
+      margin-left: 20px;
+    }
+
+    .toc-sub {
+      padding-left: 32px;
+      font-weight: 400;
+    }
+
+    .toc-sub-sub {
+      padding-left: 48px;
+      font-size: 0.75rem;
+    }
+
+    .toc-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 199;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .toc-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--ink-2);
+      z-index: 100;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 60px;
+      border-top: 1px solid var(--border);
+      color: var(--ink-2);
+      font-size: 0.8rem;
+    }
+  </style>
+<link rel="stylesheet" href="../../assets/site.css?v=17">
+<link rel="stylesheet" href="../../assets/course-theme.css?v=3">
+</head>
+<body>
+<button id="rr-toc-btn" onclick="toggleTOC()" title="Table of Contents — show/hide chapters" aria-expanded="true" aria-controls="tocPanel">&#9776; toc</button>
+
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="toc-overlay" id="tocOverlay" onclick="toggleTOC()"></div>
+
+  <div class="toc-panel" id="tocPanel">
+    <div class="toc-header">
+      <h3>Table of Contents</h3>
+      <button class="toc-close" onclick="toggleTOC()">✕</button>
+    </div>
+    <nav class="toc-nav">
+<div class="toc-chapter-wrap" data-chapter="0">
+<a href="part01_reader.html" class="toc-chapter" onclick="navigateToChapter('part01_reader.html')"><span>Why Is AI Bad at Writing?</span><span class="toc-ann-count">11</span><span class="toc-arrow" id="arrow-0" onclick="toggleChapter(event, 0)">▶</span></a>
+<div class="toc-subs" id="subs-0" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-2">What is it about AI writing exactly?</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">What it is not</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">What it is—at least for now</a>
+<a class="toc-heading toc-sub" href="#rr-h-5">Why Does it Matter?</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">Who is the Author, Exactly?</a>
+<a class="toc-heading toc-sub" href="#rr-h-7">AI Watermarks</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">In the Longer Term</a>
+</div>
+</div>
+<div class="toc-chapter-wrap" data-chapter="1">
+<a href="part02_reader.html" class="toc-chapter" onclick="navigateToChapter('part02_reader.html')"><span>Why AI writing is mid</span><span class="toc-ann-count">4</span></a>
+</div>
+<div class="toc-chapter-wrap" data-chapter="2">
+<a href="part03_reader.html" class="toc-chapter" onclick="navigateToChapter('part03_reader.html')"><span>300K Subs Special: How I Write AI Made Simple.</span><span class="toc-ann-count">2</span><span class="toc-arrow" id="arrow-2" onclick="toggleChapter(event, 2)">▶</span></a>
+<div class="toc-subs" id="subs-2" style="display:none">
+<a class="toc-heading toc-sub" href="part03_reader.html#rr-h-2">How I Started Writing</a>
+<a class="toc-heading toc-sub" href="part03_reader.html#rr-h-3">Phase 1: Writing Research Breakdowns (late 2020—mid 2023)</a>
+<a class="toc-heading toc-sub" href="part03_reader.html#rr-h-4">Phase 2: Going Deeper (Mid-Late 2023 to Now)</a>
+<a class="toc-heading toc-sub" href="part03_reader.html#rr-h-5">The Chocolate Milk Cult Writing Philosophy</a>
+<a class="toc-heading toc-sub" href="part03_reader.html#rr-h-6">Why no ads or sponsorships</a>
+<a class="toc-heading toc-sub" href="part03_reader.html#rr-h-7">Operational Mechanics</a>
+<a class="toc-heading toc-sub-sub" href="part03_reader.html#rr-h-8">Information Intake</a>
+<a class="toc-heading toc-sub-sub" href="part03_reader.html#rr-h-9">Choosing Topics &amp; Validation</a>
+<a class="toc-heading toc-sub-sub" href="part03_reader.html#rr-h-10">The Actual Writing</a>
+<a class="toc-heading toc-sub" href="part03_reader.html#rr-h-11">Where This Goes Next</a>
+</div>
+</div>
+</nav>
+  </div>
+
+  <nav class="top-bar">
+    <button onclick="toggleTOC()" title="Table of Contents">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <span class="top-bar-title">Why Is AI Bad at Writing?</span>
+    <button onclick="toggleTheme()" title="Toggle theme">
+      <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    </button>
+  </nav>
+
+  <main class="reader-content">
+    <div class="chapter-title">
+      <h1 id="rr-h-0">Why Is AI Bad at Writing?</h1>
+      <span class="ann-badge">📝 12 annotations</span>
+    </div>
+
+<h1 id="rr-h-1">Why Is AI Bad at Writing?</h1>
+<p class="subtitle">And Why It'll Likely Stay That Way—Em Dashes or Not!</p>
+<p class="author">James Wang · Weighty Thoughts · Sep 8, 2026</p>
+<div class="image-container">
+<img alt="Why Is AI Bad at Writing? - Hero image" src="Images/hero.png"/>
+</div>
+<p>Have you ever eaten a dish where the flavor was all there but the texture was just… off? Maybe it's perfectly seasoned, but the mouthfeel is gritty or somehow wrong. Texture matters for good food.</p>
+<p>That's often my feeling when reading completely AI-generated content, even if the underlying content is decent.</p>
+<p>An experienced and prolific author recently described to me the process of composing words as similar to composing music. There's a rhythm and flow to it. I agree. This "rhythm" is hard to quantitatively measure. But we tend to know it when we see it.</p>
+<p>Humans are very good at spotting "unnatural" things, especially those that imitate humans. This is the entire origin of the uncanny valley, where hyperrealistic robots or animations mimicking humans feel off-putting to us, and we can intuitively catch the tiniest mismatches.</p>
+<h2 id="rr-h-2">What is it about AI writing exactly?</h2>
+<p>In line with societal angst about AI, especially in writing and publishing circles, people talk about how much they hate AI writing. Pangram's rollout on Substack has created mini-witch hunts, and influencers like Hank Green who are accused of using AI face being "cancelled."</p>
+<p>None of this actually describes <em>what</em> is wrong with AI writing, though. Being AI is sufficient to hate it.</p>
+<p>As longtime readers know, that's not my stance. Although I didn't use AI at all in my book (publisher requirement, plus it was too early in 2022 and 2023 to have AI be useful even as a research assistant), I've been transparent about AI use before it was cool and tried to see how far I can push it in my Substack.</p>
+<p>The answer to its usefulness is quite mixed. It never gets anywhere close to passing the bar on its own and basically gets totally rewritten—enough so that even when I use AI, usually Claude, to do a first draft, it never comes up as AI writing on Pangram.</p>
+<p>As a side note: <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">I pretty much entirely stopped having AI try its hand at a first draft. I always ended up changing it so much that, for now, it is far easier just to do it myself.</span></p>
+<h2 id="rr-h-3">What it is not</h2>
+<p>The typical hallmarks of AI, like the <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">oft-complained-about em dash—which I will never give up—tend to be poor indicators. That should make sense. If something is so obvious, the next model version will inevitably remove it.</span></p>
+<p>Additionally, you get a lot of variation just by using different models. They don't all write the same. While they all do feel like AI to me, there's no static characteristic that's simple to measure.</p>
+<div class="image-container">
+<img alt="AI tell lifecycle chart" src="Images/02-tell-lifecycle.png"/>
+<p class="image-caption">AI tell lifecycle — indicators come and go with each model version</p>
+</div>
+<div class="image-container">
+<img alt="Cross-lab comparison" src="Images/09-crosslab.png"/>
+<p class="image-caption">Cross-lab comparison of AI writing patterns</p>
+</div>
+<h2 id="rr-h-4">What it is—at least for now</h2>
+<p>Again, it's really, really hard to precisely say what creates the AI writing uncanny valley. I expect that <span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">whatever metrics one comes up with will expire in a year or two</span>—either simply by model progress or by deliberate action from the AI labs.</p>
+<p>Usually, <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">the reason is this kind of short sentence—"mic drop" (as I call it)—is meant to emphasize the climax of an argument. Claude, in particular, loves to put mic drops everywhere</span>. And, of course, if everything is emphasized, nothing is emphasized.</p>
+<div class="image-container">
+<img alt="Short sentence analysis" src="Images/01-cut-sentences.png"/>
+<p class="image-caption">Claude's love of "mic drop" short sentences — emphasis everywhere = emphasis nowhere</p>
+</div>
+<p>But broadly speaking, <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">all of them tend to have similar "rhythmic" issues</span> stemming from the fact that they are token generators. For the same reason there's context rot—where LLMs get dumber the longer you chat with them—LLMs inevitably have limitations in being able to perfectly track long writing in the way a human would.</p>
+<p>LLMs tend to converge on similar arguments. After all, their training set is similar because they all just ate the internet. Additionally, <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">their sentences, as one would expect, are templates which also all resemble one another more than human sentences do</span>.</p>
+<div class="image-container">
+<img alt="Argument uniqueness" src="Images/03-argument-uniqueness.png"/>
+<p class="image-caption">LLMs converge on similar arguments — low uniqueness vs human writing</p>
+</div>
+<div class="image-container">
+<img alt="Sentence templates" src="Images/04-templates.png"/>
+<p class="image-caption">Sentence templates: LLMs reuse patterns more than humans</p>
+</div>
+<p>Again, this is a "point in time" metric. I have zero doubt that if <em>this</em> ends up being the main hallmark of AI writing, the labs will find a way to "jitter" sentences to "break" these measurements.</p>
+<p>Of course, breaking up this weird templating will likely help make the text feel more human, benchmaxxing or not. Going back to music, it's possible to have musical notes hit <em>exactly</em> at the right timing. This is called quantization. Many music producers, even in electronic music, add in "swing" or simply hand-play certain parts to add the right "imperfection" and make their pieces feel more human.</p>
+<div class="image-container">
+<img alt="Microtiming in music" src="Images/07-microtiming.png"/>
+<p class="image-caption">Microtiming: the gap between quantized and human rhythm</p>
+</div>
+<p>It comes down to semantics. There's a reason why certain rhythms are adopted for certain emphases and emotional impact. Just as true AI or algorithmically generated music often feels "weird" to listeners because the meaning or intent doesn't seem to be there, I <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">do expect that ineffable quality will be a gap for a long, long time in AI writing.</span></p>
+<h2 id="rr-h-5">Why Does it Matter?</h2>
+<p>To some degree, I'm in the camp that I don't care if you use AI if I can't notice it. I say "to some degree," perhaps because, as a writer, I'm more sensitive to the "musical" rhythm of good writing.</p>
+<p>If you use AI to do research, so long as you weren't lazy and did the equivalent of "Let me Google That For You" and added something I can trust to my understanding, I'm happy enough. It doesn't matter if you used an encyclopedia, Google, or ChatGPT.</p>
+<p>If you draft the piece with AI… but do such extensive edits—similar to my own process with Substack for a while—that <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">it's unrecognizable as AI, I also don't really care</span>.</p>
+<p>No matter what, if I'm reading you as an author, I want it to be you as the author. <span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">You need to add what makes you you</span>. Otherwise, I could just go to Claude or ChatGPT and just go prompt it myself.</p>
+<h2 id="rr-h-6">Who is the Author, Exactly?</h2>
+<p>The concept of authorship is something I wrangled with in my book. My conclusion, between Death of an Author (a totally "ChatGPT written" book), pop artists like Andy Warhol often using assistants to make the "actual art," and the very art form of photography itself… <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">authorship or creative ownership is more about the idea than the tool used to execute it—including AI</span>.</p>
+<h2 id="rr-h-7">AI Watermarks</h2>
+<p>Anthropic declared that they'd be using watermarks for AI writing going forward. The relevant AI Act provisions took effect on August 2nd, and per Anthropic's own documentation, models launched on or after that date carry marks at launch.</p>
+<p>One is that watermarks, in theory, will degrade the quality of writing. The way you can have "invisible" watermarks is by deliberately introducing certain non-randomness in word choice that can be picked up. Google's own research on the technique concedes it causes "some reduction to inter-response diversity."</p>
+<p>The second is worse and has to do with "authorship." Using their models, even if you're doing a copywriting pass purely, you can have Claude "claim ownership" using watermarks.</p>
+<h2 id="rr-h-8">In the Longer Term</h2>
+<p>I do think <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">we'll eventually go toward a world in the future where AI use is as incidental as computer use</span>. Basically, you'd find a new employee who comes up to you and says, "I don't use AI," just as weird as one today who comes up to you and says, "Well, I don't really do 'computers'" and hands you a stack of handwritten notes… which you'd likely then need to transcribe into a computer.</p>
+<p>If AI can do a lot of the practical stuff better and improve productivity in the world, I'm all for it. That's been the way progress works, from shovels to steam engines to nuclear-powered ships. None of these obsoleted humans; they simply changed the nature of work.</p>
+<p>If you think, from the creative side, that AI will simply wipe out humans… well, perhaps you have less faith in humanity than I do.</p>
+  </main>
+
+  <footer class="bottom-bar">
+    <span id="pageInfo">Chapter 1</span>
+    <span id="progressPercent">0%</span>
+  </footer>
+
+  <footer class="footer">
+    Exported from MoonReader • Generated 2026-09-29 21:45
+  </footer>
+
+  <script>
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+    });
+
+    function toggleTOC() {
+      const panel = document.getElementById('tocPanel');
+      const overlay = document.getElementById('tocOverlay');
+      panel.classList.toggle('open');
+      overlay.classList.toggle('show');
+    }
+
+    function toggleChapter(event, idx) {
+      event.preventDefault();
+      event.stopPropagation();
+      const arrow = document.getElementById('arrow-' + idx);
+      const subs = document.getElementById('subs-' + idx);
+      if (arrow && subs) {
+        const isOpen = subs.style.display !== 'none';
+        subs.style.display = isOpen ? 'none' : 'block';
+        arrow.classList.toggle('open', !isOpen);
+      }
+    }
+
+    function navigateToChapter(url) {
+      window.location.href = url;
+    }
+
+    function toggleTheme() {
+      const root = document.documentElement;
+      const isDark = root.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        root.removeAttribute('data-theme');
+        document.getElementById('theme-icon').innerHTML = '<circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+      } else {
+        root.setAttribute('data-theme', 'dark');
+        document.getElementById('theme-icon').innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+      }
+    }
+  </script>
+  <!--rr-annotate-->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23FAF6EE'/%3E%3Ctext x='16' y='24' font-size='22' text-anchor='middle' fill='%23A34A2E' font-family='Georgia' font-style='italic'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="../../assets/annotate.css?v=16">
+<script type="application/json" id="rr-notes">{}</script>
+<script data-rr-palette="apple" src="../../assets/annotate.js?v=16" data-rr-book="writing" data-rr-page="part01_reader.html" data-rr-prefix="../../"></script>
+<script src="../../assets/chapter-toc.js?v=16"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<script>
+(function() {
+  // Single ownership: chapter-toc.js (loaded above) owns window.toggleTheme
+  // (guarded by window.__rrThemeOwned). Standalone fallback applies only if
+  // it failed to load - never wrap the skill's toggleTheme: RAG/DML/agentic
+  // pages never defined one, so the old origTheme() wrapper crashed on click.
+  if (!window.__rrThemeOwned) {
+    window.toggleTheme = function() {
+      var root = document.documentElement;
+      var wasDark = root.getAttribute('data-theme') === 'dark';
+      if (wasDark) root.removeAttribute('data-theme');
+      else root.setAttribute('data-theme', 'dark');
+      try { window.localStorage.setItem('rr-theme', wasDark ? 'light' : 'dark'); } catch (e) {}
+      var tb = document.getElementById('rr-theme-btn');
+      if (tb) tb.textContent = wasDark ? '\u263E dark' : '\u2600 light';
+    };
+    try {
+      if (window.localStorage.getItem('rr-theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        var tb0 = document.getElementById('rr-theme-btn');
+        if (tb0) tb0.textContent = '\u2600 light';
+      }
+    } catch (e) {}
+  }
+  var panel = document.getElementById('tocPanel');
+  var overlay = document.getElementById('tocOverlay');
+  var btn = document.getElementById('rr-toc-btn');
+  function syncBtn() {
+    if (!btn) return;
+    var hidden;
+    if (window.innerWidth <= 900) {
+      hidden = !(panel && panel.classList.contains('open'));
+    } else {
+      hidden = document.body.classList.contains('toc-hidden');
+    }
+    // hamburger (closed) vs close-mark (open) so the button always
+    // tells the reader what the TOC toggle will do
+    btn.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+    btn.innerHTML = hidden ? '\u2630 toc' : '\u2715 toc';
+  }
+  // Single ownership: chapter-toc.js (loaded above) owns window.toggleTOC
+  // (guarded by window.__rrTocOwned). Fallback applies only if it failed.
+  if (!window.__rrTocOwned) {
+    window.toggleTOC = function() {
+      if (window.innerWidth <= 900) {
+        if (panel) panel.classList.toggle('open');
+        if (overlay) overlay.classList.toggle('show');
+      } else {
+        document.body.classList.toggle('toc-hidden');
+        if (panel) {
+          if (document.body.classList.contains('toc-hidden')) panel.classList.add('rr-hidden');
+          else panel.classList.remove('rr-hidden');
+        }
+        if (overlay) overlay.classList.remove('show');
+      }
+      syncBtn();
+    };
+  }
+  // default: TOC visible on desktop, hidden drawer on mobile
+  if (window.innerWidth > 900) {
+    document.body.classList.remove('toc-hidden');
+    if (panel) panel.classList.remove('rr-hidden');
+  } else if (panel) {
+    panel.classList.remove('open');
+  }
+  // auto-expand the current chapter's sub-headings + mark it active
+  try {
+    var cur = (location.pathname.split('/').pop() || '').split('#')[0];
+    document.querySelectorAll('.toc-chapter-wrap').forEach(function(w, idx) {
+      var link = w.querySelector('a.toc-chapter');
+      if (!link) return;
+      var href = (link.getAttribute('href') || '').split('#')[0];
+      if (href === cur) {
+        var subs = document.getElementById('subs-' + idx);
+        var arrow = document.getElementById('arrow-' + idx);
+        if (subs) subs.style.display = 'block';
+        if (arrow) arrow.classList.add('open');
+        link.classList.add('active');
+      }
+    });
+  } catch (e) {}
+  window.addEventListener('resize', syncBtn);
+  syncBtn();
+})();
+</script>
+
+<script src="../../assets/course-theme.js?v=3"></script>
+</body>
+</html>
