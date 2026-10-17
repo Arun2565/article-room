@@ -4,84 +4,81 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Article Room — Arun</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230b0d10'/%3E%3Ctext x='16' y='24' font-size='20' text-anchor='middle' fill='%23ffc22e' font-family='monospace' font-weight='bold'%3E&gt;_%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23f4efe6'/%3E%3Ctext x='16' y='24' font-size='20' text-anchor='middle' fill='%23b84a2e' font-family='serif' font-weight='bold'%3EA%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/course-theme.css">
 <style>
-:root{--bg:#0b0d10;--surface:#12151b;--ink:#e8e4da;--ink2:#a7adb8;--line:rgba(255,255,255,.09);
---accent:#ffc22e;--teal:#2dd4bf;--mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
-:root[data-theme="light"]{--bg:#faf7f0;--surface:#fffdf8;--ink:#241f1a;--ink2:#6b635a;
---line:rgba(0,0,0,.1);--accent:#8a6820;--teal:#0f766e}
+:root{--bg:#f4efe6;--paper:#fbf7f0;--ink:#1f1a16;--ink2:#5a5048;--line:rgba(31,26,22,.12);
+--accent:#b84a2e;--teal:#2a6b5c;--serif:'Fraunces',Georgia,serif;--sans:'Inter',system-ui,sans-serif}
 *{box-sizing:border-box;margin:0;padding:0}
-html{font-size:16px}
-body{background:var(--bg);color:var(--ink);font-family:var(--mono);min-height:100vh;
+html{font-size:17px}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100vh;
 -webkit-font-smoothing:antialiased}
-::selection{background:rgba(255,194,46,.35)}
-.wrap{max-width:880px;margin:0 auto;padding:0 28px 90px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 40px 100px}
 .top{display:flex;align-items:center;justify-content:space-between;gap:16px;
-padding:26px 0;border-bottom:1px solid var(--line);
-font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
+padding:28px 0;border-bottom:1px solid var(--line);
+font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
 .top a{color:var(--ink2);text-decoration:none}
 .top a:hover{color:var(--accent)}
 #rr-streak{color:var(--accent)}
-.hero{padding:64px 0 10px}
-.hero .kicker{font-size:.7rem;letter-spacing:.22em;text-transform:uppercase;color:var(--teal)}
-.hero h1{font-size:clamp(2.6rem,7vw,4.2rem);font-weight:700;letter-spacing:-.03em;
-line-height:1.02;margin:14px 0 16px}
-.hero h1 .cursor{color:var(--accent);animation:blink 1.1s steps(1) infinite}
-@keyframes blink{50%{opacity:0}}
-.hero p{font-size:.9rem;line-height:1.8;color:var(--ink2);max-width:60ch}
-.hero p strong{color:var(--ink)}
-.shelf-label{display:flex;align-items:center;gap:14px;margin:52px 0 20px;
-font-size:.7rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ink2)}
-.shelf-label::after{content:'';flex:1;height:1px;background:var(--line)}
-.bk-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-@media (max-width:640px){.bk-grid{grid-template-columns:1fr}.wrap{padding:0 18px 70px}.hero{padding:44px 0 6px}}
-.bk-lib{display:block;background:var(--surface);border:1px solid var(--line);
-border-radius:10px;padding:24px 22px 20px;text-decoration:none;color:inherit;position:relative;
-transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
-.bk-lib:hover{transform:translateY(-3px);border-color:var(--accent);
-box-shadow:0 12px 32px rgba(255,194,46,.08)}
-.bk-lib-art{display:block;font-size:2rem;font-weight:700;color:var(--accent);line-height:1;margin-bottom:14px}
-.bk-lib-title{display:block;font-size:1.02rem;font-weight:700;line-height:1.45;margin-bottom:6px}
-.bk-lib:hover .bk-lib-title{color:var(--accent)}
-.bk-lib-author{display:block;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;
-color:var(--ink2);margin-bottom:16px}
-.bk-prog{display:block;height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
-.bk-prog-fill{display:block;height:100%;width:0;background:var(--accent);border-radius:2px}
-.bk-prog-row{display:flex;justify-content:space-between;gap:10px;margin-top:10px;
-font-size:.68rem;letter-spacing:.06em;color:var(--ink2)}
-.bk-prog-count{white-space:nowrap}
-.foot{border-top:1px solid var(--line);margin-top:56px;padding:22px 0 0;
+.hero{padding:72px 0 24px;display:grid;grid-template-columns:1.2fr 1fr;gap:48px;align-items:end}
+.hero h1{font-family:var(--serif);font-size:clamp(3.2rem,8vw,5.6rem);font-weight:600;
+letter-spacing:-.02em;line-height:.95;margin:0}
+.hero h1 em{font-style:italic;color:var(--accent)}
+.hero p{font-size:1.05rem;line-height:1.7;color:var(--ink2);max-width:46ch;margin-top:16px}
+.hero .kicker{font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;color:var(--teal);margin-bottom:12px}
+.feature{background:var(--paper);border:1px solid var(--line);padding:36px;margin-top:40px;
+display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:start}
+.feature .num{font-family:var(--serif);font-size:4rem;line-height:1;color:var(--accent);font-weight:600}
+.feature h2{font-family:var(--serif);font-size:1.9rem;font-weight:600;line-height:1.15;margin-bottom:10px}
+.feature h2 a{color:var(--ink);text-decoration:none}
+.feature h2 a:hover{color:var(--accent)}
+.feature .meta{font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:12px}
+.feature .take{font-size:1rem;line-height:1.6;color:var(--ink2)}
+.list{margin-top:64px;border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:60px 1fr auto;gap:24px;align-items:baseline;
+padding:22px 0;border-bottom:1px solid var(--line);text-decoration:none;color:inherit}
+.row:hover .title{color:var(--accent)}
+.row .n{font-family:var(--serif);font-size:1.4rem;color:var(--ink2)}
+.row .title{font-family:var(--serif);font-size:1.35rem;font-weight:500;line-height:1.25}
+.row .sub{font-size:.85rem;color:var(--ink2);margin-top:4px}
+.row .tag{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.foot{border-top:1px solid var(--line);margin-top:64px;padding:24px 0 0;
 display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;
-font-size:.68rem;letter-spacing:.08em;color:var(--ink2)}
+font-size:.78rem;letter-spacing:.06em;color:var(--ink2)}
 .foot a{color:var(--accent);text-decoration:none}
-#rr-search{display:none;position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.6)}
+#rr-search{display:none;position:fixed;inset:0;z-index:50;background:rgba(31,26,22,.5)}
 #rr-search.open{display:block}
-#rr-search-box{max-width:560px;margin:12vh auto 0;background:var(--surface);
-border:1px solid var(--accent);border-radius:10px;padding:18px}
+#rr-search-box{max-width:560px;margin:12vh auto 0;background:var(--paper);
+border:1px solid var(--accent);padding:18px}
 #rr-search-input{width:100%;background:var(--bg);border:1px solid var(--line);
-border-radius:6px;color:var(--ink);font:inherit;font-size:.9rem;padding:12px 14px;outline:none}
+color:var(--ink);font:inherit;font-size:.95rem;padding:12px 14px;outline:none}
 #rr-search-input:focus{border-color:var(--accent)}
-#rr-search-list{margin-top:10px;font-size:.82rem}
+#rr-search-list{margin-top:10px;font-size:.88rem}
 #rr-search-list a{display:block;color:var(--ink);text-decoration:none;padding:8px 6px;
 border-bottom:1px solid var(--line)}
 #rr-search-list a:hover{color:var(--accent)}
+@media (max-width:760px){.wrap{padding:0 22px 70px}.hero{grid-template-columns:1fr;gap:16px}.feature{grid-template-columns:1fr}.row{grid-template-columns:40px 1fr}.row .tag{display:none}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="top"><span>arun.varma // article-room</span><span><span id="rr-streak"></span>&nbsp;&nbsp;<a href="#" id="rr-search-btn">search</a>&nbsp;&nbsp;<a href="settings.html">settings</a></span></div>
   <div id="rr-search" role="dialog" aria-label="Search the library"><div id="rr-search-box"><input id="rr-search-input" type="text" placeholder="Search books, guides, blogs…" autocomplete="off"><div id="rr-search-list"></div></div></div>
-  <div class="hero">
-    <div class="kicker">articles, annotated</div>
-    <h1>article-room<span class="cursor">_</span></h1>
-    <p>Working through these articles with a highlighter in hand — <strong>text and margin notes, kept</strong>. Article text belongs to its authors and publications; notes are mine. Open an article to read.</p>
-  </div>
-  <div class="shelf-label">articles — 6</div>
-  <div class="bk-grid" role="list"><a class="bk-lib" href="books/agentic-coding-tools/chapter01_reader.html" data-book="agentic-coding-tools" data-chapters="chapter01_reader.html"><span class="bk-lib-art">H</span><span class="bk-lib-title">How to use Agentic Coding Tools like Claude Code or Cursor Effectively</span><span class="bk-lib-author">Artificial Intelligence Made Simple</span><span class="bk-prog"><span class="bk-prog-fill"></span></span><span class="bk-prog-row"><span class="bk-prog-label">Not started</span><span class="bk-prog-count">1 ch &middot; 49 marks</span></span></a><a class="bk-lib" href="books/agentic-search-vs-vector-search/full_reader.html" data-book="agentic-search-vs-vector-search" data-chapters="full_reader.html"><span class="bk-lib-art">A</span><span class="bk-lib-title">Agentic Search vs Vector Search for Coding Agents</span><span class="bk-lib-author">Braintrust</span><span class="bk-prog"><span class="bk-prog-fill"></span></span><span class="bk-prog-row"><span class="bk-prog-label">Not started</span><span class="bk-prog-count">1 ch &middot; 0 marks</span></span></a><a class="bk-lib" href="books/designing-ml-systems/preface01_reader.html" data-book="designing-ml-systems" data-chapters="preface01_reader.html,ch01_reader.html"><span class="bk-lib-art">D</span><span class="bk-lib-title">Designing Machine Learning Systems</span><span class="bk-lib-author">Chip Huyen</span><span class="bk-prog"><span class="bk-prog-fill"></span></span><span class="bk-prog-row"><span class="bk-prog-label">Not started</span><span class="bk-prog-count">2 ch &middot; 26 marks</span></span></a><a class="bk-lib" href="books/rag-in-production/ingestion-is-the-hard-part_reader.html" data-book="rag-in-production" data-chapters="ingestion-is-the-hard-part_reader.html,rag-vs-finetuning-vs-long-context_reader.html,the-rag-pipeline-end-to-end_reader.html,what-is-retrieval-augmented-generation_reader.html,why-rag-exists_reader.html,your-first-minimal-rag_reader.html"><span class="bk-lib-art">R</span><span class="bk-lib-title">RAG in Production</span><span class="bk-lib-author">RAG in Production</span><span class="bk-prog"><span class="bk-prog-fill"></span></span><span class="bk-prog-row"><span class="bk-prog-label">Not started</span><span class="bk-prog-count">6 ch &middot; 72 marks</span></span></a><a class="bk-lib" href="books/writing/part01_reader.html" data-book="writing" data-chapters="part01_reader.html,part02_reader.html,part03_reader.html"><span class="bk-lib-art">W</span><span class="bk-lib-title">Why Is AI Bad at Writing?</span><span class="bk-lib-author">James Wang</span><span class="bk-prog"><span class="bk-prog-fill"></span></span><span class="bk-prog-row"><span class="bk-prog-label">Not started</span><span class="bk-prog-count">3 ch &middot; 17 marks</span></span></a><a class="bk-lib" href="books/writing-research-papers/what-is-a-research-paper_reader.html" data-book="writing-research-papers" data-chapters="what-is-a-research-paper_reader.html,why-your-research-profile-matters_reader.html"><span class="bk-lib-art">W</span><span class="bk-lib-title">Writing Research Papers</span><span class="bk-lib-author">Writing Research Papers</span><span class="bk-prog"><span class="bk-prog-fill"></span></span><span class="bk-prog-row"><span class="bk-prog-label">Not started</span><span class="bk-prog-count">2 ch &middot; 18 marks</span></span></a></div>
+  <section class="hero">
+    <div>
+      <div class="kicker">articles, annotated</div>
+      <h1>Article <em>Room</em></h1>
+      <p>A small library of articles I have read with a highlighter in hand — <strong>text, margin notes, and questions kept</strong>. Text belongs to its authors; the notes are mine.</p>
+    </div>
+    <div style="font-family:var(--serif);font-size:1.1rem;line-height:1.6;color:var(--ink2)">
+      6 pieces, 182 baked marks. Open any to read with the annotations in place, add your own, export everything.
+    </div>
+  </section>
+  <section class="feature"><div class="num">01</div><div><div class="meta">Artificial Intelligence Made Simple</div><h2><a href="books/agentic-coding-tools/chapter01_reader.html">How to use Agentic Coding Tools like Claude Code or Cursor Effectively</a></h2><p class="take">1 chapters &middot; 49 baked marks. Open to read with annotations in place.</p></div></section>
+  <div class="list" role="list"><a class="row" href="books/agentic-search-vs-vector-search/full_reader.html"><span class="n">02</span><span><span class="title">Agentic Search vs Vector Search for Coding Agents</span><span class="sub">Braintrust &middot; 0 marks</span></span><span class="tag">read</span></a><a class="row" href="books/designing-ml-systems/preface01_reader.html"><span class="n">03</span><span><span class="title">Designing Machine Learning Systems</span><span class="sub">Chip Huyen &middot; 26 marks</span></span><span class="tag">read</span></a><a class="row" href="books/rag-in-production/ingestion-is-the-hard-part_reader.html"><span class="n">04</span><span><span class="title">RAG in Production</span><span class="sub">RAG in Production &middot; 72 marks</span></span><span class="tag">read</span></a><a class="row" href="books/writing/part01_reader.html"><span class="n">05</span><span><span class="title">Why Is AI Bad at Writing?</span><span class="sub">James Wang &middot; 17 marks</span></span><span class="tag">read</span></a><a class="row" href="books/writing-research-papers/what-is-a-research-paper_reader.html"><span class="n">06</span><span><span class="title">Writing Research Papers</span><span class="sub">Writing Research Papers &middot; 18 marks</span></span><span class="tag">read</span></a></div>
   <div class="foot"><span>text: authors &amp; publications · notes: mine</span><span><a href="https://github.com/Arun2565/article-room">github</a></span></div>
 </div>
 <script src="assets/course-theme.js"></script>
