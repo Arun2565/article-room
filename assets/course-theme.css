@@ -1,0 +1,295 @@
+/* course-theme: course-room identity (dark default + light mode).
+ *
+ * Everything is scoped under body.course-room (reader pages) or
+ * body.course-settings (settings page) so the shared generic token names
+ * (--bg, --accent, ...) can never leak into each other or the local
+ * reading-room. Specificity + !important beat site.css where it fights
+ * with !important of its own. Loaded AFTER the page's own styles.
+ * course-theme.js adds the body class and owns the light/dark toggle. */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap');
+
+/* ================= reader pages ================= */
+body.course-room {
+  --bg: #0b0d10;
+  --surface: #12151b;
+  --ink: #e8e4da;
+  --ink-2: #a7adb8;
+  --accent: #ffc22e;
+  --accent-2: #2dd4bf;
+  --border: rgba(255, 255, 255, 0.09);
+  background: var(--bg) !important;
+  color: var(--ink) !important;
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important;
+  font-size: 15.5px;
+  line-height: 1.9;
+  -webkit-font-smoothing: antialiased;
+}
+html[data-theme="light"] body.course-room {
+  --bg: #faf7f0;
+  --surface: #fffdf8;
+  --ink: #241f1a;
+  --ink-2: #6b635a;
+  --accent: #8a6820;
+  --accent-2: #0f766e;
+  --border: rgba(0, 0, 0, 0.1);
+}
+body.course-room ::selection { background: rgba(255, 194, 46, 0.35); }
+html[data-theme="light"] body.course-room ::selection { background: rgba(138, 104, 32, 0.25); }
+
+/* default reading font: JetBrains Mono; follows the Aa reader setting when
+ * the visitor picks another font (site.css --rr-readfont takes over).
+ * Scoped to unset/jetbrains only: an unscoped body-level --rr-readfont
+ * would beat :root on specificity and pin JetBrains for every choice. */
+html:not([data-rfont]) body.course-room,
+html[data-rfont="jetbrains"] body.course-room {
+  --font-reader: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --rr-readfont: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+/* Spectral is site.css's :root default, which loses to any body-level
+ * variable — so it needs an explicit rule like every other font. */
+html[data-rfont="spectral"] body.course-room {
+  --font-reader: 'Spectral', Georgia, serif;
+  --rr-readfont: 'Spectral', Georgia, serif;
+}
+html:not([data-rfont]) body.course-room .reader-content,
+html[data-rfont="jetbrains"] body.course-room .reader-content {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important;
+  max-width: 800px !important;
+  font-size: 0.94rem !important;
+  line-height: 1.9 !important;
+}
+html:not([data-rfont]) body.course-room .reader-content p,
+html[data-rfont="jetbrains"] body.course-room .reader-content p,
+html:not([data-rfont]) body.course-room .reader-content li,
+html[data-rfont="jetbrains"] body.course-room .reader-content li,
+html:not([data-rfont]) body.course-room .reader-content td,
+html[data-rfont="jetbrains"] body.course-room .reader-content td,
+html:not([data-rfont]) body.course-room .reader-content dd,
+html[data-rfont="jetbrains"] body.course-room .reader-content dd {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important;
+}
+html:not([data-rfont]) body.course-room .reader-content h1,
+html[data-rfont="jetbrains"] body.course-room .reader-content h1,
+html:not([data-rfont]) body.course-room .reader-content h2,
+html[data-rfont="jetbrains"] body.course-room .reader-content h2,
+html:not([data-rfont]) body.course-room .reader-content h3,
+html[data-rfont="jetbrains"] body.course-room .reader-content h3 {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important;
+  letter-spacing: -0.01em;
+}
+body.course-room .reader-content h1 { color: var(--ink) !important; }
+body.course-room .reader-content h2 {
+  color: var(--accent) !important;
+  font-size: 1.45rem !important;
+  line-height: 1.35 !important;
+  margin-top: 2em !important;
+}
+body.course-room .reader-content a { color: var(--accent-2) !important; text-underline-offset: 3px; }
+body.course-room .reader-content blockquote {
+  border-left: 3px solid var(--accent-2) !important;
+  background: rgba(45, 212, 191, 0.06) !important;
+}
+body.course-room .chapter-title h1 { color: var(--ink) !important; }
+body.course-room .ann-badge { background: var(--accent) !important; color: #0b0d10 !important; font-weight: 700; }
+html[data-theme="light"] body.course-room .ann-badge { color: #faf7f0 !important; }
+
+/* Apple-Books-style annotation wash: seamless marker that hugs the text
+ * (no side padding), soft radius on every line fragment. Underline stays
+ * Apple red, drawn gapless (see annotate.css skip-ink rule). */
+body.course-room .reader-content .rr-u-hl,
+body.course-room .reader-content span.ann-hl,
+body.course-room .reader-content span.ann-note {
+  padding: 2px 0 !important;
+  border-radius: 4px !important;
+  -webkit-box-decoration-break: clone !important;
+  box-decoration-break: clone !important;
+}
+
+/* slim reader bar + toc + next-chapter (chapter-toc.js chrome) */
+body.course-room .rr-topbar {
+  background: var(--bg) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+body.course-room .rr-back,
+body.course-room .rr-toptitle { font-family: 'JetBrains Mono', monospace !important; }
+body.course-room .rr-back { color: var(--ink-2) !important; }
+body.course-room .rr-back:hover { color: var(--accent) !important; }
+body.course-room .rr-toptitle { color: var(--ink) !important; font-style: normal !important; }
+body.course-room .toc-panel { background: var(--surface) !important; border-right: 1px solid var(--border) !important; }
+body.course-room .toc-header { border-bottom: 1px solid var(--border) !important; }
+body.course-room .toc-header h3 { color: var(--ink) !important; font-family: 'JetBrains Mono', monospace !important; }
+body.course-room .toc-chapter { color: var(--ink) !important; font-family: 'JetBrains Mono', monospace !important; }
+body.course-room .toc-chapter:hover { background: rgba(255, 194, 46, 0.07) !important; border-left-color: var(--accent) !important; }
+body.course-room .toc-ann-count { background: var(--accent) !important; color: #0b0d10 !important; }
+html[data-theme="light"] body.course-room .toc-ann-count { color: #faf7f0 !important; }
+body.course-room .toc-subs { border-left-color: var(--border) !important; }
+body.course-room .toc-overlay { background: rgba(0, 0, 0, 0.55) !important; }
+body.course-room .progress-fill { background: var(--accent) !important; }
+body.course-room .bottom-bar { background: var(--bg) !important; border-top: 1px solid var(--border) !important; color: var(--ink-2) !important; }
+body.course-room .footer { color: var(--ink-2) !important; border-top: 1px solid var(--border) !important; }
+body.course-room .rr-next { border-top-color: var(--border) !important; }
+body.course-room .rr-next-label { font-family: 'JetBrains Mono', monospace !important; color: var(--ink-2) !important; }
+body.course-room .rr-next-link { font-family: 'JetBrains Mono', monospace !important; font-style: normal !important; color: var(--ink) !important; }
+body.course-room .rr-next-link:hover { color: var(--accent) !important; }
+body.course-room .rr-next-arrow { color: var(--accent) !important; }
+body.course-room .rr-contents { font-family: 'JetBrains Mono', monospace !important; }
+body.course-room #rr-toolbar { font-family: 'JetBrains Mono', monospace !important; }
+
+/* ================= settings page ================= */
+body.course-settings {
+  --bg: #0b0d10;
+  --bg2: #12151b;
+  --border: rgba(255, 255, 255, 0.09);
+  --border2: rgba(255, 255, 255, 0.18);
+  --text: #e8e4da;
+  --text2: #a7adb8;
+  --text3: #6e7480;
+  --accent: #ffc22e;
+  --danger: #ff7a6b;
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important;
+}
+html[data-theme="light"] body.course-settings {
+  --bg: #faf7f0;
+  --bg2: #fffdf8;
+  --border: rgba(0, 0, 0, 0.09);
+  --border2: rgba(0, 0, 0, 0.18);
+  --text: #241f1a;
+  --text2: #6b635a;
+  --text3: #9a9188;
+  --accent: #8a6820;
+  --danger: #a33b2a;
+}
+body.course-settings h1,
+body.course-settings .streak-num,
+body.course-settings .topbar,
+body.course-settings .btn,
+body.course-settings h2,
+body.course-settings .backup-note,
+body.course-settings .status {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important;
+}
+body.course-settings h1 { letter-spacing: -0.02em; }
+body.course-settings .banner { font-style: normal !important; }
+body.course-settings .note-text,
+body.course-settings .note-quote,
+body.course-settings .about-text {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important;
+}
+
+/* ================= floating icon theme toggle ================= */
+#course-theme-fab {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 400;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent, #ffc22e);
+  background: var(--surface, #12151b);
+  border: 1px solid var(--accent, #ffc22e);
+  border-radius: 999px;
+  cursor: pointer;
+  opacity: 0.92;
+  padding: 0;
+}
+#course-theme-fab:hover { opacity: 1; }
+#course-theme-fab svg { display: block; }
+html[data-theme="light"] #course-theme-fab {
+  --surface: #fffdf8;
+  --accent: #8a6820;
+}
+
+/* ================= Apple-Books-like mobile reading (<=700px) ==========
+ * Full-bleed page, calm serif-scale rhythm, no floating clutter:
+ * tap the page to hide/show all chrome, pager at the bottom. */
+#course-pager { display: none; }
+@media (max-width: 700px) {
+  body.course-room { font-size: 16.5px; }
+  body.course-room .reader-content {
+    max-width: 100% !important;
+    padding: 10px 22px 140px !important;
+    font-size: 1.04rem !important;
+    line-height: 1.78 !important;
+  }
+  body.course-room .reader-content p,
+  body.course-room .reader-content li,
+  body.course-room .reader-content dd {
+    font-size: 1.04rem !important;
+    line-height: 1.78 !important;
+  }
+  body.course-room .reader-content p { margin: 0 0 1.15em !important; }
+  body.course-room .chapter-title { padding-bottom: 18px !important; margin-bottom: 20px !important; }
+  body.course-room .chapter-title h1 { font-size: 1.72rem !important; line-height: 1.25 !important; }
+  body.course-room .reader-content h2 { font-size: 1.32rem !important; line-height: 1.4 !important; }
+  body.course-room .reader-content h3 { font-size: 1.1rem !important; }
+  body.course-room .reader-content pre,
+  body.course-room .reader-content pre.code { font-size: 0.82rem !important; overflow-x: auto; }
+  body.course-room figure.rr-fig { margin: 22px -6px !important; }
+  body.course-room .rr-contents { margin: 0 0 18px !important; }
+  /* the topbar Chapters button covers navigation: drop the floating one */
+  body.course-room #rr-toc-fab { display: none !important; }
+  /* bottom pager: Prev | k of n | Next, safe-area aware */
+  body.course-room #course-pager {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 160;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+  }
+  body.course-room #course-pager a {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--ink-2);
+    text-decoration: none;
+    padding: 8px 10px;
+    max-width: 38%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  body.course-room #course-pager a:active { color: var(--accent); }
+  body.course-room #course-pager .course-pager-pos {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    color: var(--text3, var(--ink-2));
+    white-space: nowrap;
+  }
+  /* tap-to-toggle chrome: fade everything, pager slides away */
+  body.course-room .rr-topbar,
+  body.course-room #course-pager,
+  body.course-room #course-theme-fab,
+  body.course-room .progress-bar {
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  body.course-room #course-pager { transition: opacity 0.25s ease, transform 0.3s ease; }
+  body.course-room.course-naked .rr-topbar,
+  body.course-room.course-naked #course-theme-fab,
+  body.course-room.course-naked .progress-bar { opacity: 0; pointer-events: none; }
+  body.course-room.course-naked #course-pager {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(100%);
+  }
+  /* selection toolbar as a bottom sheet above the pager */
+  body.course-room #rr-toolbar {
+    position: fixed !important;
+    left: 8px !important;
+    right: 8px !important;
+    top: auto !important;
+    bottom: 76px !important;
+  }
+}

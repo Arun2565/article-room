@@ -1,0 +1,445 @@
+/* rr-annotate UI. Uses the chapter page's own theme vars, with fallbacks. */
+:root {
+  --rr-accent: var(--accent, #A34A2E);
+  --rr-ink: var(--ink, #2D2522);
+  --rr-ink2: var(--ink-2, #6E625B);
+  --rr-surface: var(--surface, #FFFFFF);
+  --rr-border: var(--border, rgba(163, 74, 46, 0.15));
+}
+
+#rr-home-link {
+  font-size: 0.8rem;
+  color: var(--rr-ink2);
+  text-decoration: none;
+  white-space: nowrap;
+}
+#rr-home-link:hover { color: var(--rr-accent); }
+#rr-marks-btn {
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+.rr-header-actions #rr-marks-btn {
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+
+.rr-u { cursor: pointer; border-radius: 2px; }
+.rr-u-hl {
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  padding: 1px 2px;
+}
+.rr-u-ul { padding-bottom: 1px; }
+/* gapless underlines: never lift the rule around descenders (g, y, p).
+ * skip-ink is a separate longhand the baked inline styles don't set, so
+ * this also repairs already-built pages without touching their HTML. */
+.ann-ul, .rr-u-ul { text-decoration-skip-ink: none !important; }
+.rr-u.rr-has-note { outline: 1px dashed #999; outline-offset: 1px; }
+.rr-flash { animation: rrflash 1.6s ease; }
+@keyframes rrflash { 0%, 40% { filter: brightness(1.4); } 100% { filter: none; } }
+
+/* Reader content: kill double-tap zoom so double-tap word-select reaches
+ * us on touch devices. Pan, pinch-zoom and selection are unaffected. */
+.reader-content, #epub-content { touch-action: manipulation; }
+
+/* Selection toolbar: iPhone-style edit menu. Dark frosted pill, plain
+ * white actions, thin dividers, arrow pointing at the selection. */
+#rr-toolbar {
+  position: fixed;
+  z-index: 1000;
+  display: none;
+  gap: 2px;
+  align-items: center;
+  background: rgba(28, 28, 30, 0.94);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  padding: 5px 6px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
+  max-width: calc(100vw - 16px);
+  flex-wrap: wrap;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+}
+@keyframes rrpop {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+#rr-toolbar.rr-show { animation: rrpop 0.16s ease-out; }
+/* arrow toward the selected text; --rr-ax set by placeToolbar */
+#rr-toolbar.rr-above::after,
+#rr-toolbar.rr-below::after {
+  content: '';
+  position: absolute;
+  left: var(--rr-ax, 50%);
+  transform: translateX(-50%);
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+}
+#rr-toolbar.rr-above::after {
+  bottom: -7px;
+  border-top: 7px solid #232326;
+}
+#rr-toolbar.rr-below::after {
+  top: -7px;
+  border-bottom: 7px solid #2a2a2e;
+}
+#rr-toolbar .rr-div {
+  width: 1px;
+  align-self: stretch;
+  margin: 6px 2px;
+  background: rgba(255, 255, 255, 0.25);
+  flex: none;
+}
+
+/* Menu actions read as plain iOS items: white, title case, no chrome. */
+#rr-toolbar button {
+  font-family: inherit;
+  font-size: 15px;
+  letter-spacing: 0;
+  text-transform: none;
+  cursor: pointer;
+  border: 0;
+  background: none;
+  color: #fff;
+  border-radius: 7px;
+  padding: 8px 12px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+#rr-toolbar button:active { background: rgba(255, 255, 255, 0.16); }
+#rr-toolbar button.on { color: #ffd60a; }
+#rr-toolbar button:focus-visible { outline: 2px solid #0a84ff; outline-offset: 1px; }
+
+/* Underline previews itself: a drawn red rule under the label. */
+#rr-toolbar .rr-underline {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+#rr-toolbar .rr-underline .rr-rule {
+  order: 2;
+  display: block;
+  width: 100%;
+  height: 2px;
+  border-radius: 2px;
+  background: #ff453a;
+}
+
+/* The ink tray: bare dots on the dark pill, active one ringed white. */
+#rr-toolbar .rr-tray {
+  display: flex;
+  gap: 9px;
+  padding: 6px 8px;
+  align-items: center;
+}
+#rr-toolbar .rr-tray .rr-sw {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 0;
+  padding: 0;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+#rr-toolbar .rr-tray .rr-sw.on {
+  box-shadow: 0 0 0 2px rgba(28, 28, 30, 0.94), 0 0 0 4px #fff, inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+#rr-tb-err { color: #ff8a80; font-size: 13px; white-space: nowrap; padding: 4px 8px; }
+#rr-toolbar #rr-tb-remove { color: #ff6961; }
+#rr-toolbar #rr-tb-remove:active { background: rgba(255, 105, 97, 0.2); }
+
+/* Inline note composer: quote preview, writing box, save row. Spans the
+ * full bar width below the one-tap actions. */
+#rr-tb-compose {
+  flex: 1 1 100%;
+  min-width: min(300px, 78vw);
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+  margin-top: 4px;
+  padding-top: 8px;
+}
+#rr-tb-quote {
+  font-family: 'Spectral', Georgia, serif;
+  font-style: italic;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #c7c7cc;
+  margin: 0 2px 8px;
+}
+#rr-tb-text {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.1);
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  font-family: 'Spectral', Georgia, serif;
+  font-size: 16px;
+  line-height: 1.55;
+  padding: 9px 11px;
+  resize: vertical;
+  min-height: 52px;
+}
+#rr-tb-text:focus { outline: none; box-shadow: 0 0 0 2px #0a84ff; }
+#rr-tb-text::placeholder { color: #8e8e93; font-style: italic; }
+#rr-toolbar .rr-tb-actions { display: flex; gap: 4px; margin-top: 8px; justify-content: flex-end; }
+#rr-toolbar #rr-tb-save { color: #0a84ff; font-weight: 600; }
+#rr-toolbar #rr-tb-cancel { color: #fff; }
+
+/* Touch: give the swatches a real target size. */
+@media (pointer: coarse) {
+  #rr-toolbar .rr-tray .rr-sw { width: 30px; height: 30px; }
+  #rr-toolbar button { padding: 10px 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #rr-toolbar.rr-show { animation: none; }
+}
+/* When the bar wraps on a narrow screen, the dividers no longer mean anything. */
+@media (max-width: 420px) {
+  #rr-toolbar .rr-div { display: none; }
+}
+
+/* hover quick-remove badge on marks */
+#rr-unmark {
+  position: absolute;
+  z-index: 1100;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #d93025;
+  background: #fff;
+  color: #d93025;
+  font-size: 12px;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  display: none;
+}
+#rr-unmark:hover { background: #d93025; color: #fff; }
+
+#rr-popup {
+  display: none;
+  z-index: 1000;
+  width: 300px;
+  max-width: calc(100vw - 32px);
+  background: rgba(28, 28, 30, 0.96);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
+  padding: 12px 14px;
+  font-size: 0.9rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+}
+.rr-pop-quote { font-style: italic; color: #c7c7cc; margin-bottom: 8px; font-family: 'Spectral', Georgia, serif; }
+.rr-pop-note {
+  background: rgba(255, 214, 10, 0.12);
+  border: 1px dashed rgba(255, 214, 10, 0.55);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  color: #fff;
+  font-family: 'Spectral', Georgia, serif;
+}
+.rr-dim { color: var(--rr-ink2); }
+#rr-popup textarea {
+  width: 100%;
+  min-height: 64px;
+  font-family: 'Spectral', Georgia, serif;
+  font-size: 16px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  border: 0;
+  border-radius: 6px;
+  padding: 6px 8px;
+  margin-bottom: 8px;
+}
+#rr-popup textarea:focus { outline: none; box-shadow: 0 0 0 2px #0a84ff; }
+.rr-pop-row { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+#rr-popup .rr-pop-row button {
+  font-family: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  border: 0;
+  background: none;
+  color: #fff;
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+#rr-popup .rr-pop-row button:active { background: rgba(255, 255, 255, 0.16); }
+#rr-popup #rr-pop-save { color: #0a84ff; font-weight: 600; }
+#rr-popup #rr-pop-remove, #rr-popup #rr-pop-rmnote { color: #ff6961; }
+.rr-pop-row button, #rr-drawer button {
+  font-family: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border: 1px solid var(--rr-border);
+  background: transparent;
+  color: var(--rr-ink);
+  border-radius: 5px;
+  padding: 4px 10px;
+}
+.rr-pop-row button:hover, #rr-drawer button:hover {
+  border-color: var(--rr-accent);
+  color: var(--rr-accent);
+}
+
+#rr-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 340px;
+  max-width: 92vw;
+  height: 100vh;
+  z-index: 900;
+  background: var(--rr-surface);
+  color: var(--rr-ink);
+  border-left: 1px solid var(--rr-border);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
+  transform: translateX(105%);
+  transition: transform 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.88rem;
+}
+#rr-drawer.open { transform: translateX(0); }
+.rr-draw-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--rr-border);
+}
+.rr-draw-head span { display: flex; gap: 4px; }
+#rr-draw-list { overflow-y: auto; padding: 8px 14px 20px; }
+.rr-row {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--rr-border);
+  cursor: pointer;
+}
+.rr-row:hover { background: rgba(163, 74, 46, 0.06); }
+.rr-dot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid #999;
+  transform: translateY(1px);
+}
+.rr-row-q {
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.rr-row-n { color: var(--rr-accent); }
+.rr-row-t {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--rr-ink2);
+}
+.rr-row-x {
+  flex-shrink: 0;
+  margin-left: 6px;
+  padding: 3px 9px !important;
+  line-height: 1.5;
+  border-color: transparent !important;
+  opacity: 0.45;
+}
+.rr-row:hover .rr-row-x { opacity: 1; }
+.rr-row-x:hover { color: #d93025 !important; border-color: #d93025 !important; }
+/* a saved mark the page could not place (stays in storage, listed here) */
+.rr-row.rr-orphan .rr-row-q { color: #d93025; }
+/* storage failure banner: writes silently failed, marks won't persist */
+#rr-store-warn {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2000;
+  background: #3d211d;
+  color: #ffd7d2;
+  border-bottom: 1px solid #7a3129;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 10px 16px;
+  text-align: center;
+}
+
+/* sidenotes: numbered margin notes beside their marked text (screenshot
+ * style) — plain text with an accent number, no card. Falls back to an
+ * inline note right after the mark when the margin is too narrow. */
+.reader-content, #epub-content { position: relative; }
+.rr-nref {
+  font-size: 0.68em;
+  line-height: 1;
+  font-style: normal;
+  font-weight: 700;
+  color: #b8502e;
+  margin-left: 2px;
+  cursor: pointer;
+}
+.rr-nref-side {
+  color: #b8502e;
+  font-weight: 700;
+  margin-right: 6px;
+}
+.rr-sticky {
+  display: inline-block;
+  vertical-align: baseline;
+  max-width: 230px;
+  margin: 2px 0 2px 8px;
+  padding: 2px 0 2px 8px;
+  font-family: 'Spectral', Georgia, serif;
+  font-size: 0.85rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  color: var(--rr-ink2);
+  background: none;
+  border-left: 2px solid var(--rr-border);
+  cursor: pointer;
+}
+.rr-sticky:hover { border-left-color: #b8502e; }
+/* marginal mode: notes pinned in the right empty space, aligned with marks */
+body.rr-marginals .reader-content {
+  margin-left: var(--rr-shift, 0px);
+  margin-right: auto;
+}
+body.rr-marginals .rr-sticky {
+  position: absolute;
+  width: 200px;
+  max-width: 200px;
+  margin: 0;
+  z-index: 5;
+}
+/* when margin notes are showing, the floating in-chapter CONTENTS card
+ * would cover them (fixed card vs scrolling notes), so it falls back to a
+ * plain static block above the text. Higher specificity than the injected
+ * wide-screen rule in chapter-toc.js. The left TOC panel still navigates. */
+body.rr-chapter.rr-notes-margin .rr-contents {
+  position: static;
+  top: auto;
+  right: auto;
+  width: auto;
+  max-height: none;
+  overflow: visible;
+  margin: 0 0 20px;
+  z-index: auto;
+}
