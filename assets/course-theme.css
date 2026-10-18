@@ -91,6 +91,28 @@ body.course-room .reader-content blockquote {
 }
 body.course-room .chapter-title h1 { color: var(--ink) !important; }
 body.course-room .ann-badge { background: var(--accent) !important; color: #0b0d10 !important; font-weight: 700; }
+
+/* "jump to this moment in the video" link on a lecture section heading.
+ * Sits inline after the heading text, quiet until hovered. */
+body.course-room .reader-content h2 a.rr-jump {
+  display: inline-block;
+  margin-left: .5em;
+  padding: .1em .55em;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--ink-2) !important;
+  font-size: .68rem;
+  font-weight: 400;
+  letter-spacing: .04em;
+  text-decoration: none !important;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+body.course-room .reader-content h2 a.rr-jump:hover {
+  border-color: var(--accent);
+  color: var(--accent) !important;
+}
 html[data-theme="light"] body.course-room .ann-badge { color: #faf7f0 !important; }
 
 /* Apple-Books-style annotation wash: seamless marker that hugs the text

@@ -870,11 +870,15 @@
       try { window.localStorage.setItem('rr-days', JSON.stringify(__days)); } catch (e3) {}
     }
   } catch (e) {}
+  /* Some books load this file from <head>, where document.body does not
+   * exist yet. The boot used to throw on that first null and left the
+   * contents panel without its filter, chapter badges or top bar. */
+  function boot() {
   // marks chapter pages so the wide-screen right gutter rules apply
   // (open-epub / hub pages never get this class)
   if (document.body && document.body.classList) document.body.classList.add('rr-chapter');
   // default: visible on desktop, hidden drawer on mobile
-  if (!isMobile()) {
+  if (!isMobile() && document.body) {
     document.body.classList.remove('toc-hidden');
     var p0 = panel();
     if (p0) p0.classList.remove('rr-hidden');
@@ -909,4 +913,14 @@
     });
   }
   sync();
+  }
+  /* Only a head-loaded copy has no body yet; scripts at the end of the
+   * body can still run at once. */
+  if (document.body) {
+    boot();
+  } else if (document.addEventListener) {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
 })();
