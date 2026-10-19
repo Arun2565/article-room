@@ -18,8 +18,8 @@
   var DEFAULT_NAMES = { '#FFE45C': 'yellow', '#A8E6A3': 'green', '#A8D8F0': 'blue', '#F8B8D0': 'pink', '#D5B8F8': 'purple' };
   // Apple Books palette (yellow, green, blue, pink, purple), opt-in per
   // page via data-rr-palette="apple" on the script tag (course-room).
-  var APPLE_PALETTE = ['#FFE45E', '#B2E28B', '#A9CDFD', '#FFC2D4', '#D3BDF5'];
-  var APPLE_NAMES = { '#FFE45E': 'yellow', '#B2E28B': 'green', '#A9CDFD': 'blue', '#FFC2D4': 'pink', '#D3BDF5': 'purple' };
+  var APPLE_PALETTE = ['#FFD60A', '#67D07A', '#64B5F6', '#FF9EB5', '#B39DFF'];
+  var APPLE_NAMES = { '#FFD60A': 'yellow', '#67D07A': 'green', '#64B5F6': 'blue', '#FF9EB5': 'pink', '#B39DFF': 'purple' };
   var HL_PALETTE = DEFAULT_PALETTE, HL_NAMES = DEFAULT_NAMES;
   try {
     if (scriptTag.getAttribute('data-rr-palette') === 'apple') {

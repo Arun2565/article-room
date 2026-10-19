@@ -573,10 +573,10 @@
 <strong>CC is my favorite AI tool in the market, and it alone justifies my 200 USD Subscription to Anthropic</strong>
 <span> (I even have the extra usage setup and happily pay around 750-1000 USD/month on it; you likely won’t have to). I wrote this article to help you use it better. </span>
 </p>
-<p>Aside from my personal experience, we dug through heaps of user case studies of Claude Code, dug into Anthropic research, ran over 300 hours of experiments in real deployments, and compiled their experiences into the most useful workflows. The guide that follows is the result. <span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">No generic advice like— “Be specific.” “Give examples.” “Break down complex tasks</span>.” This guide will cover:</p>
+<p>Aside from my personal experience, we dug through heaps of user case studies of Claude Code, dug into Anthropic research, ran over 300 hours of experiments in real deployments, and compiled their experiences into the most useful workflows. The guide that follows is the result. <span class="ann-hl" style="background:#FFE45C; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">No generic advice like— “Be specific.” “Give examples.” “Break down complex tasks</span>.” This guide will cover:</p>
 <ul>
 <li>
-<span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Why context orchestration matters more than prompt wording—and what that means for your use</span>
+<span class="ann-note" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px; padding:1px 2px; border-radius:2px;">Why context orchestration matters more than prompt wording—and what that means for your use</span>
 </li>
 <li>
 <p>The terminal-first design philosophy and why it’s a feature, not a limitation</p>
@@ -609,10 +609,10 @@
 <p>Claude Code is not ChatGPT with file access—it’s an autonomous agent with tools, permissions, and execution authority operating inside a finite context window. Treating it like a chatbot is the root cause of most failures, not prompt quality.</p>
 </li>
 <li>
-Context orchestration is the game, not prompt engineering. Every file, instruction, command output, and conversation turn competes for attention in the same window. <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Polluted context produces garbage regardless of how clever your prompt is; clean context lets mediocre prompts succeed. More context is often worse.</span>
+Context orchestration is the game, not prompt engineering. Every file, instruction, command output, and conversation turn competes for attention in the same window. <span class="ann-hl" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">Polluted context produces garbage regardless of how clever your prompt is; clean context lets mediocre prompts succeed. More context is often worse.</span>
 </li>
 <li>
-<span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">The terminal-first design isn’t a limitation—it’s the point. Running alongside your shell gives Claude access to CLI tools, scripts, CI hooks, parallel worktrees, and headless automation that IDE-embedded assistants physically cannot</span> touch. You trade inline suggestions for system-level composability.
+<span class="ann-hl" style="background:#FFE45C; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">The terminal-first design isn’t a limitation—it’s the point. Running alongside your shell gives Claude access to CLI tools, scripts, CI hooks, parallel worktrees, and headless automation that IDE-embedded assistants physically cannot</span> touch. You trade inline suggestions for system-level composability.
 </li>
 <li>
 <p>Autonomy is a dial. Default permission prompts maximize safety but destroy flow. Custom allowlists or full autonomous mode (with version control as your safety net) restore the agentic value. Productivity scales with autonomy once rollback is cheap.</p>
@@ -628,7 +628,7 @@ Context orchestration is the game, not prompt engineering. Every file, instructi
 </li>
 </ul>
 <p>
-<span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">The governing rule:
+<span class="ann-hl" style="background:#FFE45C; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">The governing rule:
  If you don’t control context, you don’t control outcomes. Claude Code doesn’t reward clever prompting. It rewards system design</span>.
 </p>
 <p>
@@ -645,7 +645,7 @@ Context orchestration is the game, not prompt engineering. Every file, instructi
 <p>
  You may forget your lovers birthday, but never forget this mental model: 
 
-<span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Claude Code is context orchestration. The quality of your outputs is downstream of how well you curate the information space Claude operates in.</span>
+<span class="ann-hl" style="background:#FFE45C; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">Claude Code is context orchestration. The quality of your outputs is downstream of how well you curate the information space Claude operates in.</span>
 </p>
 <p>Every file you reference, every CLAUDE.md instruction, every conversation turn, every external tool connection—all of it shapes the context window Claude reasons within. Most users optimize their prompts. Power users optimize their context.</p>
 <p>
@@ -660,7 +660,7 @@ Context orchestration is the game, not prompt engineering. Every file, instructi
 </figure>
 </div>
 <p>A brilliant prompt in a polluted context produces garbage. A mediocre prompt in a well-curated context often produces something usable.</p>
-<p>(<span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">As a fun fact— this is why Claude within Claude Code is so much better than Claude in Cursor and Co.; Claude leverages many tools to ensure that it’s context stays clean</span>). </p>
+<p>(<span class="ann-hl" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">As a fun fact— this is why Claude within Claude Code is so much better than Claude in Cursor and Co.; Claude leverages many tools to ensure that it’s context stays clean</span>). </p>
 <div class="captioned-image-container">
 <figure>
 <img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/739284d5-42e9-453c-9ba3-5d662a8c8fc5_3315x1907.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":838,"width":1456,"resizeWidth":null,"bytes":578536,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F739284d5-42e9-453c-9ba3-5d662a8c8fc5_3315x1907.png","isProcessing":false,"align":null,"offset":false}' height="838" loading="lazy" sizes="100vw" src="Images/img_4_bde0c5eb.jpg" style="max-width:100%; height:auto;" title="" width="1456"/>
@@ -687,7 +687,7 @@ Context orchestration is the game, not prompt engineering. Every file, instructi
 </p>
 </li>
 <li>
-<span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Scriptability.
+<span class="ann-note" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px; padding:1px 2px; border-radius:2px;">Scriptability.
  Claude Code has a headless mode (
 -p
  flag) that lets you pipe it into CI pipelines, pre-commit hooks, and automation scripts. You can have Claude automatically triage GitHub issues as they come in, run code review on every PR, or generate documentation on commi</span>t. Try doing that with an IDE extension.
@@ -725,7 +725,7 @@ Context orchestration is the game, not prompt engineering. Every file, instructi
 
 </li>
 <li>
-<span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Composability.
+<span class="ann-note" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px; padding:1px 2px; border-radius:2px;">Composability.
  You can run multiple Claude instances in parallel across git worktrees, each with separate context windows working on independent task</span>s. One instance refactors your authentication system while another builds an unrelated data visualization component. The terminal is the natural interface for this kind of orchestration.
 
 </li>
@@ -742,9 +742,9 @@ Context orchestration is the game, not prompt engineering. Every file, instructi
 <img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/746ed49c-8250-4752-8712-279ab331f375_1056x756.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":756,"width":1056,"resizeWidth":null,"bytes":236976,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F746ed49c-8250-4752-8712-279ab331f375_1056x756.png","isProcessing":false,"align":null,"offset":false}' height="756" loading="lazy" sizes="100vw" src="Images/img_6_943cf9c9.jpg" style="max-width:100%; height:auto;" title="" width="1056"/>
 </figure>
 </div>
-<p>If that’s your primary workflow—quick edits, tab completions, surgical changes—something like Cursor or Augment might be the better fit (I haven’t been very excited by Cursor in the past, but their new updates have been pretty good from what I hear). But <span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">if you’re doing complex, multi-file work that requires reasoning across a codebase—refactors, migrations, debugging distributed issues—the terminal-native model scales</span> where IDE integrations hit walls.</p>
+<p>If that’s your primary workflow—quick edits, tab completions, surgical changes—something like Cursor or Augment might be the better fit (I haven’t been very excited by Cursor in the past, but their new updates have been pretty good from what I hear). But <span class="ann-hl" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">if you’re doing complex, multi-file work that requires reasoning across a codebase—refactors, migrations, debugging distributed issues—the terminal-native model scales</span> where IDE integrations hit walls.</p>
 
-<p>Out of the box, <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Claude Code asks permission for almost everything: file edits, bash commands, and external tool calls. This is by design—safety-first defaults for an agent that can execute code on your machine.</span></p>
+<p>Out of the box, <span class="ann-note" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px; padding:1px 2px; border-radius:2px;">Claude Code asks permission for almost everything: file edits, bash commands, and external tool calls. This is by design—safety-first defaults for an agent that can execute code on your machine.</span></p>
 <p>
 <span>But it creates a workflow problem. You give Claude a task, walk away to check Slack, come back five minutes later, and it’s sitting there waiting for approval to edit a file. The whole point of an agent is that it </span>
 <em>agents</em>
@@ -758,11 +758,11 @@ Context orchestration is the game, not prompt engineering. Every file, instructi
 </div>
 <p>You have a dial here, and you need to decide where to set it:</p>
 <p>
-<span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Maximum safety:
+<span class="ann-hl" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">Maximum safety:
  Default permissions. Claude asks before any mutation. Good for unfamiliar codebases, production environments, or when you’re learning the tool. I personally would almost never recommend it</span>. 
 </p>
 <p>
-<span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Balanced flow:
+<span class="ann-hl" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">Balanced flow:
  Custom allowlist via 
 .claude/settings.json
 . Permit file edits, common commands like 
@@ -774,7 +774,7 @@ rm -rf
  or database drops. This is where most use</span>rs land.
 </p>
 <p>
-<span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Maximum autonomy:
+<span class="ann-note" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px; padding:1px 2px; border-radius:2px;">Maximum autonomy:
  The 
 --dangerously-skip-permissions
  flag. Claude runs uninterrupted until completion. Despite the scary name, this is the daily driver for many Anthropic engineers. The practical risk is low in a version-controlled codebase where you can revert anything. For true isolation, run it in a Docker container without network access. 
@@ -785,7 +785,7 @@ I personally run this as my default, and I’ve never had issue</span>s here.
 </p>
 <p>Many power users create a shell alias: alias cc= “claude --dangerously-skip-permissions”. Type cc, start working, no interruptions.</p>
 <p>
-<span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">There’s no universally correct setting. The right choice depends on your risk tolerance, the task at hand, and whether you’re running Claude in a sandboxed environment. 
+<span class="ann-hl" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">There’s no universally correct setting. The right choice depends on your risk tolerance, the task at hand, and whether you’re running Claude in a sandboxed environment. 
 But you need to make the choice consciously rather than accepting the defaults and getting frustrate</span>d.
 </p>
 <div class="captioned-image-container">
@@ -806,7 +806,7 @@ But you need to make the choice consciously rather than accepting the defaults a
 
 I
 nvest heavily in documentation
-. Tools like Claude Code and Codex can often overlook key details because of incomplete searches. People often think that these CLI tools don’t need documentation because they can search through, but Claude Code uses text/regex-based search; ensuring that your documentation can guide this search better is a must to ensure your product has everything it needs. My recommendation is to use specific “guidance documents” where you map out important pieces of logic so that AI knows where to look. If you have the budget for it (and a very large codebase with no documentation), my recommendation is to <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">use Augment Code CLI to write extensive amounts of documentation that can be used by CC for improvements</span>.  A good rule of thumb is given below—
+. Tools like Claude Code and Codex can often overlook key details because of incomplete searches. People often think that these CLI tools don’t need documentation because they can search through, but Claude Code uses text/regex-based search; ensuring that your documentation can guide this search better is a must to ensure your product has everything it needs. My recommendation is to use specific “guidance documents” where you map out important pieces of logic so that AI knows where to look. If you have the budget for it (and a very large codebase with no documentation), my recommendation is to <span class="ann-note" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px; padding:1px 2px; border-radius:2px;">use Augment Code CLI to write extensive amounts of documentation that can be used by CC for improvements</span>.  A good rule of thumb is given below—
 
 
 
@@ -851,11 +851,11 @@ nvest heavily in documentation
 <li>
 
 Extend context reach.
- Connect Claude to external tools—Puppeteer for browser automation and screenshots, Sentry for error monitoring, PostgreSQL for database queries, Slack for team communication. <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Each connection expands what Claude can perceive and act on</span>.
+ Connect Claude to external tools—Puppeteer for browser automation and screenshots, Sentry for error monitoring, PostgreSQL for database queries, Slack for team communication. <span class="ann-note" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px; padding:1px 2px; border-radius:2px;">Each connection expands what Claude can perceive and act on</span>.
 
 </li>
 <li>
-<span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Set appropriate autonomy.
+<span class="ann-hl" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">Set appropriate autonomy.
  Match permission levels to the task and your risk tolerance. Don’t fight the tool’s safety defaults; configure them to match how you actually wor</span>k.
 
 </li>
@@ -922,7 +922,7 @@ Extend context reach.
 <p>Generic instructions like “write clean code” or “follow best practices.” These waste tokens and don’t change behavior.</p>
 </li>
 </ul>
-<p>Here’s the key insight from various research: models are naturally inclined to use all information they’re given, even when it’s irrelevant. <span class="ann-hl" style="background:rgba(102,217,239,0.3); border-bottom:2px solid #2B9BC9; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Anthropic researchers call this the “Chekhov’s gun” effect. A bloated CLAUDE.md doesn’t just waste tokens—it actively degrades performance by introducing distractors</span>.</p>
+<p>Here’s the key insight from various research: models are naturally inclined to use all information they’re given, even when it’s irrelevant. <span class="ann-hl" style="background:#A9CDFD; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">Anthropic researchers call this the “Chekhov’s gun” effect. A bloated CLAUDE.md doesn’t just waste tokens—it actively degrades performance by introducing distractors</span>.</p>
 <div class="captioned-image-container">
 <figure>
 <img alt="" class="sizing-large" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/7c77526a-2039-4b0d-9bec-085af905a775_2112x838.png","srcNoWatermark":null,"fullscreen":false,"imageSize":"large","height":578,"width":1456,"resizeWidth":1200,"bytes":164973,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F7c77526a-2039-4b0d-9bec-085af905a775_2112x838.png","isProcessing":false,"align":"center","offset":false}' height="476.3736263736264" loading="lazy" sizes="100vw" src="Images/img_10_2a593971.png" style="max-width:100%; height:auto;" width="1200"/>
@@ -952,9 +952,9 @@ Extend context reach.
 <p>CLI flag: --allowedTools for session-specific permissions</p>
 </li>
 </ul>
-<p>A reasonable starting allowlist for most projects includes Edit, Write, and Bash commands for git operations (add, commit, push) and your build/test scripts (npm test, <span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">npm run build). This lets Claude edit files and run your standard workflow without asking. It’ll still prompt for anything outside the list</span>.</p>
+<p>A reasonable starting allowlist for most projects includes Edit, Write, and Bash commands for git operations (add, commit, push) and your build/test scripts (npm test, <span class="ann-hl" style="background:#FFE45C; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">npm run build). This lets Claude edit files and run your standard workflow without asking. It’ll still prompt for anything outside the list</span>.</p>
 <p>
-<span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">For full autonomous mode, I just use an alias—cc mapped to claude --dangerously-skip-permissions. 
+<span class="ann-hl" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">For full autonomous mode, I just use an alias—cc mapped to claude --dangerously-skip-permissions. 
 I work in version-controlled repos (if you’re using ADEs this is a non-negotiable), I commit often, and I can revert anything. The productivity gain is worth it.
  Your risk tolerance may diffe</span>r.
 </p>
@@ -993,7 +993,7 @@ I work in version-controlled repos (if you’re using ADEs this is a non-negotia
 <p>.mcp.json in your repo root (shared with team via git)</p>
 </li>
 </ul>
-<p><span class="ann-hl" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">A warning: each MCP server adds tool definitions to your context window. If you enable ten servers you’re not using, you’re burning tokens on tool descriptions Claude will never call. Enable what you need, disable what you don’t. You can check what’s consuming your context with /context.</span></p>
+<p><span class="ann-hl" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">A warning: each MCP server adds tool definitions to your context window. If you enable ten servers you’re not using, you’re burning tokens on tool descriptions Claude will never call. Enable what you need, disable what you don’t. You can check what’s consuming your context with /context.</span></p>
 <div class="captioned-image-container">
 <figure>
 <img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/e2013507-df33-4271-a767-f79ff47cbc57_3315x1907.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":838,"width":1456,"resizeWidth":null,"bytes":268553,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe2013507-df33-4271-a767-f79ff47cbc57_3315x1907.png","isProcessing":false,"align":null,"offset":false}' height="838" loading="lazy" sizes="100vw" src="Images/img_12_163330bb.jpg" style="max-width:100%; height:auto;" title="" width="1456"/>
@@ -1001,10 +1001,10 @@ I work in version-controlled repos (if you’re using ADEs this is a non-negotia
 </div>
 
 <p>Slash commands are reusable prompt templates. Put a markdown file in .claude/commands/, and it becomes available as /project:filename.</p>
-<p>I use these constantly. For example, a fix-<span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">issue.md command that takes an issue number as an argument, runs gh issue view to get details, searches the codebase for relevant files, implements the fix, writes tests if appropriate, and commits with a descriptive message referencing the issue. Now /project:fix-issue 1234 handles the entire workflow.</span></p>
+<p>I use these constantly. For example, a fix-<span class="ann-note" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px; padding:1px 2px; border-radius:2px;">issue.md command that takes an issue number as an argument, runs gh issue view to get details, searches the codebase for relevant files, implements the fix, writes tests if appropriate, and commits with a descriptive message referencing the issue. Now /project:fix-issue 1234 handles the entire workflow.</span></p>
 <p>Same idea for code review—a command that checks for bugs, edge cases, security issues, and performance concerns without the verbose commentary Claude defaults to.</p>
-<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Personal commands go in ~/.claude/commands/ and work across all projects. Project commands in .claude/commands/ get shared with your team when committed</span>.</p>
-<p><span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">The $ARGUMENTS placeholder passes whatever you type after the command name. Simple but powerful</span>.</p>
+<p><span class="ann-note" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px; padding:1px 2px; border-radius:2px;">Personal commands go in ~/.claude/commands/ and work across all projects. Project commands in .claude/commands/ get shared with your team when committed</span>.</p>
+<p><span class="ann-hl" style="background:#FFE45C; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">The $ARGUMENTS placeholder passes whatever you type after the command name. Simple but powerful</span>.</p>
 
 <p>Three commands you need to internalize:</p>
 <p>/clear wipes conversation history. Use this between unrelated tasks. A debugging session and a feature build shouldn’t share context. I /clear constantly—probably every 20-30 minutes of active work.</p>
@@ -1014,9 +1014,9 @@ I work in version-controlled repos (if you’re using ADEs this is a non-negotia
 <img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/e99bde70-202b-4092-b94d-7ba192e1283b_3619x2062.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":830,"width":1456,"resizeWidth":null,"bytes":413290,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe99bde70-202b-4092-b94d-7ba192e1283b_3619x2062.png","isProcessing":false,"align":null,"offset":false}' height="830" loading="lazy" sizes="100vw" src="Images/img_13_6e776208.png" style="max-width:100%; height:auto;" title="" width="1456"/>
 </figure>
 </div>
-<p>/<span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">context shows what’s consuming your context window. Run this when Claude seems slow or unfocused. You’ll often find old tool results, irrelevant file contents, or MCP server definitions eating your token budget.</span></p>
-<p><span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Research on coding agents found that performance craters after roughly 20 iterations. Not 100. Not 50. Twenty</span>. The developers who treat this as a hard limit—resetting context proactively rather than waiting for degradation—get consistently better results.</p>
-<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">My rule: if I’ve been going back and forth with Claude for more than 15-20 turns on a single task, something is wrong. Either the task needs decomposition, or I need to reset and try a different approach. One interesting thing about ADEs is that it can  often be much cheaper to rebuild from scratch than to try to fix what’s broken, so you should not be shy about reverting to the last stable states. This does increase the value of code review, however, because you want to be able to identify the last stable state and see what about it might push an AI in certain directions/what the issue could be</span>. </p>
+<p>/<span class="ann-note" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px; padding:1px 2px; border-radius:2px;">context shows what’s consuming your context window. Run this when Claude seems slow or unfocused. You’ll often find old tool results, irrelevant file contents, or MCP server definitions eating your token budget.</span></p>
+<p><span class="ann-hl" style="background:#FFE45C; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">Research on coding agents found that performance craters after roughly 20 iterations. Not 100. Not 50. Twenty</span>. The developers who treat this as a hard limit—resetting context proactively rather than waiting for degradation—get consistently better results.</p>
+<p><span class="ann-note" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px; padding:1px 2px; border-radius:2px;">My rule: if I’ve been going back and forth with Claude for more than 15-20 turns on a single task, something is wrong. Either the task needs decomposition, or I need to reset and try a different approach. One interesting thing about ADEs is that it can  often be much cheaper to rebuild from scratch than to try to fix what’s broken, so you should not be shy about reverting to the last stable states. This does increase the value of code review, however, because you want to be able to identify the last stable state and see what about it might push an AI in certain directions/what the issue could be</span>. </p>
 
 <p>Before starting a new project with Claude Code:</p>
 <ul>
@@ -1057,8 +1057,8 @@ I work in version-controlled repos (if you’re using ADEs this is a non-negotia
 <strong>It is very important for you to break your lifelong commitment to be a two-pump chump when using Claude Code</strong>
 <span>. This is the number one cause of failure with Claude Code. </span>
 </p>
-<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">CC starts coding before understanding the problem. If you’ve given it autonomy, you’ll end up three iterations deep solving the wrong thing or married to the wrong approach</span>.</p>
-<p><span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Fix: explicit staging. “Read the relevant files and understand the current implementation—don’t write code yet.” Then: “Propose a plan.” Only then: “Implement</span>.” The words “think” and “think hard” trigger extended reasoning and actually allocate more compute. Planning mode is a godsend since reading its thoughts is also easier than debugging walls of code flying at you. </p>
+<p><span class="ann-note" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px; padding:1px 2px; border-radius:2px;">CC starts coding before understanding the problem. If you’ve given it autonomy, you’ll end up three iterations deep solving the wrong thing or married to the wrong approach</span>.</p>
+<p><span class="ann-hl" style="background:#FFE45C; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">Fix: explicit staging. “Read the relevant files and understand the current implementation—don’t write code yet.” Then: “Propose a plan.” Only then: “Implement</span>.” The words “think” and “think hard” trigger extended reasoning and actually allocate more compute. Planning mode is a godsend since reading its thoughts is also easier than debugging walls of code flying at you. </p>
 <div class="captioned-image-container">
 <figure>
 <img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/a1cf04db-76ae-4216-87ba-35f7d8b2faad_3433x1907.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":809,"width":1456,"resizeWidth":null,"bytes":226793,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa1cf04db-76ae-4216-87ba-35f7d8b2faad_3433x1907.png","isProcessing":false,"align":null,"offset":false}' height="809" loading="lazy" sizes="100vw" src="Images/img_15_0f7b42c5.jpg" style="max-width:100%; height:auto;" width="1456"/>
@@ -1073,13 +1073,13 @@ I work in version-controlled repos (if you’re using ADEs this is a non-negotia
 <p>Fix: treat 15-20 turns as a hard limit. If you’re still going, either decompose the task or reset with a fresh summary.</p>
 
 <p>People stuff CLAUDE.md with style guides, ADRs, and API docs. Now every session starts with 1500 tokens of mostly-irrelevant instructions, and Claude tries to use all of it (Chekhov’s gun effect).</p>
-<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Fix: under 50 lines. Point to docs during</span> specific tasks, don’t load them into every session.</p>
+<p><span class="ann-note" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px; padding:1px 2px; border-radius:2px;">Fix: under 50 lines. Point to docs during</span> specific tasks, don’t load them into every session.</p>
 
 <p>Expecting complex tasks to work on the first try. They won’t. Requirements are ambiguous, edge cases emerge during implementation.</p>
 <p>Fix: treat first outputs as drafts. Build in verification—tests, screenshots, behavior checks. Build modularly to ensure that you can make changes easily and regularly think about refactoring code before starting major expansions to capabilities to make sure you firm up the foundations. </p>
 
 <p>500-word prompts specifying exactly how to implement something. You’ve wasted effort on details Claude would figure out, and anchored it to your approach (which might not be best).</p>
-<p><span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Fix: specify the what, be loose on the how. “Add rate limiting—max 5 attempts per 15 minutes” beats a detailed implementation spec.</span></p>
+<p><span class="ann-hl" style="background:#FFE45C; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">Fix: specify the what, be loose on the how. “Add rate limiting—max 5 attempts per 15 minutes” beats a detailed implementation spec.</span></p>
 
 <p>Still manually approving file edits and git commits after a week of use? You’re wasting your own time.</p>
 <p>Fix: configure your allowlist or use --dangerously-skip-permissions.</p>
@@ -1091,7 +1091,7 @@ I work in version-controlled repos (if you’re using ADEs this is a non-negotia
 <span> </span>
 </p>
 
-<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Complex tasks fill your context with research and dead ends. Subagents keep exploration isolated and return only conclusions</span>.</p>
+<p><span class="ann-note" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px; padding:1px 2px; border-radius:2px;">Complex tasks fill your context with research and dead ends. Subagents keep exploration isolated and return only conclusions</span>.</p>
 <p>Fix: “Use a subagent to research how X currently works.” Main context stays clean.</p>
 <p>With all of this covered, we’re now ready to use Claude Code Workflows properly. </p>
 <div class="captioned-image-container">
@@ -1100,7 +1100,7 @@ I work in version-controlled repos (if you’re using ADEs this is a non-negotia
 </figure>
 </div>
 
-<p><span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">These are the patterns that actually work. Not theoretical—these are workflows I use and that Anthropic engineers use internally</span>.</p>
+<p><span class="ann-hl" style="background:#FFE45C; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">These are the patterns that actually work. Not theoretical—these are workflows I use and that Anthropic engineers use internally</span>.</p>
 
 <p>The default workflow for any non-trivial task.</p>
 <ol>
@@ -1121,21 +1121,21 @@ I work in version-controlled repos (if you’re using ADEs this is a non-negotia
 </li>
 </ol>
 <p>The explicit “don’t write code” in step 1 matters. Without it, Claude jumps to implementation. The “think hard” in step 2 allocates more reasoning compute.</p>
-<p>For complex problems, have Claude use subagents during exploration. “<span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Use a subagent to investigate how the session management works” keeps research out of your main context.</span></p>
+<p>For complex problems, have Claude use subagents during exploration. “<span class="ann-note" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px; padding:1px 2px; border-radius:2px;">Use a subagent to investigate how the session management works” keeps research out of your main context.</span></p>
 <div class="captioned-image-container">
 <figure>
 <img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/523d5252-070f-4aa1-b431-4d234d59f386_1598x592.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":539,"width":1456,"resizeWidth":null,"bytes":58573,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F523d5252-070f-4aa1-b431-4d234d59f386_1598x592.png","isProcessing":false,"align":null,"offset":false}' height="539" loading="lazy" sizes="100vw" src="Images/img_17_9065b89f.jpg" style="max-width:100%; height:auto;" width="1456"/>
 </figure>
 </div>
-<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">This workflow takes longer than just asking Claude to implement something. It also works far more often</span>.</p>
+<p><span class="ann-note" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px; padding:1px 2px; border-radius:2px;">This workflow takes longer than just asking Claude to implement something. It also works far more often</span>.</p>
 
 <p>When the success criteria can be expressed as tests.</p>
 <ol>
 <li>
-“<span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Write tests for the feature I’m describing. Cover the happy path and these edge cases: [list]. Don’t implement yet. (Claude has a subagent for planning; spam ts).”</span>
+“<span class="ann-note" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px; padding:1px 2px; border-radius:2px;">Write tests for the feature I’m describing. Cover the happy path and these edge cases: [list]. Don’t implement yet. (Claude has a subagent for planning; spam ts).”</span>
 </li>
 <li>
-“<span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Run the tests, confirm they fail.”</span>
+“<span class="ann-note" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px; padding:1px 2px; border-radius:2px;">Run the tests, confirm they fail.”</span>
 </li>
 <li>
 <p>“Implement code to make the tests pass. Keep iterating until green.”</p>
@@ -1144,13 +1144,13 @@ I work in version-controlled repos (if you’re using ADEs this is a non-negotia
 <p>“Commit tests and implementation separately.”</p>
 </li>
 </ol>
-<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Claude excels when it has a clear target to iterate against. Tests provide that. Each red-to-green cycle gives Claude feedback it can act on.</span></p>
+<p><span class="ann-note" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px; padding:1px 2px; border-radius:2px;">Claude excels when it has a clear target to iterate against. Tests provide that. Each red-to-green cycle gives Claude feedback it can act on.</span></p>
 <div class="captioned-image-container">
 <figure>
 <img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/e4cff16a-55c3-47fb-9751-e5373b6e8c89_3315x1907.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":838,"width":1456,"resizeWidth":null,"bytes":268551,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe4cff16a-55c3-47fb-9751-e5373b6e8c89_3315x1907.png","isProcessing":false,"align":null,"offset":false}' height="838" loading="lazy" sizes="100vw" src="Images/img_18_b0936f89.jpg" style="max-width:100%; height:auto;" width="1456"/>
 </figure>
 </div>
-<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">This also protects you from Claude solving the wrong problem—the tests define what “right” means before implementation start</span>s.</p>
+<p><span class="ann-note" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px; padding:1px 2px; border-radius:2px;">This also protects you from Claude solving the wrong problem—the tests define what “right” means before implementation start</span>s.</p>
 <p>I use this for any backend logic, API endpoints, data transformations. Less useful for UI work where “correct” is visual.</p>
 
 <p>When success is “it looks right” or “it works in the browser.”</p>
@@ -1171,8 +1171,8 @@ I work in version-controlled repos (if you’re using ADEs this is a non-negotia
 <p>Iterate until it matches.</p>
 </li>
 </ol>
-<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Claude’s first UI attempt is usually 60-70% right. After 2-3 iterations with visual feedback, it’s usually 95%+. Without the feedback loop, you’re stuck at 60-70% and doing the rest manually</span>.</p>
-<p>Also useful <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">for debugging—”here’s a screenshot of the broken state, here’s what it should look like, fix it.</span>”</p>
+<p><span class="ann-note" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px; padding:1px 2px; border-radius:2px;">Claude’s first UI attempt is usually 60-70% right. After 2-3 iterations with visual feedback, it’s usually 95%+. Without the feedback loop, you’re stuck at 60-70% and doing the rest manually</span>.</p>
+<p>Also useful <span class="ann-note" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px; padding:1px 2px; border-radius:2px;">for debugging—”here’s a screenshot of the broken state, here’s what it should look like, fix it.</span>”</p>
 <p>This is one area I’m hearing some comments about, Codex being very good, and Gemini 3.0 has been cleaning house with UI design. On top of this, Cursor dropped an elite update for visual design. This is likely the one area where I expect CC to face the heaviest competition. </p>
 
 <p>When you have independent tasks that don’t need to share context.</p>
@@ -1182,7 +1182,7 @@ I work in version-controlled repos (if you’re using ADEs this is a non-negotia
 <img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/f9c6ef36-b9ee-4df0-973e-0d1255d0e7dd_3315x2139.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":939,"width":1456,"resizeWidth":null,"bytes":285656,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff9c6ef36-b9ee-4df0-973e-0d1255d0e7dd_3315x2139.png","isProcessing":false,"align":null,"offset":false}' height="939" loading="lazy" sizes="100vw" src="Images/img_19_4439486d.jpg" style="max-width:100%; height:auto;" width="1456"/>
 </figure>
 </div>
-<p><span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">Instance 1 refactors the auth system. Instance 2 builds a new dashboard component. Instance 3 writes documentation. No shared context, no cross-contamination, 3x throughput</span>.</p>
+<p><span class="ann-hl" style="background:#FFE45C; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">Instance 1 refactors the auth system. Instance 2 builds a new dashboard component. Instance 3 writes documentation. No shared context, no cross-contamination, 3x throughput</span>.</p>
 <p>The key word is independent. If tasks interact—one depends on the other’s output, they touch the same files—this creates merge conflicts and confusion. For truly parallel work, it’s excellent.</p>
 <p>Git worktrees make this cleaner:</p>
 <ul>
@@ -1216,13 +1216,13 @@ I work in version-controlled repos (if you’re using ADEs this is a non-negotia
 <p>Take feedback back to Claude A (or a fresh instance) to address issues.</p>
 </li>
 </ol>
-<p><span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Separate context matters here. Claude reviewing its own work in the same session tends to defend its choices. A fresh instance with no investment in the code reviews more critically.</span></p>
+<p><span class="ann-note" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px; padding:1px 2px; border-radius:2px;">Separate context matters here. Claude reviewing its own work in the same session tends to defend its choices. A fresh instance with no investment in the code reviews more critically.</span></p>
 <div class="captioned-image-container">
 <figure>
 <img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/53e29ca7-6314-4551-8c66-24b3f2028237_3315x1907.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":838,"width":1456,"resizeWidth":null,"bytes":230996,"alt":"","title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F53e29ca7-6314-4551-8c66-24b3f2028237_3315x1907.png","isProcessing":false,"align":null,"offset":false}' height="838" loading="lazy" sizes="100vw" src="Images/img_20_fa6b4f68.jpg" style="max-width:100%; height:auto;" title="" width="1456"/>
 </figure>
 </div>
-<p><span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">I use this for anything going to production. Overkill for exploratory work.</span></p>
+<p><span class="ann-hl" style="background:#FFE45C; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">I use this for anything going to production. Overkill for exploratory work.</span></p>
 
 <p>When Claude should run without you.</p>
 <div class="captioned-image-container">
@@ -1230,7 +1230,7 @@ I work in version-controlled repos (if you’re using ADEs this is a non-negotia
 <img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/20afeb6a-8ebb-4e39-bb4f-9f45092f8ad6_906x844.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":844,"width":906,"resizeWidth":null,"bytes":50645,"alt":null,"title":null,"type":"image/png","href":null,"belowTheFold":true,"topImage":false,"internalRedirect":"https://www.artificialintelligencemadesimple.com/i/181445063?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F20afeb6a-8ebb-4e39-bb4f-9f45092f8ad6_906x844.png","isProcessing":false,"align":null,"offset":false}' height="844" loading="lazy" sizes="100vw" src="Images/img_21_bcce59c1.png" style="max-width:100%; height:auto;" width="906"/>
 </figure>
 </div>
-<p><span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">The -p flag runs Claude in non-interactive mode. Pipe in a prompt, get output, done</span>.</p>
+<p><span class="ann-hl" style="background:#FFE45C; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">The -p flag runs Claude in non-interactive mode. Pipe in a prompt, get output, done</span>.</p>
 <p>Uses I’ve actually set up:</p>
 <ul>
 <li>
@@ -1249,7 +1249,7 @@ I work in version-controlled repos (if you’re using ADEs this is a non-negotia
 <p>For batch operations: write a script that loops through items (files, issues, whatever), calls claude -p with a prompt for each, and collects results. Add --output-format json if you need structured output for further processing.</p>
 <p>Combine with --allowedTools to restrict what headless Claude can do. You probably don’t want an automated script running with full permissions.</p>
 
-<p><span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">For large tasks with many steps—migrations, multi-file refactors, launch checklists.</span></p>
+<p><span class="ann-hl" style="background:#FFE45C; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">For large tasks with many steps—migrations, multi-file refactors, launch checklists.</span></p>
 <ol>
 <li>
 <p>Have Claude write a checklist to a markdown file. “Create CHECKLIST.md with every file that needs updating for this migration.”</p>
@@ -1277,8 +1277,8 @@ I work in version-controlled repos (if you’re using ADEs this is a non-negotia
 <span> the product. Everything else—prompting, clever phrasing, even model choice—is downstream.</span>
 </p>
 <p>Once you internalize this, there’s no going back. Prompting starts to feel like a local optimization. IDE magic feels cosmetic. When something goes wrong, you stop asking why the model “behaved strangely” and start asking what information you gave it, what permissions you allowed, and what feedback loop you failed to close. The mystery evaporates.</p>
-<p>This is where the real split emerges. Most people use Claude Code as a faster pair of hands. <span class="ann-note" style="background:rgba(255,107,107,0.3); border-bottom:2px solid #D94444; padding:1px 2px; border-radius:2px;">Operators design environments where failure is hard and success is boringly inevitable. Same tool, completely different outcomes. The difference isn’t intelligence; it’s orchestration.</span></p>
-<p><span class="ann-hl" style="background:rgba(255,224,102,0.3); border-bottom:2px solid #E6AC00; -webkit-box-decoration-break:clone; box-decoration-break:clone; padding:1px 2px; border-radius:2px;">There’s a simple rule that governs everything you’ve read: if you don’t control context, you don’t control results. Almost every complaint about coding agents—hallucinations, brittleness, wasted time—traces back to violating that rule</span>. Not a bad model. Bad setup.</p>
+<p>This is where the real split emerges. Most people use Claude Code as a faster pair of hands. <span class="ann-note" style="background:#FFC2D4; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px; padding:1px 2px; border-radius:2px;">Operators design environments where failure is hard and success is boringly inevitable. Same tool, completely different outcomes. The difference isn’t intelligence; it’s orchestration.</span></p>
+<p><span class="ann-hl" style="background:#FFE45C; -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:1px 2px;border-radius:3px;">There’s a simple rule that governs everything you’ve read: if you don’t control context, you don’t control results. Almost every complaint about coding agents—hallucinations, brittleness, wasted time—traces back to violating that rule</span>. Not a bad model. Bad setup.</p>
 <p>Claude Code won’t make you a better engineer. It will make it very obvious whether you already think like one.</p>
 <p>Thank you for being here, and I hope you have a wonderful day,</p>
 <p>Dev &lt;3</p>
@@ -1381,9 +1381,9 @@ I work in version-controlled repos (if you’re using ADEs this is a non-negotia
   </script>
   <!--rr-annotate-->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23FAF6EE'/%3E%3Ctext x='16' y='24' font-size='22' text-anchor='middle' fill='%23A34A2E' font-family='Georgia' font-style='italic'%3EA%3C/text%3E%3C/svg%3E">
-<link rel="stylesheet" href="../../assets/annotate.css?v=21">
+<link rel="stylesheet" href="../../assets/annotate.css?v=22">
 <script type="application/json" id="rr-notes">{}</script>
-<script data-rr-palette="apple" src="../../assets/annotate.js?v=21" data-rr-book="agentic-coding-tools" data-rr-page="chapter01_reader.html" data-rr-prefix="../../"></script>
+<script data-rr-palette="apple" src="../../assets/annotate.js?v=22" data-rr-book="agentic-coding-tools" data-rr-page="chapter01_reader.html" data-rr-prefix="../../"></script>
 <script src="../../assets/local.js?v=2"></script>
 <script src="../../assets/chapter-toc.js?v=21"></script>
 <script src="../../assets/code-copy.js?v=21"></script>
