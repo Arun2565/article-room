@@ -443,16 +443,3 @@ body.rr-chapter.rr-notes-margin .rr-contents {
   margin: 0 0 20px;
   z-index: auto;
 }
-
-/* Apple Books look: flat highlighter fills, no underline bar. Baked marks
- * carry their own inline color, so only shape is normalised here. */
-.reader-content span.ann-hl,
-.reader-content span.ann-note,
-article span.ann-hl,
-article span.ann-note {
-  border-bottom: 0 !important;
-  border-radius: 3px;
-  padding: 0.5px 2px;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-}
