@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Why Does Every Agent Session Start From Zero? — Decoding AI Magazine</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css');
+
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css');
+
+    :root {
+      --bg: #FAF6EE;
+      --surface: #FFFFFF;
+      --ink: #2D2522;
+      --ink-2: #6E625B;
+      --accent: #A34A2E;
+      --border: rgba(163,74,46,0.1);
+      --font-reader: 'Newsreader', 'EB Garamond', 'Baskerville', 'Garamond', Georgia, serif;
+      --toc-width: 280px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #1a1a1a;
+      --surface: #2d2d2d;
+      --ink: #e0e0e0;
+      --ink-2: #a0a0a0;
+      --accent: #E28C68;
+      --border: rgba(243,239,233,0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-reader);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+
+    .top-bar button {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .top-bar button:hover {
+      background: rgba(163,74,46,0.08);
+    }
+
+    .top-bar button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .top-bar-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--ink-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60%;
+    }
+
+    .reader-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 60px 80px;
+    }
+
+    .reader-content h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      line-height: 1.3;
+    }
+
+    .reader-content h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 32px 0 16px;
+    }
+
+    .reader-content h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 24px 0 12px;
+      color: var(--ink-2);
+    }
+
+    .reader-content p {
+      font-size: 1.15rem;
+      line-height: 1.85;
+      margin-bottom: 1.2em;
+      text-align: left;
+    }
+
+    .reader-content blockquote {
+      margin: 20px 0;
+      padding: 16px 20px;
+      border-left: 3px solid var(--accent);
+      background: rgba(163,74,46,0.04);
+      font-style: italic;
+    }
+
+    .reader-content dl {
+      margin: 20px 0;
+    }
+
+    .reader-content dt {
+      font-weight: 600;
+      margin: 16px 0 8px;
+      font-style: italic;
+    }
+
+    .reader-content dd {
+      margin-left: 20px;
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .reader-content table {
+      display: table;
+      width: 100%;
+      margin: 24px 0;
+      border-collapse: collapse;
+      font-size: 1rem;
+      border: 1px solid #c3c3c3;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .reader-content th {
+      display: table-cell;
+      background: #f0f4f8;
+      border-bottom: 2px solid #9d9d9d;
+      padding: 14px 16px;
+      font-weight: 600;
+      text-align: left;
+      font-size: 0.95rem;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td {
+      display: table-cell;
+      padding: 14px 16px;
+      border-bottom: 1px solid #ddd;
+      border-right: 1px solid #eee;
+      vertical-align: top;
+      font-size: 1rem;
+      line-height: 1.7;
+      font-family: var(--font-reader);
+    }
+
+    .reader-content td:last-child {
+      border-right: none;
+    }
+
+    .reader-content tr:nth-of-type(even) {
+      background-color: #fafbfd;
+    }
+
+    .reader-content figure,
+    .reader-content .figure {
+      margin: 24px auto;
+      text-align: center;
+    }
+
+    .reader-content img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .reader-content figcaption,
+    .reader-content figure h6,
+    .reader-content .figure h6 {
+      font-size: 0.9rem;
+      font-style: italic;
+      color: var(--ink-2);
+      margin-top: 8px;
+    }
+
+    .reader-content .note,
+    .reader-content [data-type="note"] {
+      margin: 20px 0;
+      padding: 16px 20px;
+      background: #f8f4e8;
+      border: 1px solid #e6d48a;
+      border-radius: 6px;
+    }
+
+    .ann-hl { border-radius: 2px; }
+    .ann-note { border-radius: 2px; }
+
+    pre.code, pre[data-lang], .code {
+      background: #1e1e1e !important;
+      border-radius: 8px !important;
+      padding: 16px 20px !important;
+      margin: 20px 0 !important;
+      overflow-x: auto !important;
+      position: relative !important;
+      border: 1px solid #333 !important;
+    }
+
+    pre.code[data-lang]::before, pre[data-lang]::before {
+      content: attr(data-lang);
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      font-size: 0.7rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace;
+    }
+
+    pre.code code, pre[data-lang] code, .code code {
+      color: #e0e0e0 !important;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace !important;
+      font-size: 0.9rem !important;
+      line-height: 1.6 !important;
+      background: none !important;
+      padding: 0 !important;
+      border: none !important;
+      white-space: pre !important;
+    }
+
+    p code, li code, td code {
+      background: rgba(0,0,0,0.06) !important;
+      padding: 2px 6px !important;
+      border-radius: 4px !important;
+      font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace !important;
+      font-size: 0.85em !important;
+    }
+
+    .line-numbers-rows { border-right: 1px solid #444 !important; }
+
+    .progress-bar {
+      position: fixed;
+      top: 52px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 99;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .ann-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent);
+      color: white;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .chapter-title {
+      text-align: center;
+      padding: 40px 20px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chapter-title h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .toc-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--toc-width);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      z-index: 200;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+    }
+
+    .toc-panel.open {
+      transform: translateX(0);
+    }
+
+    .toc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      height: 52px;
+    }
+
+    .toc-header h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .toc-close {
+      background: none;
+      border: none;
+      color: var(--ink-2);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+    }
+
+    .toc-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+
+    .toc-chapter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .toc-chapter:hover {
+      background: rgba(163,74,46,0.06);
+      border-left-color: var(--accent);
+    }
+
+    .toc-ann-count {
+      background: var(--accent);
+      color: white;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      min-width: 22px;
+      text-align: center;
+    }
+
+    .toc-arrow {
+      font-size: 0.6rem;
+      color: var(--ink-2);
+      transition: transform 0.2s ease;
+      margin-left: auto;
+    }
+
+    .toc-arrow.open {
+      transform: rotate(90deg);
+    }
+
+    .toc-subs {
+      padding: 4px 0;
+      border-left: 2px solid var(--border);
+      margin-left: 20px;
+    }
+
+    .toc-sub {
+      padding-left: 32px;
+      font-weight: 400;
+    }
+
+    .toc-sub-sub {
+      padding-left: 48px;
+      font-size: 0.75rem;
+    }
+
+    .toc-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 199;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .toc-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(250, 246, 238, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--ink-2);
+      z-index: 100;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 60px;
+      border-top: 1px solid var(--border);
+      color: var(--ink-2);
+      font-size: 0.8rem;
+    }
+  
+    /* Decoding AI (Substack) markup mapped onto the reader theme */
+    .reader-content .callout-block {
+      background: color-mix(in srgb, var(--accent) 7%, transparent);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin: 22px 0;
+    }
+    .reader-content .callout-block p { margin: 0.4em 0; }
+    .reader-content .callout-block p:first-child { margin-top: 0; }
+    .reader-content .callout-block p:last-child { margin-bottom: 0; }
+    .reader-content [data-type='quote'] {
+      border-left: 3px solid var(--border);
+      padding-left: 16px;
+      color: var(--ink-2);
+    }
+    .reader-content .image-link { text-decoration: none; }
+    .reader-content hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+    .reader-content sup a, .reader-content sub a { text-decoration: none; }
+    .reader-content .subtitle { color: var(--ink-2); font-size: 1.05rem; }
+    .reader-content .byline { color: var(--ink-2); font-size: .9rem; }
+    .reader-content .dateline { color: var(--ink-2); font-size: .8rem; }
+    .article-source {
+      display: block; margin-top: 10px; font-size: .82rem; color: var(--ink-2);
+    }
+    .article-source a { color: var(--accent); text-decoration: none; }
+    .article-source a:hover { text-decoration: underline; }
+    .bottom-bar { gap: 12px; }
+    #readMeta {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--ink-2); white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+    #readMeta .sep { opacity: .45; }
+    #progressPercent { min-width: 42px; text-align: right; font-variant-numeric: tabular-nums; }
+    @media (max-width: 520px) { #readMeta .sep, #timeLeft { display: none; } }
+
+  </style>
+<link rel="stylesheet" href="../../assets/site.css?v=21">
+<link rel="stylesheet" href="../../assets/article-toc.css?v=2">
+<link rel="stylesheet" href="../../assets/course-theme.css?v=3">
+</head>
+<body>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="toc-overlay" id="tocOverlay" onclick="toggleTOC()"></div>
+
+  <div class="toc-panel" id="tocPanel">
+    <div class="toc-header">
+      <h3>Table of Contents</h3>
+      <button class="toc-close" onclick="toggleTOC()">✕</button>
+    </div>
+    <nav class="toc-nav">
+<div class="toc-chapter-wrap" data-chapter="0">
+<a href="build-llm-wiki-first-principles_reader.html" class="toc-chapter" onclick="navigateToChapter('build-llm-wiki-first-principles_reader.html')"><span>Why Does Every Agent Session Start From Zero?</span></a>
+<div class="toc-subs" id="subs-0" style="display:none">
+<a class="toc-heading toc-sub" href="#rr-h-1">Build for the long run (Sponsored)</a>
+<a class="toc-heading toc-sub" href="#rr-h-2">What are LLM wikis?</a>
+<a class="toc-heading toc-sub" href="#rr-h-3">How ingestion builds the wiki</a>
+<a class="toc-heading toc-sub" href="#rr-h-4">Querying the wiki via progressive disclosure</a>
+<a class="toc-heading toc-sub" href="#rr-h-5">Implementing the skill</a>
+<a class="toc-heading toc-sub" href="#rr-h-6">How to support multiple sources</a>
+<a class="toc-heading toc-sub" href="#rr-h-7">Interactive LLM wikis</a>
+<a class="toc-heading toc-sub" href="#rr-h-8">So where are LLM wikis actually useful?</a>
+<a class="toc-heading toc-sub toc-sub-sub" href="#rr-h-9">Whenever you’re ready, here is how I can help you</a>
+<a class="toc-heading toc-sub" href="#rr-h-10">Images &amp; videos</a>
+</div>
+</div>
+</nav>
+  </div>
+
+  <nav class="top-bar">
+    <button onclick="toggleTOC()" title="Table of Contents">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <span class="top-bar-title">Why Does Every Agent Session Start From Zero?</span>
+    <button onclick="toggleTheme()" title="Toggle theme">
+      <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    </button>
+  </nav>
+
+  <main class="reader-content">
+<div class="chapter-title">
+<h1 id="rr-h-0">Why Does Every Agent Session Start From Zero?</h1>
+<span class="article-source">Decoding AI Magazine &middot; Paul Iusztin &middot; <a href="https://www.decodingai.com/p/build-llm-wiki-first-principles?lli=1" target="_blank" rel="noopener">read the original post</a></span>
+</div>
+<div class="body markup" dir="auto"><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!06f1!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0c9ca844-0075-4e9d-b01a-a7b15173b40b_1376x768.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!06f1!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0c9ca844-0075-4e9d-b01a-a7b15173b40b_1376x768.png 424w, https://substackcdn.com/image/fetch/$s_!06f1!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0c9ca844-0075-4e9d-b01a-a7b15173b40b_1376x768.png 848w, https://substackcdn.com/image/fetch/$s_!06f1!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0c9ca844-0075-4e9d-b01a-a7b15173b40b_1376x768.png 1272w, https://substackcdn.com/image/fetch/$s_!06f1!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0c9ca844-0075-4e9d-b01a-a7b15173b40b_1376x768.png 1456w" type="image/webp"/><img alt="Read every page once. Remember where it belongs." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/0c9ca844-0075-4e9d-b01a-a7b15173b40b_1376x768.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":768,"width":1376,"resizeWidth":null,"bytes":null,"alt":"Read every page once. Remember where it belongs.","title":null,"type":null,"href":null,"belowTheFold":false,"topImage":true,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' fetchpriority="high" height="768" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!06f1!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0c9ca844-0075-4e9d-b01a-a7b15173b40b_1376x768.png" srcset="https://substackcdn.com/image/fetch/$s_!06f1!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0c9ca844-0075-4e9d-b01a-a7b15173b40b_1376x768.png 424w, https://substackcdn.com/image/fetch/$s_!06f1!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0c9ca844-0075-4e9d-b01a-a7b15173b40b_1376x768.png 848w, https://substackcdn.com/image/fetch/$s_!06f1!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0c9ca844-0075-4e9d-b01a-a7b15173b40b_1376x768.png 1272w, https://substackcdn.com/image/fetch/$s_!06f1!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0c9ca844-0075-4e9d-b01a-a7b15173b40b_1376x768.png 1456w" title="Read every page once. Remember where it belongs." width="1376"/></picture></div></a></figure></div><p>When I was researching about harness engineering I asked Claude Code to compare 7 large repos: Claude Code’s leaked source, OpenCode, Pi and a bunch more. Directly pointing Claude Code to these repos was a mess, generating superficial answers.</p><p>The standard fix is to ask the agent to compile notes for each repo and then compare them, which works, but it’s cumbersome to manage. Especially if you want to repeat the process. On top of that, what if you want to mix your research with other company docs, articles, papers and YouTube videos?</p><p>That’s where an LLM wiki kicks in. It’s the best way I’ve found to merge all my research into one token-efficient memory layer that I can easily pass to my agent to anchor its reasoning in it.</p><p><span>The method is popularized by Andrej Karpathy as a pattern to give agents memory built only from Markdown files. He calls the wiki </span><em><a href="https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f">“a persistent, compounding artifact.”</a></em><span> I use mine the opposite way: one wiki per project, deleted when the project ends.</span></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!yIAj!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8a87008-0156-4440-a7d2-5baa9715a7b6_1200x501.png" target="_blank"><div class="image2-inset"><picture><source sizes="100vw" srcset="https://substackcdn.com/image/fetch/$s_!yIAj!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8a87008-0156-4440-a7d2-5baa9715a7b6_1200x501.png 424w, https://substackcdn.com/image/fetch/$s_!yIAj!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8a87008-0156-4440-a7d2-5baa9715a7b6_1200x501.png 848w, https://substackcdn.com/image/fetch/$s_!yIAj!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8a87008-0156-4440-a7d2-5baa9715a7b6_1200x501.png 1272w, https://substackcdn.com/image/fetch/$s_!yIAj!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8a87008-0156-4440-a7d2-5baa9715a7b6_1200x501.png 1456w" type="image/webp"/><img alt="LLM wiki architecture: sources ingested into an immutable raw layer, transformed into the wiki, queried by an agent." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/d8a87008-0156-4440-a7d2-5baa9715a7b6_1200x501.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":501,"width":1200,"resizeWidth":null,"bytes":null,"alt":"LLM wiki architecture: sources ingested into an immutable raw layer, transformed into the wiki, queried by an agent.","title":null,"type":null,"href":null,"belowTheFold":false,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="501" sizes="100vw" src="https://substackcdn.com/image/fetch/$s_!yIAj!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8a87008-0156-4440-a7d2-5baa9715a7b6_1200x501.png" srcset="https://substackcdn.com/image/fetch/$s_!yIAj!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8a87008-0156-4440-a7d2-5baa9715a7b6_1200x501.png 424w, https://substackcdn.com/image/fetch/$s_!yIAj!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8a87008-0156-4440-a7d2-5baa9715a7b6_1200x501.png 848w, https://substackcdn.com/image/fetch/$s_!yIAj!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8a87008-0156-4440-a7d2-5baa9715a7b6_1200x501.png 1272w, https://substackcdn.com/image/fetch/$s_!yIAj!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8a87008-0156-4440-a7d2-5baa9715a7b6_1200x501.png 1456w" title="LLM wiki architecture: sources ingested into an immutable raw layer, transformed into the wiki, queried by an agent." width="1200"/></picture></div></a></figure></div><p>You can use it as memory for coding, research, journaling, education, and brainstorming. The only issue is that it eats a lot of tokens unless you know how it works inside to customize it to your needs. </p><p><span>In my </span><a href="https://www.decodingai.com/p/llm-wiki-agent-memory">previous piece</a><span>, I showed how I run it on top of my Second Brain. </span></p><p><span>In this article, I'll show you how to </span><strong>build an LLM wiki from first principles in 3 phases</strong><span>: vanilla (ingest, index, query local files), ingest custom sources, and continual learning.</span></p><blockquote><p><span>P.S. You also </span><a href="https://github.com/decodingai-magazine/llm-wiki-workshop">have access to the code on GitHub</a><span>, which contains the </span><strong>/llm-wiki</strong><span> </span><strong>skill</strong><span> in these 3 phases.</span></p></blockquote><p><em>First, a quick word from our sponsor</em><span> ↓</span></p><div class="callout-block" data-callout="true"><h2 id="rr-h-1"><a href="https://inngest.link/dai-nl">Build for the long run (Sponsored)</a></h2><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://inngest.link/dai-nl" target="_blank"><div class="image2-inset"><picture><source sizes="auto, 100vw" srcset="https://substackcdn.com/image/fetch/$s_!0XGX!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F32e8504e-caa6-4e9b-8773-27507e579eb6_2190x1061.png 424w, https://substackcdn.com/image/fetch/$s_!0XGX!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F32e8504e-caa6-4e9b-8773-27507e579eb6_2190x1061.png 848w, https://substackcdn.com/image/fetch/$s_!0XGX!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F32e8504e-caa6-4e9b-8773-27507e579eb6_2190x1061.png 1272w, https://substackcdn.com/image/fetch/$s_!0XGX!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F32e8504e-caa6-4e9b-8773-27507e579eb6_2190x1061.png 1456w" type="image/webp"/><img alt="If your code runs for minutes or days, it won't run straight through. Wrap functions in steps that automatically retry, pause, and fan out. Scale instantly, without thinking about infra." class="sizing-normal" data-attrs="{&quot;src&quot;:&quot;https://substack-post-media.s3.amazonaws.com/public/images/32e8504e-caa6-4e9b-8773-27507e579eb6_2190x1061.png&quot;,&quot;srcNoWatermark&quot;:null,&quot;fullscreen&quot;:null,&quot;imageSize&quot;:null,&quot;height&quot;:705,&quot;width&quot;:1456,&quot;resizeWidth&quot;:null,&quot;bytes&quot;:5699007,&quot;alt&quot;:&quot;If your code runs for minutes or days, it won't run straight through. Wrap functions in steps that automatically retry, pause, and fan out. Scale instantly, without thinking about infra.&quot;,&quot;title&quot;:null,&quot;type&quot;:&quot;image/png&quot;,&quot;href&quot;:&quot;https://inngest.link/dai-nl&quot;,&quot;belowTheFold&quot;:true,&quot;topImage&quot;:false,&quot;internalRedirect&quot;:&quot;https://www.decodingai.com/i/220571093?img=https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F32e8504e-caa6-4e9b-8773-27507e579eb6_2190x1061.png&quot;,&quot;isProcessing&quot;:false,&quot;align&quot;:null,&quot;offset&quot;:false}" height="705" loading="lazy" sizes="auto, 100vw" src="https://substackcdn.com/image/fetch/$s_!0XGX!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F32e8504e-caa6-4e9b-8773-27507e579eb6_2190x1061.png" srcset="https://substackcdn.com/image/fetch/$s_!0XGX!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F32e8504e-caa6-4e9b-8773-27507e579eb6_2190x1061.png 424w, https://substackcdn.com/image/fetch/$s_!0XGX!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F32e8504e-caa6-4e9b-8773-27507e579eb6_2190x1061.png 848w, https://substackcdn.com/image/fetch/$s_!0XGX!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F32e8504e-caa6-4e9b-8773-27507e579eb6_2190x1061.png 1272w, https://substackcdn.com/image/fetch/$s_!0XGX!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F32e8504e-caa6-4e9b-8773-27507e579eb6_2190x1061.png 1456w" title="If your code runs for minutes or days, it won't run straight through. Wrap functions in steps that automatically retry, pause, and fan out. Scale instantly, without thinking about infra." width="1456"/></picture></div></a></figure></div><p>Long-running agents need endurance.</p><p>They must survive waiting for users and withstand tool failures. They must adapt to every leap in model intelligence.</p><p><span>⚡️</span><em> Inngest makes long-running agents durable, observable, and improvable over time.</em></p><p><span>Check out their </span><strong>generous free tier</strong><span> and a sleek local dev server for testing your workflows.</span></p></div><p>Now, let’s go!</p><h2 class="header-anchor-post" id="rr-h-2">What are LLM wikis?</h2><p><span>In the </span><a href="https://github.com/decodingai-magazine/llm-wiki-workshop/tree/main/01-llm-wiki-vanilla">first example from the GitHub repo</a><span>, we have 5 notes on MCP and skills ingested into the LLM wiki. If, using our agent, we ask </span><em>“What do my notes say about when to use an MCP server vs. a CLI?”</em><span>, the agent finds the 3 most relevant wiki pages (</span><code>agent-connectivity</code><span>, </span><code>cli</code><span>, </span><code>mcp</code><span>) and answers with links to them. Each link leads down to the sources and raw notes behind the claim.</span></p><p>The LLM wiki is a directory of Markdown files that an LLM writes and an agent reads. Zero databases have seen the query. It’s surprising how much complexity you can squeeze out of Markdown files.</p><p>Sources go in, derived pages (the nodes) come out. As each page links to other relevant pages, plus the sources it was created from, the wiki indirectly forms a knowledge graph. To sum up:</p><blockquote><p><em>An LLM wiki is a knowledge graph represented with Markdown files.</em></p></blockquote><p><span>Image 1 shows the LLM wiki from </span><a href="https://github.com/decodingai-magazine/llm-wiki-workshop/tree/main/02-llm-wiki-ingest">exercise 2 of the repo</a><span>, rendered as an Obsidian graph, with 14 sources and 17 nodes.</span></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!YQiW!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F741af43e-3e35-48b8-a324-1cfb2509a2c2_725x647.png" target="_blank"><div class="image2-inset"><picture><source sizes="auto, 100vw" srcset="https://substackcdn.com/image/fetch/$s_!YQiW!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F741af43e-3e35-48b8-a324-1cfb2509a2c2_725x647.png 424w, https://substackcdn.com/image/fetch/$s_!YQiW!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F741af43e-3e35-48b8-a324-1cfb2509a2c2_725x647.png 848w, https://substackcdn.com/image/fetch/$s_!YQiW!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F741af43e-3e35-48b8-a324-1cfb2509a2c2_725x647.png 1272w, https://substackcdn.com/image/fetch/$s_!YQiW!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F741af43e-3e35-48b8-a324-1cfb2509a2c2_725x647.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/741af43e-3e35-48b8-a324-1cfb2509a2c2_725x647.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":647,"width":725,"resizeWidth":null,"bytes":null,"alt":"","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="647" loading="lazy" sizes="auto, 100vw" src="https://substackcdn.com/image/fetch/$s_!YQiW!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F741af43e-3e35-48b8-a324-1cfb2509a2c2_725x647.png" srcset="https://substackcdn.com/image/fetch/$s_!YQiW!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F741af43e-3e35-48b8-a324-1cfb2509a2c2_725x647.png 424w, https://substackcdn.com/image/fetch/$s_!YQiW!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F741af43e-3e35-48b8-a324-1cfb2509a2c2_725x647.png 848w, https://substackcdn.com/image/fetch/$s_!YQiW!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F741af43e-3e35-48b8-a324-1cfb2509a2c2_725x647.png 1272w, https://substackcdn.com/image/fetch/$s_!YQiW!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F741af43e-3e35-48b8-a324-1cfb2509a2c2_725x647.png 1456w" title="" width="725"/></picture></div></a><figcaption class="image-caption"><em>Image 1: A small LLM wiki: 14 sources, 17 nodes.</em></figcaption></figure></div><p>Image 2 shows an earlier snapshot of the wiki behind my current book, with 135 sources and 120 nodes.</p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!as9B!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4540129e-6c4d-4a44-927a-634adf942f4a_725x647.png" target="_blank"><div class="image2-inset"><picture><source sizes="auto, 100vw" srcset="https://substackcdn.com/image/fetch/$s_!as9B!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4540129e-6c4d-4a44-927a-634adf942f4a_725x647.png 424w, https://substackcdn.com/image/fetch/$s_!as9B!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4540129e-6c4d-4a44-927a-634adf942f4a_725x647.png 848w, https://substackcdn.com/image/fetch/$s_!as9B!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4540129e-6c4d-4a44-927a-634adf942f4a_725x647.png 1272w, https://substackcdn.com/image/fetch/$s_!as9B!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4540129e-6c4d-4a44-927a-634adf942f4a_725x647.png 1456w" type="image/webp"/><img alt="" class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/4540129e-6c4d-4a44-927a-634adf942f4a_725x647.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":647,"width":725,"resizeWidth":null,"bytes":null,"alt":"","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="647" loading="lazy" sizes="auto, 100vw" src="https://substackcdn.com/image/fetch/$s_!as9B!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4540129e-6c4d-4a44-927a-634adf942f4a_725x647.png" srcset="https://substackcdn.com/image/fetch/$s_!as9B!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4540129e-6c4d-4a44-927a-634adf942f4a_725x647.png 424w, https://substackcdn.com/image/fetch/$s_!as9B!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4540129e-6c4d-4a44-927a-634adf942f4a_725x647.png 848w, https://substackcdn.com/image/fetch/$s_!as9B!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4540129e-6c4d-4a44-927a-634adf942f4a_725x647.png 1272w, https://substackcdn.com/image/fetch/$s_!as9B!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4540129e-6c4d-4a44-927a-634adf942f4a_725x647.png 1456w" title="" width="725"/></picture></div></a><figcaption class="image-caption"><em>Image 2: The same system on a real corpus: 135 sources, 120 nodes.</em></figcaption></figure></div><p>But Obsidian is only a viewer. Every tutorial recommends it because it renders linked Markdown beautifully. The files are still plain Markdown and work in any editor. The agent doesn’t need Obsidian to operate the wiki. Just point it to the wiki dir, and it’s good to go. Zero setup, zero dependencies.</p><p>The architecture comes down to 4 steps, illustrated in Image 3:</p><ol><li><p><span>Ingestion copies notes, repos, articles, and videos into </span><code>raw/</code><span>.</span></p></li><li><p><code>raw/</code><span> is immutable: the source of truth, never edited.</span></p></li><li><p><span>An LLM transforms it into </span><code>wiki/</code><span>, derived pages for what we know.</span></p></li><li><p><span>The agent queries only </span><code>wiki/</code><span>.</span></p></li></ol><p>The point is to turn raw data into something easy to query, instead of throwing all of it at the LLM and hoping for the best. In other words, we want to do RAG.</p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!yIAj!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8a87008-0156-4440-a7d2-5baa9715a7b6_1200x501.png" target="_blank"><div class="image2-inset"><picture><source sizes="auto, 100vw" srcset="https://substackcdn.com/image/fetch/$s_!yIAj!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8a87008-0156-4440-a7d2-5baa9715a7b6_1200x501.png 424w, https://substackcdn.com/image/fetch/$s_!yIAj!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8a87008-0156-4440-a7d2-5baa9715a7b6_1200x501.png 848w, https://substackcdn.com/image/fetch/$s_!yIAj!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8a87008-0156-4440-a7d2-5baa9715a7b6_1200x501.png 1272w, https://substackcdn.com/image/fetch/$s_!yIAj!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8a87008-0156-4440-a7d2-5baa9715a7b6_1200x501.png 1456w" type="image/webp"/><img alt="LLM wiki architecture: sources ingested into an immutable raw layer, transformed into the wiki, queried by an agent." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/d8a87008-0156-4440-a7d2-5baa9715a7b6_1200x501.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":501,"width":1200,"resizeWidth":null,"bytes":null,"alt":"LLM wiki architecture: sources ingested into an immutable raw layer, transformed into the wiki, queried by an agent.","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="501" loading="lazy" sizes="auto, 100vw" src="https://substackcdn.com/image/fetch/$s_!yIAj!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8a87008-0156-4440-a7d2-5baa9715a7b6_1200x501.png" srcset="https://substackcdn.com/image/fetch/$s_!yIAj!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8a87008-0156-4440-a7d2-5baa9715a7b6_1200x501.png 424w, https://substackcdn.com/image/fetch/$s_!yIAj!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8a87008-0156-4440-a7d2-5baa9715a7b6_1200x501.png 848w, https://substackcdn.com/image/fetch/$s_!yIAj!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8a87008-0156-4440-a7d2-5baa9715a7b6_1200x501.png 1272w, https://substackcdn.com/image/fetch/$s_!yIAj!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8a87008-0156-4440-a7d2-5baa9715a7b6_1200x501.png 1456w" title="LLM wiki architecture: sources ingested into an immutable raw layer, transformed into the wiki, queried by an agent." width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 3: Raw data is ingested once and kept immutable. An LLM transforms it into the wiki, and the agent queries only the wiki.</em></figcaption></figure></div><p>On disk, one wiki looks like this:</p><p><span>Each raw file gets exactly one source page, an executive summary of what matters in it: a summary, key claims, notable quotes, and connections. From it, the LLM extracts </span><strong>entities</strong><span> and </span><strong>concepts</strong><span>. Entities are tools or frameworks, clear things that you can point at, while concepts are more like theoretical ideas.</span></p><p><span>In </span><a href="https://github.com/decodingai-magazine/llm-wiki-workshop/tree/main/01-llm-wiki-vanilla">exercise 1 of the vanilla wiki example</a><span>, the 5 ingested notes yield 5 source pages, 4 entities, and 5 concepts. The note </span><em>“The Future of MCP vs. Skills”</em><span> alone yields 3 entities (MCP, Claude Code, FastMCP) and 4 concepts (skills, CLI, agent connectivity, orchestration).</span></p><p><span>Entities and concepts are just an ontology. Swap them for whatever your domain needs: people, companies, organizations, locations, tools. Go too narrow, and extraction misses things. Go too wide, and it extracts everything. </span><em>“Entities + Concepts”</em><span> is a very generic ontology that works on anything, which can be a blessing and a curse. To go deeper, see how to </span><a href="https://www.decodingai.com/p/ship-a-knowledge-graph-ontology-in-5-minutes">ship a knowledge graph ontology in 5 minutes</a><span>.</span></p><p>Next, follow a single item from the moment you ingest it to see where those pages come from.</p><h2 class="header-anchor-post" id="rr-h-3">How ingestion builds the wiki</h2><p><span>As shown in Image 4, every item starts with the same 2 steps. First, the item is copied into </span><code>raw/</code><span>. We use the slug as its ID, so an item ingested twice is skipped. Second, the LLM writes its source page, listing in the frontmatter the entities and concepts it extracted.</span></p><p>An entity or concept gets its own page only when at least 2 distinct sources extract it. One note mentioning something is a fact about the note. Two notes mentioning it is a fact about your knowledge.</p><p><span>In exercise 1, Obsidian appeared in 1 source and stayed unpromoted. Agent memory appeared in 2, so </span><code>wiki/concepts/agent-memory.md</code><span> was synthesized across both. The threshold is tunable, and it’s what </span><a href="https://www.decodingai.com/p/keep-knowledge-graph-clean">keeps the knowledge graph clean</a><span>: it cuts noise and keeps what recurs across your data.</span></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!JXgZ!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5c456837-e10e-4f7e-9c96-f289e4b68033_1200x546.png" target="_blank"><div class="image2-inset"><picture><source sizes="auto, 100vw" srcset="https://substackcdn.com/image/fetch/$s_!JXgZ!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5c456837-e10e-4f7e-9c96-f289e4b68033_1200x546.png 424w, https://substackcdn.com/image/fetch/$s_!JXgZ!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5c456837-e10e-4f7e-9c96-f289e4b68033_1200x546.png 848w, https://substackcdn.com/image/fetch/$s_!JXgZ!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5c456837-e10e-4f7e-9c96-f289e4b68033_1200x546.png 1272w, https://substackcdn.com/image/fetch/$s_!JXgZ!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5c456837-e10e-4f7e-9c96-f289e4b68033_1200x546.png 1456w" type="image/webp"/><img alt="One ingested item: copied to raw, distilled into a source page with key insights, entities, and concepts; a concept reaching two sources becomes a synthesized page." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/5c456837-e10e-4f7e-9c96-f289e4b68033_1200x546.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":546,"width":1200,"resizeWidth":null,"bytes":null,"alt":"One ingested item: copied to raw, distilled into a source page with key insights, entities, and concepts; a concept reaching two sources becomes a synthesized page.","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="546" loading="lazy" sizes="auto, 100vw" src="https://substackcdn.com/image/fetch/$s_!JXgZ!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5c456837-e10e-4f7e-9c96-f289e4b68033_1200x546.png" srcset="https://substackcdn.com/image/fetch/$s_!JXgZ!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5c456837-e10e-4f7e-9c96-f289e4b68033_1200x546.png 424w, https://substackcdn.com/image/fetch/$s_!JXgZ!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5c456837-e10e-4f7e-9c96-f289e4b68033_1200x546.png 848w, https://substackcdn.com/image/fetch/$s_!JXgZ!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5c456837-e10e-4f7e-9c96-f289e4b68033_1200x546.png 1272w, https://substackcdn.com/image/fetch/$s_!JXgZ!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5c456837-e10e-4f7e-9c96-f289e4b68033_1200x546.png 1456w" title="One ingested item: copied to raw, distilled into a source page with key insights, entities, and concepts; a concept reaching two sources becomes a synthesized page." width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 4: A concept or entity earns its own page only once two sources engage with it.</em></figcaption></figure></div><p><span>This is graph ingestion, scaled down: extract per document, merge across documents, threshold to cut noise. This strategy has a huge overlap with how you can actually do GraphRAG because, at its core, it is a very light GraphRAG technique. </span><a href="https://www.decodingai.com/p/agentic-graphrag">See the full architecture</a><span>.</span></p><p><span>Updates recompute only what changed. A new source triggers a recount, and only the entity and concept pages it touches are rewritten. The skill never overwrites </span><code>raw/</code><span>, so for a changed note we swap the raw copy, rewrite its source page, and recompute just the pages linked to it. There’s no full re-ingest.</span></p><p><span>Here is what the </span><a href="https://github.com/decodingai-magazine/llm-wiki-workshop/blob/main/01-llm-wiki-vanilla/examples/wiki-01-ai-engineering/wiki/concepts/agent-memory.md">agent memory concept from exercise 1</a><span> looks like:</span></p><p><span>The index is created by a Python script, not an LLM. After the pages, a script rebuilds one index per folder (</span><code>wiki/sources/</code><span>, </span><code>wiki/concepts/</code><span>, </span><code>wiki/entities/</code><span>), each a list of </span><code>title — description</code><span> bullets. For entities, it looks like this:</span></p><p><span>As seen in Images 5, 6, and 7, the root </span><code>wiki/index.md</code><span> points to the 3 sub-indexes, with page counts. It’s the agent’s first entry point into the wiki. Finally, the skill rewrites the overview and appends the event to </span><code>log.md</code><span> as an append-only log.</span></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!5gmI!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe2f24aa3-7fc4-4ef9-83a8-c3cce9e7dbe4_1200x469.png" target="_blank"><div class="image2-inset"><picture><source sizes="auto, 100vw" srcset="https://substackcdn.com/image/fetch/$s_!5gmI!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe2f24aa3-7fc4-4ef9-83a8-c3cce9e7dbe4_1200x469.png 424w, https://substackcdn.com/image/fetch/$s_!5gmI!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe2f24aa3-7fc4-4ef9-83a8-c3cce9e7dbe4_1200x469.png 848w, https://substackcdn.com/image/fetch/$s_!5gmI!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe2f24aa3-7fc4-4ef9-83a8-c3cce9e7dbe4_1200x469.png 1272w, https://substackcdn.com/image/fetch/$s_!5gmI!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe2f24aa3-7fc4-4ef9-83a8-c3cce9e7dbe4_1200x469.png 1456w" type="image/webp"/><img alt="How the index works: pages feed per-folder indexes, which feed the root index, the overview, and the log." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/e2f24aa3-7fc4-4ef9-83a8-c3cce9e7dbe4_1200x469.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":469,"width":1200,"resizeWidth":null,"bytes":null,"alt":"How the index works: pages feed per-folder indexes, which feed the root index, the overview, and the log.","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="469" loading="lazy" sizes="auto, 100vw" src="https://substackcdn.com/image/fetch/$s_!5gmI!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe2f24aa3-7fc4-4ef9-83a8-c3cce9e7dbe4_1200x469.png" srcset="https://substackcdn.com/image/fetch/$s_!5gmI!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe2f24aa3-7fc4-4ef9-83a8-c3cce9e7dbe4_1200x469.png 424w, https://substackcdn.com/image/fetch/$s_!5gmI!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe2f24aa3-7fc4-4ef9-83a8-c3cce9e7dbe4_1200x469.png 848w, https://substackcdn.com/image/fetch/$s_!5gmI!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe2f24aa3-7fc4-4ef9-83a8-c3cce9e7dbe4_1200x469.png 1272w, https://substackcdn.com/image/fetch/$s_!5gmI!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe2f24aa3-7fc4-4ef9-83a8-c3cce9e7dbe4_1200x469.png 1456w" title="How the index works: pages feed per-folder indexes, which feed the root index, the overview, and the log." width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 5: Every ingest ends by rebuilding the index hierarchy, the overview, and the log.</em></figcaption></figure></div><p><span>In Obsidian, you can see the hierarchy. The root </span><code>index.md</code><span> sits 1 hop from every section index:</span></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!NKaq!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbefacb90-b7a2-47c4-aaf7-7d9aa030dca0_589x583.png" target="_blank"><div class="image2-inset"><picture><source sizes="auto, 100vw" srcset="https://substackcdn.com/image/fetch/$s_!NKaq!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbefacb90-b7a2-47c4-aaf7-7d9aa030dca0_589x583.png 424w, https://substackcdn.com/image/fetch/$s_!NKaq!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbefacb90-b7a2-47c4-aaf7-7d9aa030dca0_589x583.png 848w, https://substackcdn.com/image/fetch/$s_!NKaq!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbefacb90-b7a2-47c4-aaf7-7d9aa030dca0_589x583.png 1272w, https://substackcdn.com/image/fetch/$s_!NKaq!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbefacb90-b7a2-47c4-aaf7-7d9aa030dca0_589x583.png 1456w" type="image/webp"/><img alt="Obsidian graph with the root index.md highlighted, linking out to each section index." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/befacb90-b7a2-47c4-aaf7-7d9aa030dca0_589x583.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":583,"width":589,"resizeWidth":null,"bytes":null,"alt":"Obsidian graph with the root index.md highlighted, linking out to each section index.","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="583" loading="lazy" sizes="auto, 100vw" src="https://substackcdn.com/image/fetch/$s_!NKaq!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbefacb90-b7a2-47c4-aaf7-7d9aa030dca0_589x583.png" srcset="https://substackcdn.com/image/fetch/$s_!NKaq!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbefacb90-b7a2-47c4-aaf7-7d9aa030dca0_589x583.png 424w, https://substackcdn.com/image/fetch/$s_!NKaq!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbefacb90-b7a2-47c4-aaf7-7d9aa030dca0_589x583.png 848w, https://substackcdn.com/image/fetch/$s_!NKaq!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbefacb90-b7a2-47c4-aaf7-7d9aa030dca0_589x583.png 1272w, https://substackcdn.com/image/fetch/$s_!NKaq!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbefacb90-b7a2-47c4-aaf7-7d9aa030dca0_589x583.png 1456w" title="Obsidian graph with the root index.md highlighted, linking out to each section index." width="589"/></picture></div></a><figcaption class="image-caption"><em>Image 6: The root index, one hop to every section.</em></figcaption></figure></div><p><span>And </span><code>concepts/index.md</code><span> sits 1 hop from every concept page:</span></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!_n3s!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F023ea434-ba40-470c-8836-63d2d6ced9ea_589x583.png" target="_blank"><div class="image2-inset"><picture><source sizes="auto, 100vw" srcset="https://substackcdn.com/image/fetch/$s_!_n3s!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F023ea434-ba40-470c-8836-63d2d6ced9ea_589x583.png 424w, https://substackcdn.com/image/fetch/$s_!_n3s!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F023ea434-ba40-470c-8836-63d2d6ced9ea_589x583.png 848w, https://substackcdn.com/image/fetch/$s_!_n3s!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F023ea434-ba40-470c-8836-63d2d6ced9ea_589x583.png 1272w, https://substackcdn.com/image/fetch/$s_!_n3s!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F023ea434-ba40-470c-8836-63d2d6ced9ea_589x583.png 1456w" type="image/webp"/><img alt="Obsidian graph with concepts/index.md highlighted, linking out to every concept page." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/023ea434-ba40-470c-8836-63d2d6ced9ea_589x583.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":583,"width":589,"resizeWidth":null,"bytes":null,"alt":"Obsidian graph with concepts/index.md highlighted, linking out to every concept page.","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="583" loading="lazy" sizes="auto, 100vw" src="https://substackcdn.com/image/fetch/$s_!_n3s!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F023ea434-ba40-470c-8836-63d2d6ced9ea_589x583.png" srcset="https://substackcdn.com/image/fetch/$s_!_n3s!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F023ea434-ba40-470c-8836-63d2d6ced9ea_589x583.png 424w, https://substackcdn.com/image/fetch/$s_!_n3s!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F023ea434-ba40-470c-8836-63d2d6ced9ea_589x583.png 848w, https://substackcdn.com/image/fetch/$s_!_n3s!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F023ea434-ba40-470c-8836-63d2d6ced9ea_589x583.png 1272w, https://substackcdn.com/image/fetch/$s_!_n3s!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F023ea434-ba40-470c-8836-63d2d6ced9ea_589x583.png 1456w" title="Obsidian graph with concepts/index.md highlighted, linking out to every concept page." width="589"/></picture></div></a><figcaption class="image-caption"><em>Image 7: The concepts index, one hop to every concept page.</em></figcaption></figure></div><p>The agent walks these indexes every time it answers a question.</p><h2 class="header-anchor-post" id="rr-h-4">Querying the wiki via progressive disclosure</h2><p><span>The </span><code>raw/</code><span> directory is the last folder the agent accesses. It walks a 3-step ladder and stops as soon as the question is answered, since each index line is enough to choose a page:</span></p><ol><li><p><span>The root </span><code>index.md</code><span>, then the 1 or 2 relevant sub-indexes.</span></p></li><li><p>Then 1–3 pages, preferring entity and concept pages, already synthesized across sources, over single-source pages.</p></li><li><p>Only if those fall short does it access the linked source pages, then the raw files.</p></li></ol><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!jhHK!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fad5ded05-419d-4123-9798-dee3aac8f7e6_1200x359.png" target="_blank"><div class="image2-inset"><picture><source sizes="auto, 100vw" srcset="https://substackcdn.com/image/fetch/$s_!jhHK!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fad5ded05-419d-4123-9798-dee3aac8f7e6_1200x359.png 424w, https://substackcdn.com/image/fetch/$s_!jhHK!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fad5ded05-419d-4123-9798-dee3aac8f7e6_1200x359.png 848w, https://substackcdn.com/image/fetch/$s_!jhHK!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fad5ded05-419d-4123-9798-dee3aac8f7e6_1200x359.png 1272w, https://substackcdn.com/image/fetch/$s_!jhHK!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fad5ded05-419d-4123-9798-dee3aac8f7e6_1200x359.png 1456w" type="image/webp"/><img alt="Querying via progressive disclosure: agent to index.md, to a sub-index, to concept and entity pages, to sources, to raw." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/ad5ded05-419d-4123-9798-dee3aac8f7e6_1200x359.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":359,"width":1200,"resizeWidth":null,"bytes":null,"alt":"Querying via progressive disclosure: agent to index.md, to a sub-index, to concept and entity pages, to sources, to raw.","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="359" loading="lazy" sizes="auto, 100vw" src="https://substackcdn.com/image/fetch/$s_!jhHK!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fad5ded05-419d-4123-9798-dee3aac8f7e6_1200x359.png" srcset="https://substackcdn.com/image/fetch/$s_!jhHK!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fad5ded05-419d-4123-9798-dee3aac8f7e6_1200x359.png 424w, https://substackcdn.com/image/fetch/$s_!jhHK!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fad5ded05-419d-4123-9798-dee3aac8f7e6_1200x359.png 848w, https://substackcdn.com/image/fetch/$s_!jhHK!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fad5ded05-419d-4123-9798-dee3aac8f7e6_1200x359.png 1272w, https://substackcdn.com/image/fetch/$s_!jhHK!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fad5ded05-419d-4123-9798-dee3aac8f7e6_1200x359.png 1456w" title="Querying via progressive disclosure: agent to index.md, to a sub-index, to concept and entity pages, to sources, to raw." width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 8: Each step down the ladder is taken only when the step above can’t answer.</em></figcaption></figure></div><p>It’s RAG built from files. Reading 1–3 pages is the top-k: stop at the first hits. Following links from page to page is multi-hop graph traversal, used only when the top hits fall short. Beautiful!</p><p>This beats dumping files into context because every raw file is read in full once, at ingest. A query pays for a few index lines plus 1–3 curated pages (that already cross-pollinate ideas between docs), not your whole corpus. The MCP-vs-CLI question took 3 pages.</p><p>The price is latency and scalability. A graph database returns neighbors in 1 call. Here the agent opens one file, then another. And scaling ingestion and search past 1,000 sources can be challenging. That’s the trade-off of a knowledge graph built from Markdown files instead of Neo4j or Postgres.</p><p>Every claim cites the page it came from. To avoid hallucinations, if the wiki doesn’t know, the agent says so.</p><p>So how do I know it works? To be honest, with just vibes at this point. I don’t want to lie to you. Precision holds up when I check answers against topics I know. As for recall, I can’t tell whether it found everything relevant. Proper RAG-style evals are the next step.</p><p>Let’s take a look at the skill used for both ingestion and queries.</p><h2 class="header-anchor-post" id="rr-h-5">Implementing the skill</h2><p><span>The </span><code>llm-wiki-vanilla</code><span> skill from the </span><a href="https://github.com/decodingai-magazine/llm-wiki-workshop/tree/main/01-llm-wiki-vanilla/.agents/skills/01-llm-wiki-vanilla">first exercise</a><span> is 3 Markdown files and 2 scripts:</span></p><p>The frontmatter is the trigger. Until the skill is invoked, only its name and description sit in the agent’s context, and the description is what makes the agent pick the skill for the right request:</p><p><code>SKILL.md</code><span> holds the core steps. Step 0 locates the wiki: a </span><code>wiki-*/</code><span> folder holding both </span><code>raw/</code><span> and </span><code>wiki/</code><span>. Step 1 detects the mode. It routes to ingest only on an explicit verb (ingest, add, build) or dropped paths, and to query otherwise.</span></p><p><span>The ingest path then runs collect and dedup, copy to </span><code>raw/</code><span>, source pages, count mentions, entity and concept pages, overview, rebuild index, and log.</span></p><p><code>SKILL.md</code><span> stays lean. It tells the agent to read </span><code>CONVENTIONS.md</code><span> and </span><code>PAGES.md</code><span> only when it needs to write something, so queries </span><a href="https://www.decodingai.com/p/context-engineering-for-coding-agents">keep the context small</a><span> via progressive disclosure.</span></p><p><span>The pages’ Markdown YAML frontmatter follows Google’s </span><a href="https://github.com/GoogleCloudPlatform/open-knowledge-format/blob/main/SPEC.md">Open Knowledge Format</a><span>, which requires a mandatory </span><code>type</code><span> field, plus a name and description. Other fields depend on the type. For example, ontology objects (entities and concepts) include graph attributes such as aliases, sources, and related concepts or entities. All of this is encoded in the </span><a href="https://github.com/decodingai-magazine/llm-wiki-workshop/blob/main/01-llm-wiki-vanilla/.agents/skills/01-llm-wiki-vanilla/PAGES.md">PAGES.md</a><span> templates.</span></p><p><code>count_mentions.py</code><span> walks every source page’s frontmatter and returns which entity or concept passed the 2-source threshold. </span><code>build_index_md.py</code><span> regenerates every index from the frontmatter metadata.</span></p><p>Basic math and deterministic transformations belong in scripts. Otherwise, you uselessly consume tokens, and you kind of assume that the LLM will count right. It mostly does, but not always.</p><blockquote><p>A major advantage over passing all documents into context is that a smaller model handles ingestion, while a larger model queries only a fraction of the data.</p></blockquote><p>I ran ingestion with Sonnet 5.5 and queries with Opus 5.5 for better reasoning across pages and better goal execution.</p><p><span>So far, we’ve implemented a vanilla skill that reads only local Markdown. In </span><a href="https://github.com/decodingai-magazine/llm-wiki-workshop/tree/main/02-llm-wiki-ingest">exercise 2</a><span>, we show how to extend it with multiple sources.</span></p><h2 class="header-anchor-post" id="rr-h-6">How to support multiple sources</h2><p>An LLM wiki gets powerful when local notes, web articles, code repos, YouTube videos, and Reddit threads are interconnected in one graph. Mine pulls from my Readwise saves, Obsidian vault, and GitHub stars: separate silos that the wiki compiles into one interface I can chat with.</p><p><span>The </span><a href="https://github.com/decodingai-magazine/llm-wiki-workshop/tree/main/02-llm-wiki-ingest">upgraded skill from exercise 2</a><span> handles 5 sources, each with its own adapter script that turns one URI into exactly one raw artifact that has the same interface across sources (origin, original path, title, authors, published date, raw path):</span></p><ul><li><p><span>Local files use </span><code>cp</code><span>.</span></p></li><li><p><code>fetch_article.py</code><span> is a </span><code>curl</code><span> plus HTML cleanup.</span></p></li><li><p><code>clone_repo.py</code><span> is a shallow clone.</span></p></li><li><p><code>fetch_youtube.py</code><span> and </span><code>reddit_threads.py</code><span> are API calls.</span></p></li></ul><p><span>Everything downstream of </span><code>raw/</code><span> is origin-agnostic, so adding a source is one small fetch-and-normalize script, a per-origin ETL pipeline.</span></p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!ekNL!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2850ec65-759f-46c4-bd4d-4a35ea6244f9_1200x571.png" target="_blank"><div class="image2-inset"><picture><source sizes="auto, 100vw" srcset="https://substackcdn.com/image/fetch/$s_!ekNL!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2850ec65-759f-46c4-bd4d-4a35ea6244f9_1200x571.png 424w, https://substackcdn.com/image/fetch/$s_!ekNL!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2850ec65-759f-46c4-bd4d-4a35ea6244f9_1200x571.png 848w, https://substackcdn.com/image/fetch/$s_!ekNL!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2850ec65-759f-46c4-bd4d-4a35ea6244f9_1200x571.png 1272w, https://substackcdn.com/image/fetch/$s_!ekNL!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2850ec65-759f-46c4-bd4d-4a35ea6244f9_1200x571.png 1456w" type="image/webp"/><img alt="Every URI type routes to its own source script and normalizes to one adapter interface plus a raw artifact." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/2850ec65-759f-46c4-bd4d-4a35ea6244f9_1200x571.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":571,"width":1200,"resizeWidth":null,"bytes":null,"alt":"Every URI type routes to its own source script and normalizes to one adapter interface plus a raw artifact.","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="571" loading="lazy" sizes="auto, 100vw" src="https://substackcdn.com/image/fetch/$s_!ekNL!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2850ec65-759f-46c4-bd4d-4a35ea6244f9_1200x571.png" srcset="https://substackcdn.com/image/fetch/$s_!ekNL!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2850ec65-759f-46c4-bd4d-4a35ea6244f9_1200x571.png 424w, https://substackcdn.com/image/fetch/$s_!ekNL!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2850ec65-759f-46c4-bd4d-4a35ea6244f9_1200x571.png 848w, https://substackcdn.com/image/fetch/$s_!ekNL!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2850ec65-759f-46c4-bd4d-4a35ea6244f9_1200x571.png 1272w, https://substackcdn.com/image/fetch/$s_!ekNL!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2850ec65-759f-46c4-bd4d-4a35ea6244f9_1200x571.png 1456w" title="Every URI type routes to its own source script and normalizes to one adapter interface plus a raw artifact." width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 9: Five origins, one interface. Downstream of raw, the wiki never knows where a source came from.</em></figcaption></figure></div><p><span>Repos get their own page type, since a repo is a tree, not a file. Its writer produces one short </span><code>ARCHITECTURE.md</code><span> summary in </span><code>wiki/repos/&lt;repo&gt;/</code><span> and, to avoid assuming the consumer needs more, it goes deeper only on demand.</span></p><p><span>The </span><a href="https://github.com/decodingai-magazine/llm-wiki-workshop/tree/main/02-llm-wiki-ingest/.agents/skills/02-llm-wiki-ingest">exercise-02 skill</a><span> grows the </span><code>agents/</code><span> and </span><code>scripts/</code><span> directories with one per source:</span></p><p>Fetching runs in parallel, then one source writer per raw file reads it exactly once. A barrier waits for every source page because page writers combine sources, then one page writer per qualifying slug runs, then the overview writer.</p><p>As shown in Image 10, fetching and writing source pages happen in parallel. Entity and concept compilation requires all sources to determine what to combine. Ontology pages can also be written in parallel once all source pages are ready.</p><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!oYKE!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F14770138-9904-40ac-8fdb-6557565d5402_1200x462.png" target="_blank"><div class="image2-inset"><picture><source sizes="auto, 100vw" srcset="https://substackcdn.com/image/fetch/$s_!oYKE!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F14770138-9904-40ac-8fdb-6557565d5402_1200x462.png 424w, https://substackcdn.com/image/fetch/$s_!oYKE!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F14770138-9904-40ac-8fdb-6557565d5402_1200x462.png 848w, https://substackcdn.com/image/fetch/$s_!oYKE!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F14770138-9904-40ac-8fdb-6557565d5402_1200x462.png 1272w, https://substackcdn.com/image/fetch/$s_!oYKE!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F14770138-9904-40ac-8fdb-6557565d5402_1200x462.png 1456w" type="image/webp"/><img alt="Fan-out: URIs fetched in parallel into raw, source writers and page writers in parallel, one overview writer at the end." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/14770138-9904-40ac-8fdb-6557565d5402_1200x462.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":462,"width":1200,"resizeWidth":null,"bytes":null,"alt":"Fan-out: URIs fetched in parallel into raw, source writers and page writers in parallel, one overview writer at the end.","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="462" loading="lazy" sizes="auto, 100vw" src="https://substackcdn.com/image/fetch/$s_!oYKE!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F14770138-9904-40ac-8fdb-6557565d5402_1200x462.png" srcset="https://substackcdn.com/image/fetch/$s_!oYKE!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F14770138-9904-40ac-8fdb-6557565d5402_1200x462.png 424w, https://substackcdn.com/image/fetch/$s_!oYKE!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F14770138-9904-40ac-8fdb-6557565d5402_1200x462.png 848w, https://substackcdn.com/image/fetch/$s_!oYKE!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F14770138-9904-40ac-8fdb-6557565d5402_1200x462.png 1272w, https://substackcdn.com/image/fetch/$s_!oYKE!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F14770138-9904-40ac-8fdb-6557565d5402_1200x462.png 1456w" title="Fan-out: URIs fetched in parallel into raw, source writers and page writers in parallel, one overview writer at the end." width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 10: Everything up to the source pages is independent. Only the page writers wait, because they combine sources.</em></figcaption></figure></div><p><span>The agents are plain </span><code>.md</code><span> files inside the skill. The main </span><code>SKILL.md</code><span> instructs the harness to </span><em>“create subagents”</em><span> based on these files, defaulting to Sonnet. This is a powerful and easy strategy to make your skills harness-agnostic.</span></p><p><span>So far, the wiki grows only when you ingest. In </span><a href="https://github.com/decodingai-magazine/llm-wiki-workshop/tree/main/03-llm-wiki-interactive">exercise 3</a><span>, we will see how to capture the interactions with the wiki as a signal.</span></p><h2 class="header-anchor-post" id="rr-h-7">Interactive LLM wikis</h2><p>Your questions are data. They show what isn’t clear to you yet. For me, as a content creator, that’s often exactly what my audience won’t understand either. The questions leave breadcrumbs of my own learning curve.</p><p>So, with this upgrade, we add 3 new components:</p><ul><li><p><code>questions/</code><span> logs each question as a slim pointer page.</span></p></li><li><p><code>notes/</code><span> is a second layer of pages on top of sources, entities, and concepts.</span></p></li><li><p><code>open-questions.md</code><span> lists what the wiki can’t answer yet.</span></p></li></ul><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!BQ99!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8463c20-3c02-4402-a25f-dfbd662a6336_1200x384.png" target="_blank"><div class="image2-inset"><picture><source sizes="auto, 100vw" srcset="https://substackcdn.com/image/fetch/$s_!BQ99!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8463c20-3c02-4402-a25f-dfbd662a6336_1200x384.png 424w, https://substackcdn.com/image/fetch/$s_!BQ99!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8463c20-3c02-4402-a25f-dfbd662a6336_1200x384.png 848w, https://substackcdn.com/image/fetch/$s_!BQ99!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8463c20-3c02-4402-a25f-dfbd662a6336_1200x384.png 1272w, https://substackcdn.com/image/fetch/$s_!BQ99!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8463c20-3c02-4402-a25f-dfbd662a6336_1200x384.png 1456w" type="image/webp"/><img alt="The interactive wiki adds questions, notes, and open-questions.md beside the existing pages, plus repo notes inside the existing repos folder." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/d8463c20-3c02-4402-a25f-dfbd662a6336_1200x384.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":384,"width":1200,"resizeWidth":null,"bytes":null,"alt":"The interactive wiki adds questions, notes, and open-questions.md beside the existing pages, plus repo notes inside the existing repos folder.","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="384" loading="lazy" sizes="auto, 100vw" src="https://substackcdn.com/image/fetch/$s_!BQ99!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8463c20-3c02-4402-a25f-dfbd662a6336_1200x384.png" srcset="https://substackcdn.com/image/fetch/$s_!BQ99!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8463c20-3c02-4402-a25f-dfbd662a6336_1200x384.png 424w, https://substackcdn.com/image/fetch/$s_!BQ99!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8463c20-3c02-4402-a25f-dfbd662a6336_1200x384.png 848w, https://substackcdn.com/image/fetch/$s_!BQ99!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8463c20-3c02-4402-a25f-dfbd662a6336_1200x384.png 1272w, https://substackcdn.com/image/fetch/$s_!BQ99!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd8463c20-3c02-4402-a25f-dfbd662a6336_1200x384.png 1456w" title="The interactive wiki adds questions, notes, and open-questions.md beside the existing pages, plus repo notes inside the existing repos folder." width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 11: Three new components beside the ingest-owned pages. Repo notes live inside the existing repos folder.</em></figcaption></figure></div><p>Every logged question has 4 possible outcomes:</p><ul><li><p>A single-concept answer stays an answer.</p></li><li><p>An answer synthesizing 2 or more pages, or one you ask to save, becomes a note. If the wiki created notes out of every answer, it would quickly become useless.</p></li><li><p><span>An unanswerable question gets saved in </span><code>open-questions.md</code><span>.</span></p></li><li><p><span>A repo question that </span><code>ARCHITECTURE.md</code><span> can’t answer makes the agent read the clone and write a repo note, which re-enters ingest and can push a concept over the threshold.</span></p></li></ul><div class="captioned-image-container"><figure><a class="image-link image2 is-viewable-img can-restack" data-component-name="Image2ToDOM" href="https://substackcdn.com/image/fetch/$s_!zKtc!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F854c7021-31a8-4d97-ad62-c3736b6ac9a0_1200x572.png" target="_blank"><div class="image2-inset"><picture><source sizes="auto, 100vw" srcset="https://substackcdn.com/image/fetch/$s_!zKtc!,w_424,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F854c7021-31a8-4d97-ad62-c3736b6ac9a0_1200x572.png 424w, https://substackcdn.com/image/fetch/$s_!zKtc!,w_848,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F854c7021-31a8-4d97-ad62-c3736b6ac9a0_1200x572.png 848w, https://substackcdn.com/image/fetch/$s_!zKtc!,w_1272,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F854c7021-31a8-4d97-ad62-c3736b6ac9a0_1200x572.png 1272w, https://substackcdn.com/image/fetch/$s_!zKtc!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F854c7021-31a8-4d97-ad62-c3736b6ac9a0_1200x572.png 1456w" type="image/webp"/><img alt="The interactive workflow: questions logged, multi-page answers become notes, unanswerable questions go to open-questions.md, repo questions produce repo notes that re-enter ingest." class="sizing-normal" data-attrs='{"src":"https://substack-post-media.s3.amazonaws.com/public/images/854c7021-31a8-4d97-ad62-c3736b6ac9a0_1200x572.png","srcNoWatermark":null,"fullscreen":null,"imageSize":null,"height":572,"width":1200,"resizeWidth":null,"bytes":null,"alt":"The interactive workflow: questions logged, multi-page answers become notes, unanswerable questions go to open-questions.md, repo questions produce repo notes that re-enter ingest.","title":null,"type":null,"href":null,"belowTheFold":true,"topImage":false,"internalRedirect":null,"isProcessing":false,"align":null,"offset":false}' height="572" loading="lazy" sizes="auto, 100vw" src="https://substackcdn.com/image/fetch/$s_!zKtc!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F854c7021-31a8-4d97-ad62-c3736b6ac9a0_1200x572.png" srcset="https://substackcdn.com/image/fetch/$s_!zKtc!,w_424,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F854c7021-31a8-4d97-ad62-c3736b6ac9a0_1200x572.png 424w, https://substackcdn.com/image/fetch/$s_!zKtc!,w_848,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F854c7021-31a8-4d97-ad62-c3736b6ac9a0_1200x572.png 848w, https://substackcdn.com/image/fetch/$s_!zKtc!,w_1272,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F854c7021-31a8-4d97-ad62-c3736b6ac9a0_1200x572.png 1272w, https://substackcdn.com/image/fetch/$s_!zKtc!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F854c7021-31a8-4d97-ad62-c3736b6ac9a0_1200x572.png 1456w" title="The interactive workflow: questions logged, multi-page answers become notes, unanswerable questions go to open-questions.md, repo questions produce repo notes that re-enter ingest." width="1200"/></picture></div></a><figcaption class="image-caption"><em>Image 12: One question, four possible outcomes. Only repo notes flow back into the graph.</em></figcaption></figure></div><p>One thing I am still trying to calibrate is when to create a note from multiple concepts or entities, since doing this every time can quickly add a lot of noise.</p><h2 class="header-anchor-post" id="rr-h-8">So where are LLM wikis actually useful?</h2><p><span>LLM wikis burn tokens at ingest, so for a one-off question over a pile of files, you waste tokens and time. They’re also hard to maintain and scale next to a full knowledge graph, which makes them the wrong long-term memory for a product serving millions of users. There, use a real database, as I show in </span><a href="https://www.decodingai.com/p/how-to-implement-a-unified-memory-from-scratch">implementing a unified memory from scratch</a><span>.</span></p><p>Also, transforming your codebase into a wiki is an anti-pattern. You’d re-sync the wiki on every commit, and the code is already a graph that coding agents are trained to walk. The repo is already the wiki. You have to pick your battles. It doesn’t work for everything.</p><p>Where they shine is personal long-term memory scoped to one project or use case. Unlike Karpathy’s wikis, mine don’t outlive the project. Even though I can maintain them, I use them as one-off memory layers for researching a project, writing an article, or implementing a feature. Whenever the project is done, I can just kill them.</p><p><span>The hardcore case is my book. One wiki holds 196 raw sources, 7 repos, and 399 nodes, and I’m only at chapter 5 of 12. A second, separate wiki models the context between chapters. It answers questions like </span><em>“Are chunking strategies already covered in depth in previous chapters?”</em><span> across a ~350-page draft with hundreds of layered concepts.</span></p><p><span>Alternatives exist, like </span><a href="https://github.com/Graphify-Labs/graphify">graphify</a><span>, a Claude Code skill that turns any folder into a queryable knowledge graph, but I keep everything light with my own custom skill.</span></p><p><span>So I encourage you to go to </span><a href="https://github.com/decodingai-magazine/llm-wiki-workshop/tree/main">our repository</a><span>, look at the 3 versions of the LLM wiki skill (vanilla, ingest, and interactive), understand the principles behind them, and build your own version.</span></p><p><em>But here is what I’m wondering:</em></p><blockquote><p><em><strong>What is the No. 1 use case you’ve used, or plan to use, LLM wikis for?</strong></em></p></blockquote><p><em>Click the button below and tell me. I read every response.</em></p><div><hr/></div><div><hr/></div><div class="callout-block" data-callout="true"><h4 id="rr-h-9">Whenever you’re ready, here is how I can help you</h4><p><em>Go from agent user to agent builder.</em><span> Master the foundations of AI agents and turn fragile demo code into reliable, production-ready systems with my course, </span><strong><a href="https://academy.towardsai.net/courses/agent-engineering?ref=b3ab31&amp;utm_source=decodingai&amp;utm_medium=partner&amp;utm_campaign=agent_engineering">Agent Engineering: Building Multi-Agent Systems</a></strong><span> (made with Towards AI).</span></p><p>35 lessons. Pure foundations from scratch. 4 mini-projects. 2 production systems. A certificate and direct access to me &amp; industry experts in our Discord.</p><p><span>Built for software and data professionals transitioning into AI engineering. </span><em>Rated 5/5 with 300+ students. The first 7 lessons are free:</em></p><p><em>Not ready to commit?</em><span> Start with our </span><strong><a href="https://email-course.towardsai.net/?ref=b3ab31&amp;utm_source=decodingai&amp;utm_medium=partner&amp;utm_campaign=agent_engineering">free Agent AI Engineering Guide</a></strong><span>, a 6-day email course on the mistakes that silently break AI agents in production.</span></p></div><div><hr/></div><h2 class="header-anchor-post" id="rr-h-10">Images &amp; videos</h2><p>If not otherwise stated, all images and videos are created by the author.</p></div>
+  </main>
+
+  <footer class="bottom-bar">
+    <span id="pageInfo">Why Does Every Agent Session Start From Zero?</span>
+    <span id="readMeta" data-total-min="14" title="Estimated from 14 min at 220 words per minute">
+      <span id="readTime">~14 min read</span>
+      <span class="sep">&middot;</span>
+      <span id="timeLeft">14 min left</span>
+    </span>
+    <span id="progressPercent">0%</span>
+  </footer>
+
+  <footer class="footer">
+    Compiled from Decoding AI Magazine
+  </footer>
+
+  <script>
+    const TOTAL_MIN = parseInt(
+      (document.getElementById('readMeta') || {}).dataset?.totalMin || '0', 10) || 0;
+
+    function fmtMin(m) {
+      if (m < 1) return 'under a minute left';
+      if (m < 60) return m + ' min left';
+      const hrs = Math.floor(m / 60);
+      const mins = m % 60;
+      return hrs + 'h' + (mins ? ' ' + mins + 'm' : '') + ' left';
+    }
+
+    function updateProgress() {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const ratio = docHeight > 0 ? Math.min(1, Math.max(0, scrollTop / docHeight)) : 0;
+      const progress = ratio * 100;
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+      const left = document.getElementById('timeLeft');
+      if (left && TOTAL_MIN) {
+        if (ratio >= 0.995) left.textContent = 'done';
+        else left.textContent = fmtMin(Math.max(1, Math.ceil(TOTAL_MIN * (1 - ratio))));
+      }
+    }
+
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+
+    function toggleTOC() {
+      const panel = document.getElementById('tocPanel');
+      const overlay = document.getElementById('tocOverlay');
+      panel.classList.toggle('open');
+      overlay.classList.toggle('show');
+    }
+
+    function toggleChapter(event, idx) {
+      event.preventDefault();
+      event.stopPropagation();
+      const arrow = document.getElementById('arrow-' + idx);
+      const subs = document.getElementById('subs-' + idx);
+      if (arrow && subs) {
+        const isOpen = subs.style.display !== 'none';
+        subs.style.display = isOpen ? 'none' : 'block';
+        arrow.classList.toggle('open', !isOpen);
+      }
+    }
+
+    function navigateToChapter(url) {
+      window.location.href = url;
+    }
+
+    function toggleTheme() {
+      const root = document.documentElement;
+      const isDark = root.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        root.removeAttribute('data-theme');
+        document.getElementById('theme-icon').innerHTML = '<circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+      } else {
+        root.setAttribute('data-theme', 'dark');
+        document.getElementById('theme-icon').innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+      }
+    }
+  </script>
+  <!--rr-annotate-->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23FAF6EE'/%3E%3Ctext x='16' y='24' font-size='22' text-anchor='middle' fill='%23A34A2E' font-family='Georgia' font-style='italic'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="../../assets/annotate.css?v=21">
+<script type="application/json" id="rr-notes">{}</script>
+<script data-rr-palette="apple" src="../../assets/annotate.js?v=21" data-rr-book="build-llm-wiki-first-principles" data-rr-page="build-llm-wiki-first-principles_reader.html" data-rr-prefix="../../"></script>
+<script src="../../assets/local.js?v=2"></script>
+<script src="../../assets/chapter-toc.js?v=21"></script>
+<script src="../../assets/code-copy.js?v=21"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<script src="../../assets/article-toc.js?v=2"></script>
+<script src="../../assets/course-theme.js?v=3"></script>
+</body>
+</html>
