@@ -11,6 +11,8 @@
 <style>
 :root{--bg:#f6f1e7;--ink:#1a1612;--ink2:#6a5f54;--line:rgba(26,22,18,.14);
 --accent:#7a2e1f;--muted:#b9a996;--serif:'Instrument Serif',Georgia,serif;--sans:'Geist',system-ui,sans-serif}
+[data-theme="dark"]{--bg:#120f0c;--ink:#f2eae0;--ink2:#9c8d7b;--line:rgba(246,241,231,.12);
+--accent:#c9703f;--muted:#8a7d6e}
 *{box-sizing:border-box;margin:0;padding:0}
 html{font-size:18px}
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100vh;
@@ -90,7 +92,7 @@ border-bottom:1px solid var(--line)}
 <div class="wrap">
   <header class="mast">
     <div class="name">Article Room</div>
-    <div class="meta"><span id="rr-streak"></span> &nbsp; <a href="#" id="rr-search-btn" style="color:inherit;text-decoration:none">search</a> &nbsp; <a href="settings.html" style="color:inherit;text-decoration:none">settings</a></div>
+    <div class="meta"><span id="rr-streak"></span> &nbsp; <a href="#" id="rr-search-btn" style="color:inherit;text-decoration:none">search</a> &nbsp; <a href="settings.html" style="color:inherit;text-decoration:none">settings</a> &nbsp; <button id="rr-theme-toggle" style="background:none;border:none;color:var(--ink2);cursor:pointer;font-family:inherit">🌓</button></div>
   </header>
   <div id="rr-search" role="dialog" aria-label="Search the library"><div id="rr-search-box"><input id="rr-search-input" type="text" placeholder="Search books, guides, blogs…" autocomplete="off"><div id="rr-search-list"></div></div></div>
   <section class="hero"></section>
@@ -102,5 +104,27 @@ border-bottom:1px solid var(--line)}
 </div>
 <script src="assets/local.js?v=2"></script>
 <script src="assets/library.js?v=3"></script>
+<script>
+(function(){
+  var key='rr-theme';
+  var html=document.documentElement;
+  var btn=document.getElementById('rr-theme-toggle');
+  if(!btn) return;
+  var saved=localStorage.getItem(key);
+  var sys=window.matchMedia('(prefers-color-scheme: dark)');
+  function set(theme){
+    if(theme==='dark') html.setAttribute('data-theme','dark');
+    else html.removeAttribute('data-theme');
+    localStorage.setItem(key,theme);
+    btn.textContent=theme==='dark'?'☀️':'🌓';
+  }
+  if(saved){set(saved);}
+  else{set(sys.matches?'dark':'light');}
+  btn.addEventListener('click',function(){
+    var cur=html.getAttribute('data-theme')==='dark'?'dark':'light';
+    set(cur==='dark'?'light':'dark');
+  });
+})();
+</script>
 </body>
 </html>
