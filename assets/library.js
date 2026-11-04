@@ -110,7 +110,8 @@
           if (existing) { existing.remove(); return; }
           var popup = document.createElement('div');
           popup.id = popupId;
-          popup.innerHTML = '<div style="font-family:\'Instrument Serif\',Georgia,serif;font-size:1.05rem;color:var(--ink);line-height:1.25;margin-bottom:8px">' + (c.querySelector('.bk-lib-title') ? c.querySelector('.bk-lib-title').textContent.slice(0,28) : slug) + '</div><div style="font-size:.68rem;color:var(--ink2);margin-bottom:10px">' + files.length + ' chapter' + (files.length > 1 ? 's' : '') + '</div><button style="font-family:inherit;font-size:.8rem;background:var(--ink);color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;letter-spacing:.08em;text-transform:uppercase;transition:background .15s,transform .1s">&#10003; Mark as read</button>';
+          var isRead = files.every(function(f) { return parseInt(localStorage.getItem('rr-progress:' + slug + ':' + f) || '0') >= 90; });
+          popup.innerHTML = '<div style="font-family:\'Instrument Serif\',Georgia,serif;font-size:1.05rem;color:var(--ink);line-height:1.25;margin-bottom:8px">' + (c.querySelector('.bk-lib-title') ? c.querySelector('.bk-lib-title').textContent.slice(0,28) : slug) + '</div><div style="font-size:.68rem;color:var(--ink2);margin-bottom:10px">' + files.length + ' chapter' + (files.length > 1 ? 's' : '') + '</div><div style="display:flex;gap:6px">' + '<button style="font-family:inherit;font-size:.75rem;background:var(--ink);color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;letter-spacing:.06em;transition:background .15s,transform .1s">&#10003; Mark read</button>' + (!isRead ? '' : '<button style="font-family:inherit;font-size:.75rem;background:transparent;color:var(--accent);border:1px solid var(--accent);padding:6px 12px;border-radius:6px;cursor:pointer;letter-spacing:.06em;transition:opacity .15s">Undo</button>') + '</div>';
           popup.style.cssText = 'position:fixed;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:0 16px 48px rgba(26,22,18,.22);font-size:.85rem;z-index:120;min-width:200px;max-width:280px;animation:rrpop .18s ease';
           // Position intelligently: align right edge of popup to dots, with margin
           var rect = dots.getBoundingClientRect();
@@ -121,9 +122,20 @@
           popup.style.left = left + 'px';
           popup.style.top = top + 'px';
           document.body.appendChild(popup);
-          popup.querySelector('button').addEventListener('click', function() {
-            if (slug && files.length) { markRead(slug, files); }
-            popup.remove();
+          popup.querySelectorAll('button').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              if (btn.textContent.includes('Undo')) {
+                if (slug && files.length) {
+                  for (var j = 0; j < files.length; j++) {
+                    try { localStorage.removeItem('rr-progress:' + slug + ':' + files[j]); } catch (e) {}
+                  }
+                }
+                reShelve(); applyCategory(); try { refreshDrawer(); } catch(e) {}
+              } else {
+                if (slug && files.length) { markRead(slug, files); }
+              }
+              popup.remove();
+            });
           });
           setTimeout(function() {
             document.addEventListener('click', function closePop(e) {
