@@ -92,17 +92,23 @@
           face.appendChild(b);
         }
       }
-      // Add "Mark as read" link
-      if (!c.querySelector('.bk-mark-read')) {
+      // Three-dot button: click to mark as read
+      if (!c.querySelector('.bk-dots')) {
         var slug = c.getAttribute('data-book');
         var files = (c.getAttribute('data-chapters') || '').split(',').filter(Boolean);
-        var link = document.createElement('a');
-        link.className = 'bk-mark-read';
-        link.href = '#';
-        link.style.cssText = 'font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-top:6px;display:inline-block;text-decoration:none;opacity:.75;transition:opacity .15s';
-        link.textContent = 'mark as read';
-        link.addEventListener('click', function(ev) { ev.preventDefault(); if (slug && files.length) { markRead(slug, files); } });
-        c.appendChild(link);
+        var dots = document.createElement('button');
+        dots.className = 'bk-dots';
+        dots.textContent = '\u22EE';
+        dots.setAttribute('aria-label', 'Options — mark as read');
+        dots.style.cssText = 'font-size:.85rem;line-height:1;background:none;border:none;color:var(--ink2);cursor:pointer;padding:2px 6px;margin-top:8px;opacity:.6;transition:opacity .15s';
+        dots.addEventListener('click', function(ev) {
+          ev.preventDefault();
+          if (slug && files.length) { markRead(slug, files); }
+          dots.style.opacity = '.3';
+        });
+        dots.addEventListener('mouseenter', function() { dots.style.opacity = '1'; });
+        dots.addEventListener('mouseleave', function() { dots.style.opacity = '.6'; });
+        c.appendChild(dots);
       }
     });
     applyCategory();
