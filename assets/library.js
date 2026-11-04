@@ -70,6 +70,14 @@
     reShelve();
     try { refreshDrawer(); } catch(e) {}
   }
+  function markRead(slug, files) {
+    for (var i = 0; i < files.length; i++) {
+      try { window.localStorage.setItem('rr-progress:' + slug + ':' + files[i], '100'); } catch (e) {}
+    }
+    reShelve();
+    refreshDrawer();
+    applyCategory();
+  }
   function init() {
     document.querySelectorAll('.bk-spine').forEach(function(c) {
       var slug = c.getAttribute('data-book');
@@ -83,6 +91,18 @@
           b.textContent = isCourse ? 'C' : 'A';
           face.appendChild(b);
         }
+      }
+      // Add "Mark as read" link
+      if (!c.querySelector('.bk-mark-read')) {
+        var slug = c.getAttribute('data-book');
+        var files = (c.getAttribute('data-chapters') || '').split(',').filter(Boolean);
+        var link = document.createElement('a');
+        link.className = 'bk-mark-read';
+        link.href = '#';
+        link.style.cssText = 'font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-top:6px;display:inline-block;text-decoration:none;opacity:.75;transition:opacity .15s';
+        link.textContent = 'mark as read';
+        link.addEventListener('click', function(ev) { ev.preventDefault(); if (slug && files.length) { markRead(slug, files); } });
+        c.appendChild(link);
       }
     });
     applyCategory();
