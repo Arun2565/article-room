@@ -103,8 +103,28 @@
         dots.style.cssText = 'font-size:.85rem;line-height:1;background:none;border:none;color:var(--ink2);cursor:pointer;padding:2px 6px;margin-top:8px;opacity:.6;transition:opacity .15s';
         dots.addEventListener('click', function(ev) {
           ev.preventDefault();
-          if (slug && files.length) { markRead(slug, files); }
-          dots.style.opacity = '.3';
+          ev.stopPropagation();
+          // Show small popup with text option
+          var popupId = 'rr-dots-popup-' + slug;
+          var existing = document.getElementById(popupId);
+          if (existing) { existing.remove(); return; }
+          var popup = document.createElement('div');
+          popup.id = popupId;
+          popup.innerHTML = '<div style="font-size:.72rem;color:var(--ink2);margin-bottom:4px;font-weight:500">Options</div><button style="font-size:.75rem;background:var(--ink);color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer">Mark as read</button>';
+          popup.style.cssText = 'position:absolute;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;box-shadow:0 8px 24px rgba(26,22,18,.2);font-size:.75rem;z-index:110;min-width:130px';
+          var rect = dots.getBoundingClientRect();
+          popup.style.left = (rect.left + window.scrollX) + 'px';
+          popup.style.top = (rect.bottom + window.scrollY + 6) + 'px';
+          document.body.appendChild(popup);
+          popup.querySelector('button').addEventListener('click', function() {
+            if (slug && files.length) { markRead(slug, files); }
+            popup.remove();
+          });
+          setTimeout(function() {
+            document.addEventListener('click', function closePop(e) {
+              if (!popup.contains(e.target) && e.target !== dots) { popup.remove(); document.removeEventListener('click', closePop); }
+            });
+          }, 10);
         });
         dots.addEventListener('mouseenter', function() { dots.style.opacity = '1'; });
         dots.addEventListener('mouseleave', function() { dots.style.opacity = '.6'; });
