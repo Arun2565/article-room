@@ -56,7 +56,36 @@
     }
   }
 
+  var activeCategory = 'articles';
+  window.setCategory = function(c) { activeCategory = c; applyCategory(); };
+  function applyCategory() {
+    document.querySelectorAll('.bk-spine').forEach(function(card) {
+      var kind = card.getAttribute('data-kind') || 'article';
+      if (kind === 'course') { card.style.display = (activeCategory === 'courses') ? '' : 'none'; }
+      else { card.style.display = (activeCategory === 'articles') ? '' : 'none'; }
+    });
+    document.querySelectorAll('.cat-toggle a').forEach(function(a) {
+      a.classList.toggle('active', (a.textContent.toLowerCase().includes('course') ? 'courses' : 'articles') === activeCategory);
+    });
+    reShelve();
+    try { refreshDrawer(); } catch(e) {}
+  }
   function init() {
+    document.querySelectorAll('.bk-spine').forEach(function(c) {
+      var slug = c.getAttribute('data-book');
+      var isCourse = /cs329a|cs336|cme295|campusx/.test(slug);
+      c.setAttribute('data-kind', isCourse ? 'course' : 'article');
+      if (!c.querySelector('.bk-badge')) {
+        var face = c.querySelector('.bk-face');
+        if (face) {
+          var b = document.createElement('span');
+          b.className = 'bk-badge';
+          b.textContent = isCourse ? 'C' : 'A';
+          face.appendChild(b);
+        }
+      }
+    });
+    applyCategory();
     try { if (window.RR && window.RR.touch) window.RR.touch(); } catch (e) {}
     document.querySelectorAll('.bk-spine').forEach(upgrade);
     reShelve();
@@ -101,6 +130,10 @@
       var shelf = document.getElementById('shelf-' + stage);
       if (!shelf) return;
       var n = shelf.querySelectorAll('.bk-spine').length;
+      // When filtering by category, count only visible cards
+      if (typeof activeCategory !== 'undefined') {
+        n = Array.from(shelf.querySelectorAll('.bk-spine')).filter(function(c){ return c.style.display !== 'none'; }).length;
+      }
       var sec = shelf.closest('.shelf-section');
       var head = sec && sec.querySelector('.shelf-count');
       if (head) head.textContent = (n === 1 ? '1 book' : n + ' books');
