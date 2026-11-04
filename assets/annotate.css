@@ -38,7 +38,22 @@
 .ann-ul, .rr-u-ul { text-decoration-skip-ink: none !important; }
 .rr-u.rr-has-note { outline: 1px dashed #999; outline-offset: 1px; }
 .rr-u-note.rr-has-note { outline: none !important; }
+/* Popup pointer arrow */
+#rr-dots-popup::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 24px;
+  width: 12px;
+  height: 12px;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  transform: rotate(45deg);
+  z-index: 121;
+}
 .rr-flash { animation: rrflash 1.6s ease; }
+@keyframes rrpop { 0% { opacity: 0; transform: translateY(4px); } 100% { opacity: 1; transform: translateY(0); } }
 @keyframes rrflash { 0%, 40% { filter: brightness(1.4); } 100% { filter: none; } }
 
 /* Reader content: kill double-tap zoom so double-tap word-select reaches

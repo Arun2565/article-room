@@ -110,11 +110,16 @@
           if (existing) { existing.remove(); return; }
           var popup = document.createElement('div');
           popup.id = popupId;
-          popup.innerHTML = '<div style="font-size:.72rem;color:var(--ink2);margin-bottom:4px;font-weight:500">Options</div><button style="font-size:.75rem;background:var(--ink);color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer">Mark as read</button>';
-          popup.style.cssText = 'position:absolute;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;box-shadow:0 8px 24px rgba(26,22,18,.2);font-size:.75rem;z-index:110;min-width:130px';
+          popup.innerHTML = '<div style="font-family:\'Instrument Serif\',Georgia,serif;font-size:1.05rem;color:var(--ink);line-height:1.25;margin-bottom:8px">' + (c.querySelector('.bk-lib-title') ? c.querySelector('.bk-lib-title').textContent.slice(0,28) : slug) + '</div><div style="font-size:.68rem;color:var(--ink2);margin-bottom:10px">' + files.length + ' chapter' + (files.length > 1 ? 's' : '') + '</div><button style="font-family:inherit;font-size:.8rem;background:var(--ink);color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;letter-spacing:.08em;text-transform:uppercase;transition:background .15s,transform .1s">&#10003; Mark as read</button>';
+          popup.style.cssText = 'position:fixed;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:0 16px 48px rgba(26,22,18,.22);font-size:.85rem;z-index:120;min-width:200px;max-width:280px;animation:rrpop .18s ease';
+          // Position intelligently: align right edge of popup to dots, with margin
           var rect = dots.getBoundingClientRect();
-          popup.style.left = (rect.left + window.scrollX) + 'px';
-          popup.style.top = (rect.bottom + window.scrollY + 6) + 'px';
+          var pw = 220, ph = 110;
+          var left = Math.min(Math.max(12, rect.right - pw), window.innerWidth - pw - 12);
+          var top = Math.max(12, rect.bottom + 8);
+          if (top + ph > window.innerHeight - 12) { top = rect.top - ph - 10; }
+          popup.style.left = left + 'px';
+          popup.style.top = top + 'px';
           document.body.appendChild(popup);
           popup.querySelector('button').addEventListener('click', function() {
             if (slug && files.length) { markRead(slug, files); }
